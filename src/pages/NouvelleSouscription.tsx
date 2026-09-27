@@ -332,7 +332,7 @@ const NouvelleSouscription = () => {
   return (
     <ProtectedRoute>
       <MainLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto page-section">
         <div>
           <h1 className="text-3xl font-bold">Nouveau parcours client</h1>
           <p className="text-muted-foreground">
@@ -341,7 +341,7 @@ const NouvelleSouscription = () => {
           <SyncStatusBadge state={syncState} className="mt-2" />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
           {etapes.map((etape, index) => (
             <Button
               key={`${etape.titre}-${index}`}
@@ -355,11 +355,11 @@ const NouvelleSouscription = () => {
           ))}
         </div>
 
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6 rounded-2xl shadow-sm">
           <EtapeComponent formData={formData} updateFormData={updateFormData} />
         </Card>
 
-        <div className="flex justify-between">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           <Button
             variant="outline"
             onClick={passerEtapePrecedente}
