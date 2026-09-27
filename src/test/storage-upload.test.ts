@@ -14,7 +14,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-import { uploadFile } from "@/utils/storage";
+import { uploadFile, resolveStorageUrl } from "@/utils/storage";
 
 describe("Storage upload (RLS-friendly)", () => {
   it("range les fichiers dans user.id/ pour matcher storage.foldername(name)[1]=auth.uid()", async () => {
@@ -25,6 +25,7 @@ describe("Storage upload (RLS-friendly)", () => {
   it("retourne une URL signée pour bucket privé", async () => {
     const file = new File(["x"], "x.pdf", { type: "application/pdf" });
     const r = await uploadFile("documents-fonciers", file);
-    expect(r?.url).toBe("https://signed");
+    const url = await resolveStorageUrl("documents-fonciers", r?.path);
+    expect(url).toBe("https://signed");
   });
 });
