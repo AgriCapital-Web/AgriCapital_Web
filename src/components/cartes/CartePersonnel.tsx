@@ -110,7 +110,7 @@ export const validiteTexte = (carte: CarteData) => {
 };
 
 export const verificationUrl = (code: string) =>
-  `${typeof window !== "undefined" ? window.location.origin : "https://app.agricapital.ci"}/verifier-carte/${code}`;
+  `https://app.agricapital.ci/verify/${code}`;
 
 const initiales = (nom: string) =>
   nom
