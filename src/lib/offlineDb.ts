@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'agricapital_offline';
-const DB_VERSION = 8;
+const DB_VERSION = 9;
 
 export const STORES = {
   CLIENTS: 'clients',
@@ -49,13 +49,14 @@ function openDB(): Promise<IDBDatabase> {
           const newStore = tx.objectStore(STORES.CLIENTS);
           oldStore.openCursor().onsuccess = (cursorEvent) => {
             const cursor = (cursorEvent.target as IDBRequest<IDBCursorWithValue | null>).result;
-            if (!cursor) return;
+            if (!cursor) {
+              db.deleteObjectStore(legacyStore);
+              return;
+            }
             newStore.put(cursor.value);
             cursor.continue();
           };
-          tx.oncomplete = () => {
-            if (db.objectStoreNames.contains(legacyStore)) db.deleteObjectStore(legacyStore);
-          };
+
         }
       }
       const storeNames = Object.values(STORES);
