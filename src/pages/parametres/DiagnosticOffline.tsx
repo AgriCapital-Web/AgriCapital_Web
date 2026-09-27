@@ -12,7 +12,7 @@ import { exportToCSV, exportAllOfflineData, type ExportType } from "@/utils/csvE
 import { getSafeErrorMessage } from "@/lib/safeError";
 
 const STORE_LABELS: Record<string, string> = {
-  SOUSCRIPTEURS: "Souscripteurs",
+  CLIENTS: "Clients",
   PLANTATIONS: "Plantations",
   PAIEMENTS: "Paiements",
   OFFRES: "Offres",
@@ -37,7 +37,7 @@ const DiagnosticOffline = () => {
     setExporting(true);
     try {
       const storeMap: Record<ExportType, string> = {
-        souscripteurs: STORES.SOUSCRIPTEURS,
+        clients: STORES.CLIENTS,
         plantations: STORES.PLANTATIONS,
         paiements: STORES.PAIEMENTS,
       };
@@ -208,7 +208,7 @@ const DiagnosticOffline = () => {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {([
-              { type: 'souscripteurs' as ExportType, label: 'Souscripteurs', count: stats['SOUSCRIPTEURS'] || 0 },
+              { type: 'clients' as ExportType, label: 'Clients', count: stats['CLIENTS'] || 0 },
               { type: 'plantations' as ExportType, label: 'Plantations', count: stats['PLANTATIONS'] || 0 },
               { type: 'paiements' as ExportType, label: 'Paiements', count: stats['PAIEMENTS'] || 0 },
             ]).map(({ type, label, count }) => (
