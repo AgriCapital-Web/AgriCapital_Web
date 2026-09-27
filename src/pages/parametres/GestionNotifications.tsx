@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -257,7 +257,7 @@ const GestionNotifications = () => {
   );
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => <div className="min-w-0 space-y-2"><Label>{label}</Label>{children}</div>;
+const Field = ({ label, children }: { label: string; children: ReactNode }) => <div className="min-w-0 space-y-2"><Label>{label}</Label>{children}</div>;
 const Status = ({ label, ok }: { label: string; ok: boolean }) => <div className="flex items-center gap-2 rounded-lg border p-3 text-sm">{ok ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertTriangle className="h-4 w-4 text-muted-foreground" />}<span className="min-w-0 truncate">{label}</span><Badge className="ml-auto" variant={ok ? "default" : "outline"}>{ok ? "Pret" : "A configurer"}</Badge></div>;
 const Preview = ({ count, sample }: { count: number; sample: any[] }) => <div className="rounded-lg border bg-muted/30 p-3"><p className="text-sm font-medium">{count} destinataire(s)</p><div className="mt-2 flex flex-wrap gap-2">{sample.slice(0, 8).map((x, i) => <Badge key={i} variant="outline">{x.nom_complet || x.email || x.telephone || "Contact"}</Badge>)}</div></div>;
 
