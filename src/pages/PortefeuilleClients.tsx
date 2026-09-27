@@ -30,7 +30,7 @@ const PortefeuilleClients = () => {
   const fetchPlanteurs = async () => {
     try {
       const { data, error } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select(`
           *,
           plantations (
@@ -60,7 +60,7 @@ const PortefeuilleClients = () => {
   }, []);
 
   useRealtime({
-    table: "souscripteurs",
+    table: "clients",
     onChange: () => fetchPlanteurs(),
   });
 
