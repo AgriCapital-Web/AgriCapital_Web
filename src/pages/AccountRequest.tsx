@@ -264,6 +264,7 @@ const AccountRequest = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary to-primary-hover p-3 sm:p-4">
       <Card className="w-full max-w-[95%] sm:max-w-2xl shadow-strong my-4 min-w-0">
         <CardHeader className="text-center px-4 sm:px-6 pb-4">
