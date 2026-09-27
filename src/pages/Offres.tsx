@@ -69,6 +69,7 @@ const Offres = () => {
   const [promoFormData, setPromoFormData] = useState({
     nom: "",
     pourcentage_reduction: "30",
+    montant_fixe_reduction: "",
     date_debut: "",
     date_fin: "",
     description: "",
@@ -160,7 +161,8 @@ const Offres = () => {
     mutationFn: async (data: typeof promoFormData) => {
       const promoData = {
         nom: data.nom,
-        pourcentage_reduction: parseInt(data.pourcentage_reduction),
+        pourcentage_reduction: Number(data.pourcentage_reduction || 0),
+        montant_fixe_reduction: Number(data.montant_fixe_reduction || 0),
         date_debut: new Date(data.date_debut).toISOString(),
         date_fin: new Date(data.date_fin).toISOString(),
         description: data.description,
@@ -675,7 +677,7 @@ const Offres = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="pourcentage">Pourcentage de réduction (%) *</Label>
+                      <Label htmlFor="pourcentage">Pourcentage de réduction (%)</Label>
                       <div className="relative">
                         <Input
                           id="pourcentage"
@@ -684,7 +686,7 @@ const Offres = () => {
                           onChange={(e) => setPromoFormData({...promoFormData, pourcentage_reduction: e.target.value})}
                           min="1"
                           max="99"
-                          required
+                          min="0"
                         />
                         <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
@@ -694,7 +696,7 @@ const Offres = () => {
                       <Label>Aperçu indicatif</Label>
                       <div className="p-2 bg-green-50 rounded border border-green-200">
                         <p className="text-sm text-green-700">
-                          20 000F → {formatMontant(calculateReducedAmount(promoFormData.cible === "paiement_initial" ? 20000 : 100000, parseInt(promoFormData.pourcentage_reduction || "0")))}F
+                          20 000F → {formatMontant(calculateReducedAmount(promoFormData.cible === "paiement_initial" ? 20000 : 100000, Number(promoFormData.pourcentage_reduction || "0"), Number((promoFormData as any).montant_fixe_reduction || 0)))}F
                         </p>
                       </div>
                     </div>
