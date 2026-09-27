@@ -19,10 +19,12 @@ export const usePromotionActive = (offreId?: string | null) => {
 
       if (error) throw error;
       const promotions = (data || []) as PromotionBase[];
-      if (!offreId) return promotions[0] || null;
+      const nowDate = new Date(now);
+      const active = promotions.filter((p) => p.active && (!p.date_debut || new Date(p.date_debut) <= nowDate) && (!p.date_fin || new Date(p.date_fin) >= nowDate));
+      if (!offreId) return active[0] || null;
 
       const offre = { id: offreId } as OffreBase;
-      return meilleurePromotion(offre, promotions);
+      return meilleurePromotion(offre, active, nowDate);
     },
     staleTime: 30_000,
   });
