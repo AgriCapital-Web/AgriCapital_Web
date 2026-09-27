@@ -1283,6 +1283,114 @@ export type Database = {
           },
         ]
       }
+      client_account_provision_outbox: {
+        Row: {
+          created_at: string
+          derniere_erreur: string | null
+          id: string
+          processed_at: string | null
+          souscripteur_id: string
+          statut: string
+          tentatives: number
+        }
+        Insert: {
+          created_at?: string
+          derniere_erreur?: string | null
+          id?: string
+          processed_at?: string | null
+          souscripteur_id: string
+          statut?: string
+          tentatives?: number
+        }
+        Update: {
+          created_at?: string
+          derniere_erreur?: string | null
+          id?: string
+          processed_at?: string | null
+          souscripteur_id?: string
+          statut?: string
+          tentatives?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_account_provision_outbox_souscripteur_id_fkey"
+            columns: ["souscripteur_id"]
+            isOneToOne: false
+            referencedRelation: "souscripteurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_account_provision_outbox_souscripteur_id_fkey"
+            columns: ["souscripteur_id"]
+            isOneToOne: false
+            referencedRelation: "v_souscripteur_synthese"
+            referencedColumns: ["souscripteur_id"]
+          },
+        ]
+      }
+      client_contracts: {
+        Row: {
+          created_at: string
+          date_signature: string | null
+          fichier_url: string | null
+          id: string
+          metadata: Json
+          observations: string | null
+          reference: string | null
+          souscripteur_id: string
+          statut: string
+          type_contrat: string
+          updated_at: string
+          valide_at: string | null
+          valide_par: string | null
+        }
+        Insert: {
+          created_at?: string
+          date_signature?: string | null
+          fichier_url?: string | null
+          id?: string
+          metadata?: Json
+          observations?: string | null
+          reference?: string | null
+          souscripteur_id: string
+          statut?: string
+          type_contrat: string
+          updated_at?: string
+          valide_at?: string | null
+          valide_par?: string | null
+        }
+        Update: {
+          created_at?: string
+          date_signature?: string | null
+          fichier_url?: string | null
+          id?: string
+          metadata?: Json
+          observations?: string | null
+          reference?: string | null
+          souscripteur_id?: string
+          statut?: string
+          type_contrat?: string
+          updated_at?: string
+          valide_at?: string | null
+          valide_par?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contracts_souscripteur_id_fkey"
+            columns: ["souscripteur_id"]
+            isOneToOne: false
+            referencedRelation: "souscripteurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contracts_souscripteur_id_fkey"
+            columns: ["souscripteur_id"]
+            isOneToOne: false
+            referencedRelation: "v_souscripteur_synthese"
+            referencedColumns: ["souscripteur_id"]
+          },
+        ]
+      }
       commissions: {
         Row: {
           annee_contrat: number | null
@@ -2594,6 +2702,21 @@ export type Database = {
           },
         ]
       }
+      notification_cron_state: {
+        Row: {
+          id: boolean
+          last_run_at: string | null
+        }
+        Insert: {
+          id?: boolean
+          last_run_at?: string | null
+        }
+        Update: {
+          id?: boolean
+          last_run_at?: string | null
+        }
+        Relationships: []
+      }
       notification_deliveries: {
         Row: {
           automation_id: string | null
@@ -2674,6 +2797,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_event_outbox: {
+        Row: {
+          context: Json
+          created_at: string
+          derniere_erreur: string | null
+          event_code: string
+          id: string
+          processed_at: string | null
+          statut: string
+          tentatives: number
+        }
+        Insert: {
+          context?: Json
+          created_at?: string
+          derniere_erreur?: string | null
+          event_code: string
+          id?: string
+          processed_at?: string | null
+          statut?: string
+          tentatives?: number
+        }
+        Update: {
+          context?: Json
+          created_at?: string
+          derniere_erreur?: string | null
+          event_code?: string
+          id?: string
+          processed_at?: string | null
+          statut?: string
+          tentatives?: number
+        }
+        Relationships: []
       }
       notification_provider_events: {
         Row: {
@@ -2854,6 +3010,8 @@ export type Database = {
           actif: boolean | null
           avantages: Json | null
           code: string
+          contrat_accompagnement_requis: boolean
+          contrat_acquisition_requis: boolean
           contribution_mensuelle_par_ha: number
           couleur: string | null
           created_at: string | null
@@ -2861,14 +3019,20 @@ export type Database = {
           duree_installation_mois: number
           duree_paiement_mois: number
           duree_production_ans: number
+          famille_offre: string | null
+          formule_code: string | null
+          formule_nom: string | null
           gestion_type: string
           id: string
           montant_cash_par_ha: number
           montant_da_par_ha: number
           montant_depot_initial_par_ha: number
           montant_total_par_ha: number
+          necessite_cotitulaire: boolean
+          necessite_foncier_client: boolean
           nom: string
           ordre: number | null
+          parcours_code: string | null
           pourcentage_revenus_reverses: number
           redevance_production_par_ha_an: number
           tranches_paiement: Json
@@ -2879,6 +3043,8 @@ export type Database = {
           actif?: boolean | null
           avantages?: Json | null
           code: string
+          contrat_accompagnement_requis?: boolean
+          contrat_acquisition_requis?: boolean
           contribution_mensuelle_par_ha?: number
           couleur?: string | null
           created_at?: string | null
@@ -2886,14 +3052,20 @@ export type Database = {
           duree_installation_mois?: number
           duree_paiement_mois?: number
           duree_production_ans?: number
+          famille_offre?: string | null
+          formule_code?: string | null
+          formule_nom?: string | null
           gestion_type?: string
           id?: string
           montant_cash_par_ha?: number
           montant_da_par_ha?: number
           montant_depot_initial_par_ha?: number
           montant_total_par_ha?: number
+          necessite_cotitulaire?: boolean
+          necessite_foncier_client?: boolean
           nom: string
           ordre?: number | null
+          parcours_code?: string | null
           pourcentage_revenus_reverses?: number
           redevance_production_par_ha_an?: number
           tranches_paiement?: Json
@@ -2904,6 +3076,8 @@ export type Database = {
           actif?: boolean | null
           avantages?: Json | null
           code?: string
+          contrat_accompagnement_requis?: boolean
+          contrat_acquisition_requis?: boolean
           contribution_mensuelle_par_ha?: number
           couleur?: string | null
           created_at?: string | null
@@ -2911,14 +3085,20 @@ export type Database = {
           duree_installation_mois?: number
           duree_paiement_mois?: number
           duree_production_ans?: number
+          famille_offre?: string | null
+          formule_code?: string | null
+          formule_nom?: string | null
           gestion_type?: string
           id?: string
           montant_cash_par_ha?: number
           montant_da_par_ha?: number
           montant_depot_initial_par_ha?: number
           montant_total_par_ha?: number
+          necessite_cotitulaire?: boolean
+          necessite_foncier_client?: boolean
           nom?: string
           ordre?: number | null
+          parcours_code?: string | null
           pourcentage_revenus_reverses?: number
           redevance_production_par_ha_an?: number
           tranches_paiement?: Json
@@ -2971,6 +3151,7 @@ export type Database = {
           date_upload_preuve: string | null
           date_validation: string | null
           est_depot_initial: boolean
+          est_paiement_initial: boolean
           fichier_preuve_url: string | null
           id: string
           id_transaction: string | null
@@ -3016,6 +3197,7 @@ export type Database = {
           date_upload_preuve?: string | null
           date_validation?: string | null
           est_depot_initial?: boolean
+          est_paiement_initial?: boolean
           fichier_preuve_url?: string | null
           id?: string
           id_transaction?: string | null
@@ -3061,6 +3243,7 @@ export type Database = {
           date_upload_preuve?: string | null
           date_validation?: string | null
           est_depot_initial?: boolean
+          est_paiement_initial?: boolean
           fichier_preuve_url?: string | null
           id?: string
           id_transaction?: string | null
@@ -4048,6 +4231,154 @@ export type Database = {
           },
         ]
       }
+      rapports_visites_medias: {
+        Row: {
+          client_visible: boolean
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          media_type: string
+          mime_type: string | null
+          nom_fichier: string | null
+          plantation_id: string
+          rapport_id: string
+          storage_path: string
+        }
+        Insert: {
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          media_type: string
+          mime_type?: string | null
+          nom_fichier?: string | null
+          plantation_id: string
+          rapport_id: string
+          storage_path: string
+        }
+        Update: {
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          media_type?: string
+          mime_type?: string | null
+          nom_fichier?: string | null
+          plantation_id?: string
+          rapport_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rapports_visites_medias_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_medias_plantation_id_fkey"
+            columns: ["plantation_id"]
+            isOneToOne: false
+            referencedRelation: "plantations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_medias_rapport_id_fkey"
+            columns: ["rapport_id"]
+            isOneToOne: false
+            referencedRelation: "rapports_visites_techniques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rapports_visites_techniques: {
+        Row: {
+          client_visible: boolean
+          created_at: string
+          created_by: string | null
+          date_visite: string
+          id: string
+          observations: string | null
+          plantation_id: string
+          recommandations: string | null
+          souscripteur_id: string | null
+          statut: string
+          technicien_id: string | null
+          type_visite: string
+          updated_at: string
+        }
+        Insert: {
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          date_visite?: string
+          id?: string
+          observations?: string | null
+          plantation_id: string
+          recommandations?: string | null
+          souscripteur_id?: string | null
+          statut?: string
+          technicien_id?: string | null
+          type_visite?: string
+          updated_at?: string
+        }
+        Update: {
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          date_visite?: string
+          id?: string
+          observations?: string | null
+          plantation_id?: string
+          recommandations?: string | null
+          souscripteur_id?: string | null
+          statut?: string
+          technicien_id?: string | null
+          type_visite?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rapports_visites_techniques_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_techniques_plantation_id_fkey"
+            columns: ["plantation_id"]
+            isOneToOne: false
+            referencedRelation: "plantations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_techniques_souscripteur_id_fkey"
+            columns: ["souscripteur_id"]
+            isOneToOne: false
+            referencedRelation: "souscripteurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_techniques_souscripteur_id_fkey"
+            columns: ["souscripteur_id"]
+            isOneToOne: false
+            referencedRelation: "v_souscripteur_synthese"
+            referencedColumns: ["souscripteur_id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_techniques_technicien_id_fkey"
+            columns: ["technicien_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limits: {
         Row: {
           action: string
@@ -4296,6 +4627,8 @@ export type Database = {
           civilite: string | null
           code_sp_contrat: string | null
           compte_actif: boolean
+          contrat_accompagnement_statut: string
+          contrat_acquisition_statut: string
           contrat_debut_at: string | null
           contrat_fin_at: string | null
           created_at: string | null
@@ -4309,9 +4642,12 @@ export type Database = {
           domicile: string | null
           domicile_residence: string | null
           email: string | null
+          famille_offre: string | null
           fichier_piece_recto_url: string | null
           fichier_piece_url: string | null
           fichier_piece_verso_url: string | null
+          formule_code: string | null
+          formule_nom: string | null
           id: string
           id_unique: string | null
           jours_contrat_total: number
@@ -4333,7 +4669,10 @@ export type Database = {
           numero_ordre_global: number | null
           numero_piece: string | null
           offre_id: string | null
+          paiement_initial_montant: number
+          paiement_initial_paye_at: string | null
           parcelle_id: string | null
+          parcours_code: string | null
           phase_actuelle: string
           photo_profil_url: string | null
           prenoms: string | null
@@ -4354,6 +4693,7 @@ export type Database = {
           updated_at: string | null
           updated_by: string | null
           user_id: string | null
+          village_id: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -4362,6 +4702,8 @@ export type Database = {
           civilite?: string | null
           code_sp_contrat?: string | null
           compte_actif?: boolean
+          contrat_accompagnement_statut?: string
+          contrat_acquisition_statut?: string
           contrat_debut_at?: string | null
           contrat_fin_at?: string | null
           created_at?: string | null
@@ -4375,9 +4717,12 @@ export type Database = {
           domicile?: string | null
           domicile_residence?: string | null
           email?: string | null
+          famille_offre?: string | null
           fichier_piece_recto_url?: string | null
           fichier_piece_url?: string | null
           fichier_piece_verso_url?: string | null
+          formule_code?: string | null
+          formule_nom?: string | null
           id?: string
           id_unique?: string | null
           jours_contrat_total?: number
@@ -4399,7 +4744,10 @@ export type Database = {
           numero_ordre_global?: number | null
           numero_piece?: string | null
           offre_id?: string | null
+          paiement_initial_montant?: number
+          paiement_initial_paye_at?: string | null
           parcelle_id?: string | null
+          parcours_code?: string | null
           phase_actuelle?: string
           photo_profil_url?: string | null
           prenoms?: string | null
@@ -4420,6 +4768,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
+          village_id?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -4428,6 +4777,8 @@ export type Database = {
           civilite?: string | null
           code_sp_contrat?: string | null
           compte_actif?: boolean
+          contrat_accompagnement_statut?: string
+          contrat_acquisition_statut?: string
           contrat_debut_at?: string | null
           contrat_fin_at?: string | null
           created_at?: string | null
@@ -4441,9 +4792,12 @@ export type Database = {
           domicile?: string | null
           domicile_residence?: string | null
           email?: string | null
+          famille_offre?: string | null
           fichier_piece_recto_url?: string | null
           fichier_piece_url?: string | null
           fichier_piece_verso_url?: string | null
+          formule_code?: string | null
+          formule_nom?: string | null
           id?: string
           id_unique?: string | null
           jours_contrat_total?: number
@@ -4465,7 +4819,10 @@ export type Database = {
           numero_ordre_global?: number | null
           numero_piece?: string | null
           offre_id?: string | null
+          paiement_initial_montant?: number
+          paiement_initial_paye_at?: string | null
           parcelle_id?: string | null
+          parcours_code?: string | null
           phase_actuelle?: string
           photo_profil_url?: string | null
           prenoms?: string | null
@@ -4486,6 +4843,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
+          village_id?: string | null
           whatsapp?: string | null
         }
         Relationships: [
@@ -4543,6 +4901,13 @@ export type Database = {
             columns: ["sous_prefecture_id"]
             isOneToOne: false
             referencedRelation: "sous_prefectures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
             referencedColumns: ["id"]
           },
         ]
@@ -4975,6 +5340,7 @@ export type Database = {
       can_supervise_leads: { Args: { _user_id: string }; Returns: boolean }
       cleanup_expired_otp: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      client_should_be_active: { Args: { _id: string }; Returns: boolean }
       compute_commission_for_paiement: {
         Args: { p_paiement_id: string }
         Returns: undefined
@@ -4984,6 +5350,10 @@ export type Database = {
         Returns: string
       }
       current_profile_id: { Args: never; Returns: string }
+      ensure_client_contracts: {
+        Args: { _souscripteur_id: string }
+        Returns: undefined
+      }
       finalize_portal_payment: {
         Args: {
           _metadata?: Json
@@ -5009,6 +5379,10 @@ export type Database = {
       is_rh: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       mark_overdue_payments: { Args: never; Returns: undefined }
+      notification_emit_event: {
+        Args: { _context: Json; _event: string }
+        Returns: undefined
+      }
       notification_get_internal_secret: { Args: never; Returns: string }
       notification_resolve_recipients: {
         Args: { _criteres?: Json }
@@ -5023,6 +5397,7 @@ export type Database = {
           source_type: string
           telephone: string
           user_id: string
+          whatsapp: string
         }[]
       }
       notify_hierarchy: {
@@ -5062,6 +5437,14 @@ export type Database = {
         Returns: undefined
       }
       recompute_pending_di: { Args: never; Returns: undefined }
+      recompute_profile_coverage: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
+      refresh_client_account_activation: {
+        Args: { _souscripteur_id: string }
+        Returns: undefined
+      }
       resolve_username_email: { Args: { _username: string }; Returns: string }
       simuler_paiement_fractionne: {
         Args: { _montant: number; _souscripteur_id: string }
@@ -5085,6 +5468,10 @@ export type Database = {
           type_contrat: string
           valide: boolean
         }[]
+      }
+      zone_assignment_expected_type: {
+        Args: { _user_id: string }
+        Returns: string
       }
     }
     Enums: {
