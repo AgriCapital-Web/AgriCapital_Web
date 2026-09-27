@@ -99,6 +99,16 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     const totalUnitaire = Number(prix.montant_total_base || 0);
     const totalFinal = Number(prix.montant_total_effectif || 0);
     const mensualiteEffective = Number(prix.mensualite_effective || 0);
+    const remainingBase = Math.max(totalUnitaire - piUnitaireBase, 0);
+    const remainingEffective = Math.max(totalFinal - piUnitaireFinal, 0);
+    const ratioEcheancier = remainingBase > 0 ? remainingEffective / remainingBase : 1;
+    const tranchesEffectives = tranches.map((t: any) => ({
+      ...t,
+      mensualite_par_ha_effective:
+        prix.promotion_cible === "cout_global"
+          ? Number(t.mensualite_par_ha || 0) * ratioEcheancier
+          : Number(t.mensualite_par_ha || 0),
+    }));
 
     return {
       ha,
@@ -110,7 +120,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       totalNormal: totalUnitaire * ha,
       cashUnitaire: Number(o.montant_cash_par_ha || 0),
       modePaiement,
-      tranches,
+      tranches: tranchesEffectives,
       duree: modePaiement === "comptant" ? 1 : Number(o.duree_paiement_mois || 0),
       mensualiteEffective,
       promoCible: prix.promotion_cible,
@@ -288,7 +298,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                   {calculs.tranches.filter((t:any) => Number(t.mensualite_par_ha) > 0).map((t: any, i: number) => (
                     <div key={i} className="flex justify-between text-xs text-muted-foreground">
                       <span>An {t.annee} — {t.mois} mois</span>
-                      <span>{formatMontant((calculs.promotionAppliquee && calculs.promoCible === 'cout_global' ? calculs.mensualiteEffective : Number(t.mensualite_par_ha)) * calculs.ha)} F/mois</span>
+                      <span>{formatMontant(Number(t.mensualite_par_ha_effective ?? t.mensualite_par_ha ?? 0) * calculs.ha)} F/mois</span>
                     </div>
                   ))}
                 </div>
