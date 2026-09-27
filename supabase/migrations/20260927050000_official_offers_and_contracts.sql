@@ -59,8 +59,8 @@ insert into public.offres (
   'Plantation clé en main, sans terre préalable, gestion intégrale déléguée — propriété 28 ans.',
   true,2,'sans_terre','deleguee','PALMINVEST','PALMINVEST_PLUS','PalmInvest+',
   true,true,false,true,'PALMINVEST',
-  90700,90700,83800,2266000,2465200,40,36,28,
-  '[{"libelle":"Paiement initial","montant":90700,"mois":"M1"},{"libelle":"Année 1","montant":350900,"mensualite":31900,"mois":"M2-M12"},{"libelle":"Année 2","montant":682800,"mensualite":56900,"mois":"M13-M24"},{"libelle":"Année 3","montant":1340800,"mensualite":83800,"mois":"M25-M40"}]',
+  0,90700,83800,2266000,2465200,40,36,28,
+  '[{"libelle":"Paiement initial","montant":90700,"mensualite_par_ha":90700,"mois":1},{"libelle":"Année 1","montant":350900,"mensualite_par_ha":31900,"mois":11},{"libelle":"Année 2","montant":682800,"mensualite_par_ha":56900,"mois":12},{"libelle":"Année 3","montant":1340800,"mensualite_par_ha":83800,"mois":16}]',
   '["Plantation clé en main","Gestion intégrale déléguée","Patrimoine actif à 36 mois","Reporting et suivi digital","Revenus sur votre compte"]'::jsonb
 )
 on conflict(code) do update set
@@ -112,8 +112,8 @@ insert into public.offres (
   'Vous avez la terre, nous en faisons une plantation productive — gestion intégrale déléguée, propriété 28 ans.',
   true,4,'avec_terre','deleguee','TERRAPALM','TERRAPALM_PLUS','TerraPalm+',
   true,true,true,true,'TERRAPALM',
-  84700,84700,49800,1466200,1620200,40,36,28,
-  '[{"libelle":"Paiement initial","montant":84700,"mois":"M1"},{"libelle":"Année 1","montant":295900,"mensualite":26900,"mois":"M2-M12"},{"libelle":"Année 2","montant":442800,"mensualite":36900,"mois":"M13-M24"},{"libelle":"Année 3","montant":796800,"mensualite":49800,"mois":"M25-M40"}]',
+  0,84700,49800,1466200,1620200,40,36,28,
+  '[{"libelle":"Paiement initial","montant":84700,"mensualite_par_ha":84700,"mois":1},{"libelle":"Année 1","montant":295900,"mensualite_par_ha":26900,"mois":11},{"libelle":"Année 2","montant":442800,"mensualite_par_ha":36900,"mois":12},{"libelle":"Année 3","montant":796800,"mensualite_par_ha":49800,"mois":16}]',
   '["Votre terre reste la vôtre","Gestion intégrale déléguée","Reporting et suivi digital","Revenus sur votre compte"]'::jsonb
 )
 on conflict(code) do update set
@@ -177,6 +177,21 @@ on conflict(code) do update set
   contribution_mensuelle_par_ha=excluded.contribution_mensuelle_par_ha,montant_cash_par_ha=excluded.montant_cash_par_ha,montant_total_par_ha=excluded.montant_total_par_ha,
   duree_paiement_mois=excluded.duree_paiement_mois,duree_installation_mois=excluded.duree_installation_mois,duree_production_ans=excluded.duree_production_ans,
   tranches_paiement=excluded.tranches_paiement,avantages=excluded.avantages,updated_at=now();
+
+-- Réalignement idempotent des deux anciennes lignes + après leur conversion.
+update public.offres set
+  montant_da_par_ha=0,montant_depot_initial_par_ha=90700,contribution_mensuelle_par_ha=83800,montant_cash_par_ha=2266000,montant_total_par_ha=2465200,duree_paiement_mois=40,
+  famille_offre='PALMINVEST',formule_code='PALMINVEST_PLUS',formule_nom='PalmInvest+',parcours_code='PALMINVEST',type_offre='sans_terre',gestion_type='deleguee',actif=true,ordre=2,
+  contrat_acquisition_requis=true,contrat_accompagnement_requis=true,necessite_foncier_client=false,necessite_cotitulaire=true,
+  tranches_paiement='[{"libelle":"Paiement initial","montant":90700,"mensualite_par_ha":90700,"mois":1},{"libelle":"Année 1","montant":350900,"mensualite_par_ha":31900,"mois":11},{"libelle":"Année 2","montant":682800,"mensualite_par_ha":56900,"mois":12},{"libelle":"Année 3","montant":1340800,"mensualite_par_ha":83800,"mois":16}]'::jsonb
+where code='palm-invest-plus';
+
+update public.offres set
+  montant_da_par_ha=0,montant_depot_initial_par_ha=84700,contribution_mensuelle_par_ha=49800,montant_cash_par_ha=1466200,montant_total_par_ha=1620200,duree_paiement_mois=40,
+  famille_offre='TERRAPALM',formule_code='TERRAPALM_PLUS',formule_nom='TerraPalm+',parcours_code='TERRAPALM',type_offre='avec_terre',gestion_type='deleguee',actif=true,ordre=4,
+  contrat_acquisition_requis=true,contrat_accompagnement_requis=true,necessite_foncier_client=true,necessite_cotitulaire=true,
+  tranches_paiement='[{"libelle":"Paiement initial","montant":84700,"mensualite_par_ha":84700,"mois":1},{"libelle":"Année 1","montant":295900,"mensualite_par_ha":26900,"mois":11},{"libelle":"Année 2","montant":442800,"mensualite_par_ha":36900,"mois":12},{"libelle":"Année 3","montant":796800,"mensualite_par_ha":49800,"mois":16}]'::jsonb
+where code='terra-palm-plus';
 
 -- Réactiver le contrôle tarifaire après la migration des offres officielles.
 create trigger trg_validate_offre_pricing before insert or update on public.offres
