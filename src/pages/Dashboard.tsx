@@ -64,23 +64,23 @@ const Dashboard = () => {
 
   const [connectionTime] = useState(new Date().toLocaleTimeString("fr-FR"));
   const [stats, setStats] = useState({
-    totalPlanteurs: 0,
+    totalClients: 0,
     totalPlantations: 0,
     totalSuperficie: 0,
     totalPaiements: 0,
     paiementsEnAttente: 0,
     plantationsEnProduction: 0,
-    evolutionPlanteurs: 0,
+    evolutionClients: 0,
     evolutionPlantations: 0,
     tauxProduction: 0,
   });
 
-  const [recentPlanteurs, setRecentPlanteurs] = useState<any[]>([]);
+  const [recentClients, setRecentClients] = useState<any[]>([]);
   const [recentPaiements, setRecentPaiements] = useState<any[]>([]);
   const [statsParRegion, setStatsParRegion] = useState<any[]>([]);
   const [evolutionMensuelle, setEvolutionMensuelle] = useState<any[]>([]);
   const [alertes, setAlertes] = useState<any[]>([]);
-  const [topPlanteurs, setTopPlanteurs] = useState<any[]>([]);
+  const [topClients, setTopClients] = useState<any[]>([]);
   const [docsEnAttente, setDocsEnAttente] = useState(0);
   const [souscriptionsEnAttente, setSouscriptionsEnAttente] = useState(0);
   const [synthese, setSynthese] = useState<any[]>([]);
@@ -115,7 +115,7 @@ const Dashboard = () => {
       }
 
       // Stats globales
-      const { count: planteursCount } = await (supabase as any)
+      const { count: clientsCount } = await (supabase as any)
         .from("souscripteurs")
         .select("*", { count: "exact", head: true });
 
@@ -147,19 +147,19 @@ const Dashboard = () => {
       const montantEnAttente = paiements?.filter((p) => p.statut === "en_attente")
         .reduce((sum, p) => sum + (p.montant || 0), 0) || 0;
 
-      // Planteurs récents
-      const { data: planteurs } = await (supabase as any)
+      // Clients récents
+      const { data: clients } = await (supabase as any)
         .from("souscripteurs")
         .select("id_unique, nom_complet, created_at, statut_global, nombre_plantations")
         .order("created_at", { ascending: false })
         .limit(5);
 
-      setRecentPlanteurs(planteurs || []);
+      setRecentClients(clients || []);
 
       // Paiements récents
       const paiementsRecents = paiements?.slice(0, 5).map((p: any) => ({
         ...p,
-        planteur_nom: p.plantations?.souscripteurs?.nom_complet || "N/A"
+        client_nom: p.plantations?.souscripteurs?.nom_complet || "N/A"
       })) || [];
       setRecentPaiements(paiementsRecents);
 
@@ -238,14 +238,14 @@ const Dashboard = () => {
 
       setAlertes(alertesArray);
 
-      // Top planteurs
-      const { data: topPlanteursData } = await (supabase as any)
+      // Top clients
+      const { data: topClientsData } = await (supabase as any)
         .from("souscripteurs")
         .select("nom_complet, nombre_plantations, total_hectares")
         .order("total_hectares", { ascending: false })
         .limit(5);
 
-      setTopPlanteurs(topPlanteursData || []);
+      setTopClients(topClientsData || []);
 
       // Documents en attente
       const { count: docsCount } = await (supabase as any)
@@ -262,13 +262,13 @@ const Dashboard = () => {
       setSouscriptionsEnAttente(subsCount || 0);
 
       setStats({
-        totalPlanteurs: planteursCount || 0,
+        totalClients: clientsCount || 0,
         totalPlantations: plantations?.length || 0,
         totalSuperficie,
         totalPaiements,
         paiementsEnAttente: paiementsEnAttenteCount,
         plantationsEnProduction,
-        evolutionPlanteurs: plantationsCeMois > 0 ? 12 : 0,
+        evolutionClients: plantationsCeMois > 0 ? 12 : 0,
         evolutionPlantations: plantationsCeMois,
         tauxProduction: Number(tauxProduction),
       });
@@ -416,7 +416,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <div className="text-2xl font-bold">{stats.totalPlanteurs}</div>
+                    <div className="text-2xl font-bold">{stats.totalClients}</div>
                     <p className="text-xs text-muted-foreground">{souscriptionsEnAttente} en attente</p>
                   </div>
                   <Link to="/souscriptions" className="text-xs text-primary hover:underline">Voir →</Link>
@@ -506,16 +506,16 @@ const Dashboard = () => {
             <Card className="hover-scale cursor-pointer transition-all hover:shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
                 <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Planteurs
+                  Clients
                 </CardTitle>
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </CardHeader>
               <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.totalPlanteurs}</div>
-                {stats.evolutionPlanteurs > 0 && (
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.totalClients}</div>
+                {stats.evolutionClients > 0 && (
                   <div className="flex items-center gap-1 mt-1 sm:mt-2 text-green-600">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm font-medium">+{stats.evolutionPlanteurs}%</span>
+                    <span className="text-xs sm:text-sm font-medium">+{stats.evolutionClients}%</span>
                   </div>
                 )}
               </CardContent>
@@ -682,12 +682,12 @@ const Dashboard = () => {
 
           {/* 3️⃣ TABLEAUX DÉTAILLÉS */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Planteurs récents */}
+            {/* Clients récents */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
-                  Planteurs Récents
+                  Clients Récents
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -702,14 +702,14 @@ const Dashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {recentPlanteurs.length === 0 ? (
+                      {recentClients.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center text-muted-foreground">
-                            Aucun planteur
+                            Aucun client
                           </TableCell>
                         </TableRow>
                       ) : (
-                        recentPlanteurs.map((p) => (
+                        recentClients.map((p) => (
                           <TableRow key={p.id_unique}>
                             <TableCell className="font-mono text-xs">{p.id_unique}</TableCell>
                             <TableCell>{p.nom_complet}</TableCell>
@@ -741,7 +741,7 @@ const Dashboard = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Planteur</TableHead>
+                        <TableHead>Client</TableHead>
                         <TableHead>Montant</TableHead>
                         <TableHead>Statut</TableHead>
                       </TableRow>
@@ -756,7 +756,7 @@ const Dashboard = () => {
                       ) : (
                         recentPaiements.map((p, i) => (
                           <TableRow key={i}>
-                            <TableCell className="font-medium">{p.planteur_nom}</TableCell>
+                            <TableCell className="font-medium">{p.client_nom}</TableCell>
                             <TableCell>{formatMontant(p.montant_paye || 0)}</TableCell>
                             <TableCell>
                               <Badge 
@@ -832,15 +832,15 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-semibold mb-3 text-muted-foreground">
-                      Top 5 Planteurs (par superficie)
+                      Top 5 Clients (par superficie)
                     </h4>
                     <div className="space-y-2">
-                      {topPlanteurs.length === 0 ? (
+                      {topClients.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">
                           Aucune donnée disponible
                         </p>
                       ) : (
-                        topPlanteurs.map((planteur, i) => (
+                        topClients.map((client, i) => (
                           <div 
                             key={i}
                             className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50 transition-colors"
@@ -854,12 +854,12 @@ const Dashboard = () => {
                               }`}>
                                 <span className="text-sm font-bold">#{i + 1}</span>
                               </div>
-                              <span className="font-medium">{planteur.nom_complet}</span>
+                              <span className="font-medium">{client.nom_complet}</span>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-semibold">{planteur.total_hectares?.toFixed(1) || 0} ha</div>
+                              <div className="text-sm font-semibold">{client.total_hectares?.toFixed(1) || 0} ha</div>
                               <div className="text-xs text-muted-foreground">
-                                {planteur.nombre_plantations || 0} plantation(s)
+                                {client.nombre_plantations || 0} plantation(s)
                               </div>
                             </div>
                           </div>
