@@ -127,7 +127,7 @@ const AccountRequests = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold">Demandes de Création de Compte</h1>
       </div>
 
@@ -136,7 +136,7 @@ const AccountRequests = () => {
           <CardTitle>Liste des Demandes</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto"><Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
@@ -274,7 +274,7 @@ const AccountRequests = () => {
                 <div>
                   <Label>Photo</Label>
                   <SignedImg
-                    bucket="photos-profils"
+                    bucket={String(selectedRequest.photo_url).startsWith("profiles/") ? "photos-profils" : "documents"}
                     value={selectedRequest.photo_url}
                     alt="Photo"
                     className="w-32 h-32 object-cover rounded-full mt-2"
