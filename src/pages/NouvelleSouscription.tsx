@@ -306,6 +306,7 @@ const NouvelleSouscription = () => {
           montant_theorique: paiementInitial,
           montant_paye: 0,
           type_paiement: "paiement_initial",
+          est_paiement_initial: true,
           est_depot_initial: true,
           statut: "en_attente",
           parcours: formData.famille_offre,
