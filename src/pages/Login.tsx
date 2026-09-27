@@ -51,7 +51,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Panneau gauche - Branding (caché sur mobile, visible sur desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary relative flex-col items-center justify-center p-12 overflow-hidden">
+      <div className="flex w-full min-h-[30vh] lg:min-h-screen lg:w-1/2 bg-primary relative flex-col items-center justify-center p-12 overflow-hidden">
         {/* Pattern décoratif */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-40 h-40 rounded-full border-2 border-white/30" />
@@ -82,7 +82,7 @@ const Login = () => {
       <div className="relative flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-background min-h-screen lg:min-h-0">
 {/* Logo mobile — sans cadre */}
 
-        <div className="lg:hidden mb-8 w-full flex flex-col items-center">
+        <div className="hidden mb-8 w-full flex flex-col items-center">
           <img
             src={logoV2}
             alt="AgriCapital"
