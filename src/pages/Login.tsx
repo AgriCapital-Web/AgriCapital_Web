@@ -89,7 +89,7 @@ const Login = () => {
             className="w-full max-w-[280px] sm:max-w-xs h-auto"
           />
           <p className="text-muted-foreground text-sm mt-3 text-center">
-            Gestion des Planteurs & Plantations
+            Gestion des clients & plantations
           </p>
         </div>
 
