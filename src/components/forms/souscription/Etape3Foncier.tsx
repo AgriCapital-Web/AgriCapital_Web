@@ -22,9 +22,11 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
   const [lots, setLots] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const typeFoncier: "EXT" | "OWN" =
-    formData.type_souscripteur_foncier ||
-    (formData.type_souscripteur === "avec_terre" ? "OWN" : "EXT");
+  const offreCode = String(formData.offre_code || formData.offre?.code || "").toLowerCase();
+  const isPalmInvest = offreCode === "palm-invest" || offreCode === "palm-invest-plus";
+  const isTerraPalm = offreCode === "terra-palm" || offreCode === "terra-palm-plus";
+  const isPalmTerroir = offreCode.startsWith("palm-terroir");
+  const typeFoncier: "EXT" | "OWN" = isPalmInvest ? "EXT" : "OWN";
 
   useEffect(() => {
     const load = async () => {
@@ -38,8 +40,8 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
       setConventions(data || []);
       setLoading(false);
     };
-    if (typeFoncier === "EXT") load();
-  }, [typeFoncier]);
+    if (isPalmInvest) load();
+  }, [isPalmInvest]);
 
   useEffect(() => {
     const load = async () => {
@@ -62,13 +64,19 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Identification foncière — Contrat V1</CardTitle>
+          <CardTitle>Parcelle de la plantation</CardTitle>
           <CardDescription>
-            Le client est-il externe (terre fournie par AgriCapital) ou propriétaire de la terre ?
+            {isPalmInvest
+              ? "PalmInvest : AgriCapital sécurise l'accès au foncier et affecte une parcelle du domaine."
+              : isTerraPalm
+                ? "TerraPalm : le client apporte sa propre terre ; AgriCapital assure la création et la gestion prévue au contrat."
+                : isPalmTerroir
+                  ? "PalmTerroir : le client dispose de sa propre parcelle et en reste responsable."
+                  : "La parcelle est rattachée à l'offre sélectionnée."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isPalmInvest && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               type="button"
               onClick={() => updateFormData({ type_souscripteur_foncier: "EXT", proprietaire_id: null })}
@@ -93,11 +101,11 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
                 Le client apporte sa propre terre, enregistrée comme parcelle client.
               </p>
             </button>
-          </div>
+          </div>}
         </CardContent>
       </Card>
 
-      {typeFoncier === "EXT" && (
+      {typeFoncier === "EXT" && isPalmInvest && (
         <Card>
           <CardHeader>
             <CardTitle>Convention Planter-Partager & Lot Hxx</CardTitle>
@@ -157,12 +165,14 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
         </Card>
       )}
 
-      {typeFoncier === "OWN" && (
+      {typeFoncier === "OWN" && !isPalmInvest && (
         <Card>
           <CardHeader>
-            <CardTitle>Identification du propriétaire foncier</CardTitle>
+            <CardTitle>{isPalmTerroir ? "Votre parcelle PalmTerroir" : "Votre parcelle TerraPalm"}</CardTitle>
             <CardDescription>
-              Le client est lui-même propriétaire — saisie minimale du foncier.
+              {isPalmTerroir
+                ? "Le client fournit et entretient sa parcelle."
+                : "Le client fournit la terre ; AgriCapital prend en charge la mise en place et l'entretien prévus pour TerraPalm."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
