@@ -1,7 +1,7 @@
 {
   "name": "AgriCapital App",
   "short_name": "AgriCapital App",
-  "description": "Système de Gestion des Souscripteurs & Plantations - CRM AgriCapital",
+  "description": "Système de Gestion des Clients & Plantations - CRM AgriCapital",
   "theme_color": "#00643C",
   "background_color": "#ffffff",
   "display": "standalone",
