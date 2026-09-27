@@ -8,12 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
  */
 const TABLES = [
   'paiements',
-  'souscripteurs',
+  'clients',
   'plantations',
   'commissions',
   'portefeuilles',
   'notifications',
-  'documents_souscription',
+  'documents_acquisition',
   'parcelles',
   'proprietaires_terres',
   'offres',
