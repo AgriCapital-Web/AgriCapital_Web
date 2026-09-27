@@ -7,11 +7,11 @@ Deno.serve(async(req)=>{
     if(!lock) return new Response(JSON.stringify({ok:true,skipped:"lock"}),{headers:{"Content-Type":"application/json"}});
     const call=async(body)=>{const r=await fetch(url+"/functions/v1/notification-dispatch",{method:"POST",headers:{"Content-Type":"application/json","x-agricapital-automation-secret":serviceKey},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"notification-dispatch "+r.status);return j;};
     const scheduled=await call({mode:"run_automations"});
-    const {data:accounts}=await admin.from("client_account_provision_outbox").select("id,souscripteur_id,tentatives").eq("statut","en_attente").order("created_at").limit(20);
+    const {data:accounts}=await admin.from("client_account_provision_outbox").select("id,client_id,tentatives").eq("statut","en_attente").order("created_at").limit(20);
     const accountResults=[];
     for(const a of accounts||[]){
       try{
-        const rr=await fetch(url+"/functions/v1/provision-client-account",{method:"POST",headers:{"Content-Type":"application/json","x-agricapital-account-secret":serviceKey},body:JSON.stringify({souscripteur_id:a.souscripteur_id})});
+        const rr=await fetch(url+"/functions/v1/provision-client-account",{method:"POST",headers:{"Content-Type":"application/json","x-agricapital-account-secret":serviceKey},body:JSON.stringify({client_id:a.client_id})});
         const jj=await rr.json().catch(()=>({}));
         if(!rr.ok||!jj.success) throw new Error(jj.error||"Provisionnement HTTP "+rr.status);
         await admin.from("client_account_provision_outbox").update({statut:"traite",processed_at:new Date().toISOString(),tentatives:(a.tentatives||0)+1,derniere_erreur:null}).eq("id",a.id);
