@@ -105,7 +105,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
         montantPI = 30000 - (30000 * promotionActive.pourcentage_reduction / 100);
       }
       
-      setValue("montant_theorique", montantDA);
+      setValue("montant_theorique", montantPI);
     }
   }, [typePaiement, clientId, promotionActive, setValue]);
 
@@ -374,7 +374,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
           </Select>
         </div>
 
-        {/* SOUSCRIPTEUR (PLANTEUR) */}
+        {/* ACQUÉREUR */}
         {typePaiement && (
           <div>
             <Label htmlFor="client_id">Planteur *</Label>
