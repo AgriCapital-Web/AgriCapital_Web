@@ -78,6 +78,7 @@ const Offres = () => {
       const { data, error } = await supabase
         .from('offres')
         .select('*')
+        .in('code', ['palm-invest','palm-invest-plus','terra-palm','terra-palm-plus','palm-terroir-essentielle','palm-terroir-flexible'])
         .order('ordre', { ascending: true });
       
       if (error) throw error;
