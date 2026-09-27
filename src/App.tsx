@@ -33,6 +33,12 @@ import PublicLead from "./pages/PublicLead";
 import AgriPlan from "./pages/AgriPlan";
 import DevCarteApercu from "./pages/__DevCarteApercu";
 import VerificationCarte from "./pages/VerificationCarte";
+
+const LegacyVerificationRedirect = () => {
+  const path = window.location.pathname;
+  const code = path.split("/").filter(Boolean).pop();
+  return <Navigate to={code && code !== "verifier-carte" ? `/verify/${code}` : "/verify"} replace />;
+};
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
@@ -54,8 +60,12 @@ const DomainRouter = () => {
 
       {/* Vérification publique d'une carte du personnel (QR code) */}
       <Route path="/__dev-carte" element={<DevCarteApercu />} />
-      <Route path="/verifier-carte" element={<VerificationCarte />} />
-      <Route path="/verifier-carte/:code" element={<VerificationCarte />} />
+      {/* Unique parcours public de scan/vérification : app.agricapital.ci/verify */}
+      <Route path="/verify" element={<VerificationCarte />} />
+      <Route path="/verify/:code" element={<VerificationCarte />} />
+      {/* Compatibilité des anciennes URLs : redirection immédiate vers le parcours officiel. */}
+      <Route path="/verifier-carte" element={<Navigate to="/verify" replace />} />
+      <Route path="/verifier-carte/:code" element={<LegacyVerificationRedirect />} />
 
       {/* Protected routes: garde-fou global d'authentification. Les pages conservent leurs contrôles métier propres. */}
       <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
