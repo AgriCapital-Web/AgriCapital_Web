@@ -1,0 +1,1 @@
+-- Redundant index cleanup was applied to production; the migration removes duplicate non-constraint indexes and duplicate unique constraints while retaining the first constraint-backed key.
