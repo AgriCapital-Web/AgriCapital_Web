@@ -15,6 +15,7 @@ export const useOffresPrixEffectif = () => {
           .from("offres")
           .select("id, code, nom, montant_total_par_ha, montant_depot_initial_par_ha, montant_da_par_ha, contribution_mensuelle_par_ha, duree_paiement_mois, actif")
           .eq("actif", true)
+          .in("code", ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus","palm-terroir-essentielle","palm-terroir-flexible"])
           .order("ordre", { ascending: true }),
         (supabase as any)
           .from("promotions")
