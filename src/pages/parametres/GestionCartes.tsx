@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { PERMISSIONS, hasPermission, roleLabel } from "@/lib/roles";
@@ -266,7 +266,7 @@ const GestionCartes = () => {
     }
   };
 
-  const exporter = async (ref: React.RefObject<HTMLDivElement>, nom: string) => {
+  const exporter = async (ref: RefObject<HTMLDivElement>, nom: string) => {
     const source = ref.current;
     if (!source) {
       toast.error("La carte n'est pas prête à être exportée.");
