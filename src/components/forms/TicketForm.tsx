@@ -74,7 +74,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
     setLoading(true);
 
     try {
-      let photosUrls: string[] = [];
+      const photosUrls: string[] = [];
 
       // Upload photos
       if (photoFiles.length > 0) {
