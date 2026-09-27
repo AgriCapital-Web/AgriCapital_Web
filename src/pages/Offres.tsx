@@ -252,7 +252,7 @@ const Offres = () => {
         nom: editOffre.nom,
         description: editOffre.description,
         montant_pi_par_ha: pi,
-        montant_depot_initial_par_ha: pi,
+        montant_pi_par_ha: pi,
         contribution_mensuelle_par_ha: lastMonthly,
         montant_total_par_ha: total,
         duree_paiement_mois: duree,
@@ -449,7 +449,7 @@ const Offres = () => {
                                 {promoActive && pe && pe.depot_initial_effectif !== pe.depot_initial_base && (
                                   <span className="line-through text-muted-foreground">{formatMontant(pe.depot_initial_base)}F</span>
                                 )}
-                                <span className="font-bold">{formatMontant(pe?.depot_initial_effectif ?? offre.montant_depot_initial_par_ha)}F</span>
+                                <span className="font-bold">{formatMontant(pe?.depot_initial_effectif ?? offre.montant_pi_par_ha)}F</span>
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-2">
