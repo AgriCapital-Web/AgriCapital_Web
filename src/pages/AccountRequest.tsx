@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -303,7 +303,7 @@ const AccountRequest = () => {
   );
 };
 
-const Field = ({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) => (
+const Field = ({ label, icon, children }: { label: string; icon?: ReactNode; children: ReactNode }) => (
   <div className="min-w-0 space-y-1.5">
     <Label className="flex items-center gap-2 text-sm">{icon && <span className="shrink-0">{icon}</span>}{label}</Label>
     {children}
