@@ -348,10 +348,11 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             />
           </div>
 
-          <div style={{ marginTop: 22, textAlign: "center" }}>
+          <div style={{ marginTop: 22, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 9 }}>
+            <span style={{ width: 46, height: 1, backgroundColor: GRIS_CLAIR }} />
+            <img src={symbole} alt="" style={{ width: 22, height: 22, objectFit: "contain", display: "block" }} />
             <span
               style={{
-                display: "inline-block",
                 color: VERT,
                 fontSize: 10,
                 fontWeight: 800,
@@ -361,6 +362,7 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             >
               Carte professionnelle
             </span>
+            <span style={{ width: 46, height: 1, backgroundColor: GRIS_CLAIR }} />
           </div>
 
           <div
