@@ -35,10 +35,10 @@ serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
 
-    // Helper to get souscripteur for current user
-    const getSouscripteur = async () => {
+    // Helper to get client for current user
+    const getClient = async () => {
       const { data } = await supabase
-        .from("souscripteurs")
+        .from("clients")
         .select("*")
         .eq("user_id", user.id)
         .single();
@@ -47,9 +47,9 @@ serve(async (req) => {
 
     switch (action) {
       case "dashboard": {
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) {
-          return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), {
+        const client = await getClient();
+        if (!client) {
+          return new Response(JSON.stringify({ error: "Client non trouvé" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
@@ -65,11 +65,11 @@ serve(async (req) => {
         ] = await Promise.all([
           supabase.from("plantations")
             .select("*, regions(nom), departements(nom), sous_prefectures(nom), districts(nom)")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", client.id)
             .order("created_at", { ascending: false }),
           supabase.from("paiements")
             .select("*")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", client.id)
             .order("created_at", { ascending: false })
             .limit(50),
           supabase.from("promotions")
@@ -84,16 +84,16 @@ serve(async (req) => {
             .order("ordre"),
           supabase.from("remboursements")
             .select("*")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", client.id)
             .order("created_at", { ascending: false })
             .limit(10),
-          supabase.from("v_souscripteur_synthese")
+          supabase.from("v_client_synthese")
             .select("*")
-            .eq("id", souscripteur.id)
+            .eq("id", client.id)
             .maybeSingle(),
           supabase.from("paiements")
             .select("*")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", client.id)
             .eq("est_depot_initial", true)
             .maybeSingle(),
         ]);
@@ -109,7 +109,7 @@ serve(async (req) => {
           .filter((p: any) => p.statut === 'en_retard' || (p.statut === 'en_attente' && p.date_echeance && new Date(p.date_echeance) < new Date()));
 
         return new Response(JSON.stringify({
-          souscripteur,
+          client,
           plantations: plantations || [],
           paiements: paiements || [],
           remboursements: remboursements || [],
@@ -119,11 +119,11 @@ serve(async (req) => {
           depot_initial: depotInitial || null,
           stats: {
             totalPlantations: (plantations || []).length,
-            totalHectares: souscripteur.total_hectares || 0,
+            totalHectares: client.total_hectares || 0,
             totalDAPaye,
             totalRedevances,
             paiementsEnRetard: paiementsEnRetard.length,
-            compteActif: !!souscripteur.compte_actif,
+            compteActif: !!client.compte_actif,
             depotInitialDu: depotInitial && depotInitial.statut !== 'valide' ? depotInitial.montant : 0,
           },
         }), {
@@ -132,34 +132,34 @@ serve(async (req) => {
       }
 
       case "depot-initial": {
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) {
-          return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), {
+        const client = await getClient();
+        if (!client) {
+          return new Response(JSON.stringify({ error: "Client non trouvé" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
         const { data: depot } = await supabase
           .from("paiements")
           .select("*")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", client.id)
           .eq("est_depot_initial", true)
           .maybeSingle();
-        return new Response(JSON.stringify({ depot_initial: depot || null, souscripteur }), {
+        return new Response(JSON.stringify({ depot_initial: depot || null, client }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
 
       case "echeances": {
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) {
-          return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), {
+        const client = await getClient();
+        if (!client) {
+          return new Response(JSON.stringify({ error: "Client non trouvé" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
         const { data: echeances } = await supabase
           .from("paiements")
           .select("*")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", client.id)
           .eq("type_paiement", "REDEVANCE")
           .order("numero_echeance", { ascending: true });
         return new Response(JSON.stringify({ echeances: echeances || [] }), {
@@ -168,16 +168,16 @@ serve(async (req) => {
       }
 
       case "synthese": {
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) {
-          return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), {
+        const client = await getClient();
+        if (!client) {
+          return new Response(JSON.stringify({ error: "Client non trouvé" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
         const { data: synthese } = await supabase
-          .from("v_souscripteur_synthese")
+          .from("v_client_synthese")
           .select("*")
-          .eq("id", souscripteur.id)
+          .eq("id", client.id)
           .maybeSingle();
         return new Response(JSON.stringify({ synthese: synthese || null }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
@@ -197,14 +197,14 @@ serve(async (req) => {
             status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) {
-          return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), {
+        const client = await getClient();
+        if (!client) {
+          return new Response(JSON.stringify({ error: "Client non trouvé" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
         const { data, error } = await supabase.rpc("simuler_paiement_fractionne", {
-          _souscripteur_id: souscripteur.id,
+          _client_id: client.id,
           _montant: montant,
         });
         if (error) throw error;
@@ -227,9 +227,9 @@ serve(async (req) => {
       }
 
       case "paiement-history": {
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) {
-          return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), {
+        const client = await getClient();
+        if (!client) {
+          return new Response(JSON.stringify({ error: "Client non trouvé" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
@@ -237,7 +237,7 @@ serve(async (req) => {
         const { data: paiements } = await supabase
           .from("paiements")
           .select("*, plantations(id_unique, nom_plantation)")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", client.id)
           .order("created_at", { ascending: false })
           .limit(200);
 
@@ -247,9 +247,9 @@ serve(async (req) => {
       }
 
       case "plantations": {
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) {
-          return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), {
+        const client = await getClient();
+        if (!client) {
+          return new Response(JSON.stringify({ error: "Client non trouvé" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
           });
         }
@@ -257,7 +257,7 @@ serve(async (req) => {
         const { data: plantations } = await supabase
           .from("plantations")
           .select("*, regions(nom), departements(nom), sous_prefectures(nom), districts(nom)")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", client.id)
           .order("created_at", { ascending: false });
 
         return new Response(JSON.stringify({ plantations: plantations || [] }), {
@@ -324,11 +324,11 @@ serve(async (req) => {
       }
 
       case "rapports-techniques": {
-        const souscripteur = await getSouscripteur();
-        if (!souscripteur) return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const client = await getClient();
+        if (!client) return new Response(JSON.stringify({ error: "Client non trouvé" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         const { data: rapports } = await supabase.from("rapports_visites_techniques")
           .select("id,plantation_id,date_visite,type_visite,observations,recommandations,statut,client_visible,created_at")
-          .eq("souscripteur_id", souscripteur.id).eq("client_visible", true).order("date_visite",{ascending:false}).limit(100);
+          .eq("client_id", client.id).eq("client_visible", true).order("date_visite",{ascending:false}).limit(100);
         const ids=(rapports||[]).map((r:any)=>r.id);
         const { data: medias } = ids.length ? await supabase.from("rapports_visites_medias")
           .select("id,rapport_id,plantation_id,media_type,storage_path,mime_type,nom_fichier,description,client_visible,created_at")
@@ -350,15 +350,15 @@ serve(async (req) => {
         if (req.method === "POST") {
           const body = await req.json();
 
-          // La plantation référencée doit appartenir au souscripteur connecté.
+          // La plantation référencée doit appartenir au client connecté.
           let plantationId: string | null = null;
           if (body.plantation_id) {
-            const souscripteur = await getSouscripteur();
+            const client = await getClient();
             const { data: ownedPlantation } = await supabase
               .from("plantations")
               .select("id")
               .eq("id", body.plantation_id)
-              .eq("souscripteur_id", souscripteur?.id ?? "00000000-0000-0000-0000-000000000000")
+              .eq("client_id", client?.id ?? "00000000-0000-0000-0000-000000000000")
               .maybeSingle();
             if (!ownedPlantation) {
               return new Response(JSON.stringify({ error: "Plantation introuvable" }), {
@@ -409,9 +409,9 @@ serve(async (req) => {
           .eq("user_id", user.id)
           .single();
 
-        const souscripteur = await getSouscripteur();
+        const client = await getClient();
 
-        return new Response(JSON.stringify({ profile, souscripteur }), {
+        return new Response(JSON.stringify({ profile, client }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
