@@ -1,1 +1,3 @@
 project_id = "rfzfsmpsuempafhkqhra"
+[functions.upload-account-request-photo]
+verify_jwt = false
