@@ -244,7 +244,14 @@ const Offres = () => {
       return { ...t, annee: Number(t.annee) || index + 1, mois, mensualite_par_ha: mensuel, total_periode_par_ha: mensuel * mois };
     });
     const duree = tranches.reduce((sum: number, t: any) => sum + Number(t.mois || 0), 0);
-    const total = pi + tranches.reduce((sum: number, t: any) => sum + Number(t.total_periode_par_ha || 0), 0);
+    // Les tranches ponctuelles (ex. paiement après trouaison) peuvent déjà
+    // être incluses dans le PI. Le total contractuel = PI + mensualités.
+    // On ne les additionne donc jamais une seconde fois.
+    const totalMensualites = tranches.reduce(
+      (sum: number, t: any) => sum + (Number(t.mensualite_par_ha || 0) * Number(t.mois || 0)),
+      0,
+    );
+    const total = pi + totalMensualites;
     const lastMonthly = Number(tranches[tranches.length - 1]?.mensualite_par_ha || 0);
     updateOffreMutation.mutate({
       id: editOffre.id,
