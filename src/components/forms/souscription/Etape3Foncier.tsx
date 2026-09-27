@@ -7,10 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Identification de la plantation — Contrat V1, article 4.
- * - type_souscripteur_foncier : EXT (souscripteur externe — terre AgriCapital) | OWN (propriétaire foncier)
- * - Sélection de la convention PP active et d'un lot Hxx disponible.
- * - La référence finale du contrat est construite côté DB (AGC-SUB-YYYY-SPxxx-NNNN).
+ * Identification du foncier client.
+ * - type_souscripteur_foncier : EXT (foncier mis à disposition) | OWN (parcelle du client)
+ * - Sélection d'une convention foncière active et d'un lot disponible.
+ * - La référence finale du contrat est construite automatiquement côté base.
  */
 interface Props {
   formData: any;
@@ -88,7 +88,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
                 typeFoncier === "EXT" ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/50"
               }`}
             >
-              <div className="font-semibold">EXT — Client externe</div>
+              <div className="font-semibold">EXT — Foncier mis à disposition</div>
               <p className="text-xs text-muted-foreground mt-1">
                 AgriCapital sécurise le foncier via une convention avec le propriétaire. Sélection d’un lot disponible.
               </p>
