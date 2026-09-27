@@ -31,7 +31,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   useGlobalRealtime();
 
   const menuItems = [
-    { icon: Leaf, label: "AgriPlan", path: "/agriplan", permission: PERMISSIONS.VIEW_AGRIPLAN },
     { icon: LayoutDashboard, label: "Tableau de bord", path: "/dashboard", permission: PERMISSIONS.VIEW_DASHBOARD },
     { icon: Target, label: "Prospects", path: "/leads", permission: PERMISSIONS.VIEW_LEADS },
     { icon: Users, label: "Souscripteurs", path: "/souscriptions", permission: PERMISSIONS.VIEW_SOUSCRIPTIONS },
