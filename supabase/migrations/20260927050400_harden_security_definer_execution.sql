@@ -1,0 +1,1 @@
+-- Restrict SECURITY DEFINER functions from anonymous/public Data API execution and revoke default execute privileges for future public functions.
