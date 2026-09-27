@@ -34,3 +34,25 @@ where exists (
   where sp.id=v.sous_prefecture_id
     and sp.est_active=true and d.est_actif=true and r.est_active=true and di.est_actif=true
 );
+
+-- Rattachement des doublons historiques vers les départements canoniques codifiés.
+update public.sous_prefectures sp set departement_id='ed623e3a-5a42-40ec-96a7-35d097bc9e31',est_active=true
+where sp.departement_id='e096eb86-9593-4bf5-afc0-a824e5748758'
+and not exists(select 1 from public.sous_prefectures c where c.departement_id='ed623e3a-5a42-40ec-96a7-35d097bc9e31' and lower(trim(c.nom))=lower(trim(sp.nom)));
+
+update public.sous_prefectures sp set departement_id='ea517b5a-056d-469e-ba0b-db8cc5078719',est_active=true
+where sp.departement_id='e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7'
+and not exists(select 1 from public.sous_prefectures c where c.departement_id='ea517b5a-056d-469e-ba0b-db8cc5078719' and lower(trim(c.nom))=lower(trim(sp.nom)));
+
+update public.sous_prefectures sp set departement_id='2de34668-7e36-419a-92df-e100e4e126c7',est_active=true
+where sp.departement_id='5f2e4090-d15b-40a2-be53-c0c9e2637371'
+and not exists(select 1 from public.sous_prefectures c where c.departement_id='2de34668-7e36-419a-92df-e100e4e126c7' and lower(trim(c.nom))=lower(trim(sp.nom)));
+
+update public.villages v set est_actif=true
+where exists(
+  select 1 from public.sous_prefectures sp
+  join public.departements d on d.id=sp.departement_id
+  join public.regions r on r.id=d.region_id
+  join public.districts di on di.id=r.district_id
+  where sp.id=v.sous_prefecture_id and sp.est_active=true and d.est_actif=true and r.est_active=true and di.est_actif=true
+);
