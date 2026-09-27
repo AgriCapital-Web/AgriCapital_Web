@@ -268,7 +268,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
               {calculs.tranches.length > 0 && (
                 <div className="border-t pt-2 space-y-1 text-sm">
                    <div className="font-medium mb-1">Échéancier de paiement :</div>
-                  {calculs.tranches.map((t: any, i: number) => (
+                  {calculs.tranches.filter((t:any) => Number(t.mensualite_par_ha) > 0).map((t: any, i: number) => (
                     <div key={i} className="flex justify-between text-xs text-muted-foreground">
                       <span>An {t.annee} — {t.mois} mois</span>
                       <span>{formatMontant(Number(t.mensualite_par_ha) * calculs.ha)} F/mois</span>
