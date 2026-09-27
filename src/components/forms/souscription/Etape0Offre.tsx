@@ -80,7 +80,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     return [];
   };
 
-  // Calculer DI + total contrat avec application de la promo selon cible
+  // Calculer PI + total contrat avec application de la promo selon cible
   const calculs = useMemo(() => {
     if (!formData.offre_id || !formData.superficie_prevue || !offres) return null;
     
@@ -89,31 +89,31 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
 
     const ha = Number(formData.superficie_prevue);
     const o = offre as any;
-    const diUnitaire = o.montant_depot_initial_par_ha ?? o.montant_da_par_ha ?? 0;
+    const piUnitaire = o.montant_depot_initial_par_ha ?? o.montant_da_par_ha ?? 0;
     const totalUnitaire = o.montant_total_par_ha ?? 0;
 
-    let diUnitaireFinal = diUnitaire;
+    let piUnitaireFinal = piUnitaire;
     let totalFinal = totalUnitaire * ha;
     let promoCible: string | null = null;
     let promoReduction = 0;
 
     if (promotionActive) {
-      promoCible = (promotionActive as any).cible ?? 'depot_initial';
+      promoCible = (promotionActive as any).cible ?? 'paiement_initial';
       promoReduction = promotionActive.pourcentage_reduction;
       if (promoCible === 'depot_initial') {
-        diUnitaireFinal = diUnitaire - (diUnitaire * promoReduction / 100);
-      } else if (promoCible === 'total_contrat') {
+        piUnitaireFinal = piUnitaire - (piUnitaire * promoReduction / 100);
+      } else if (promoCible === 'cout_global') {
         totalFinal = totalFinal - (totalFinal * promoReduction / 100);
       }
     }
 
-    const totalDI = diUnitaireFinal * ha;
+    const totalDI = piUnitaireFinal * ha;
     const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
 
     return {
       ha,
-      diUnitaire,
-      diUnitaireFinal,
+      piUnitaire,
+      piUnitaireFinal,
       totalDI,
       totalUnitaire,
       totalFinal,
@@ -144,7 +144,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
             <span>🎉 Promotion en cours: {promotionActive.nom}</span>
           </div>
           <p className="text-sm text-amber-600">
-             {(promotionActive as any).cible === 'special' ? `${(promotionActive as any).montant_fixe_reduction || 0} F de remise spéciale` : `-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'total_contrat' ? 'le total du contrat (35 mois)' : 'le Dépôt Initial'}`}
+             {(promotionActive as any).cible === 'special' ? `${(promotionActive as any).montant_fixe_reduction || 0} F de remise spéciale` : `-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'total_contrat' ? 'le total du contrat (35 mois)' : 'le Paiement Initial'}`}
           </p>
         </div>
       )}
@@ -152,7 +152,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       <Card>
         <CardHeader>
           <CardTitle>Choisissez votre Offre</CardTitle>
-          <CardDescription>Sélectionnez l'offre qui correspond au profil du partenaire souscripteur</CardDescription>
+          <CardDescription>Sélectionnez l'offre qui correspond au profil du client</CardDescription>
         </CardHeader>
         <CardContent>
           <RadioGroup
@@ -203,7 +203,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                              <span className="text-xs text-muted-foreground">/ha (total 35 mois)</span>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            DI: {formatMontant(offre.montant_depot_initial_par_ha)}F/ha · Cash: {formatMontant(offre.montant_cash_par_ha)}F/ha
+                            PI: {formatMontant(offre.montant_depot_initial_par_ha)}F/ha · Cash: {formatMontant(offre.montant_cash_par_ha)}F/ha
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {offre.gestion_type === 'deleguee' ? 'Gestion déléguée · 70% revenus' : 'Gestion propre · 100% revenus'}
@@ -229,7 +229,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       <Card>
         <CardHeader>
           <CardTitle>Superficie prévue</CardTitle>
-          <CardDescription>Indiquez la superficie approximative pour calculer le montant du Dépôt Initial (DI)</CardDescription>
+          <CardDescription>Indiquez la superficie approximative pour calculer le Paiement Initial (PI)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -276,7 +276,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
               {calculs.promotionAppliquee && (
                 <div className="flex items-center gap-1 text-xs text-amber-600">
                   <Sparkles className="h-3 w-3" />
-                  <span>Promo -{calculs.promoReduction}% appliquée sur {calculs.promoCible === 'total_contrat' ? 'le total' : 'le DI'}</span>
+                  <span>Promo -{calculs.promoReduction}% appliquée sur {calculs.promoCible === 'total_contrat' ? 'le total' : 'le PI'}</span>
                 </div>
               )}
             </div>
