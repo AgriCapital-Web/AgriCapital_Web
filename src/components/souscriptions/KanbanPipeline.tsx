@@ -70,7 +70,7 @@ const KanbanPipeline = ({ souscripteurs, onRefresh }: KanbanPipelineProps) => {
 
       toast({
         title: "Statut mis à jour",
-        description: `Souscripteur déplacé vers "${STAGES.find(s => s.key === newStage)?.label}"`,
+        description: `Client déplacé vers "${STAGES.find(s => s.key === newStage)?.label}"`,
       });
       onRefresh();
     } catch (error: any) {
