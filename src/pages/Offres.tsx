@@ -708,7 +708,7 @@ const Offres = () => {
                           onChange={(e) => setPromoFormData({...promoFormData, pourcentage_reduction: e.target.value})}
                           min="1"
                           max="99"
-                          min="0"
+
                         />
                         <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
