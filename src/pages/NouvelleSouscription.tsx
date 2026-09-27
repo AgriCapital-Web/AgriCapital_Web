@@ -299,7 +299,7 @@ const NouvelleSouscription = () => {
 
       toast({
         title: "✅ Parcours client enregistré",
-        description: `N° Contrat: ${souscripteur.numero_contrat || client.id_unique || client.id}`,
+        description: `N° Contrat: ${client.numero_contrat || client.id_unique || client.id}`,
       });
       setSyncState(offline ? "queued" : "synced");
 
