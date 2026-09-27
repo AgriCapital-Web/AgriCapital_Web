@@ -35,7 +35,7 @@ export async function offlineInsert(table: string, values: any): Promise<{ data:
   if (navigator.onLine) {
     const { data, error } = await (supabase as any).from(table).insert(values).select().maybeSingle();
     if (!error && data && store) {
-      try { await putItem(store, data); } catch {}
+      try { await putItem(store, data); } catch { /* best effort local cache */ }
     }
     if (!error || !isNetworkError(error)) return { data, error, offline: false };
     // Le réseau était disponible au moment du test mais la requête a échoué :
@@ -43,7 +43,7 @@ export async function offlineInsert(table: string, values: any): Promise<{ data:
     if (store) {
       const tempId = values?.id || genUuid();
       const record = { ...values, id: tempId, _offline: true, _pending: 'insert', created_at: values?.created_at || new Date().toISOString(), updated_at: new Date().toISOString() };
-      try { await putItem(store, record); } catch {}
+      try { await putItem(store, record); } catch { /* best effort local cache */ }
       await addToSyncQueue({ table, operation: 'insert', record_id: tempId, data: { ...values, id: tempId }, timestamp: Date.now() });
       return { data: record, error: null, offline: true };
     }
@@ -59,7 +59,7 @@ export async function offlineInsert(table: string, values: any): Promise<{ data:
     created_at: values?.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
-  if (store) { try { await putItem(store, record); } catch {} }
+  if (store) { try { await putItem(store, record); } catch { /* best effort local cache */ } }
   // Ne jamais envoyer les métadonnées IndexedDB au serveur : seules les colonnes
   // métier sont transmises, avec le même UUID local.
   const serverPayload = { ...values, id: tempId };
@@ -75,7 +75,7 @@ export async function offlineUpdate(table: string, id: string, values: any): Pro
       try {
         const existing = await getItem(store, id);
         await putItem(store, { ...(existing || { id }), ...values, updated_at: new Date().toISOString() });
-      } catch {}
+      } catch { /* best effort local cache */ }
     }
     if (!error || !isNetworkError(error)) return { error, offline: false };
   }
@@ -83,7 +83,7 @@ export async function offlineUpdate(table: string, id: string, values: any): Pro
     try {
       const existing = await getItem(store, id);
       await putItem(store, { ...(existing || { id }), ...values, _offline: true, _pending: 'update', updated_at: new Date().toISOString() });
-    } catch {}
+    } catch { /* best effort local cache */ }
   }
   await addToSyncQueue({ table, operation: 'update', record_id: id, data: values, timestamp: Date.now() });
   return { error: null, offline: true };
@@ -93,10 +93,10 @@ export async function offlineDelete(table: string, id: string): Promise<{ error:
   const store = TABLE_TO_STORE[table];
   if (navigator.onLine) {
     const { error } = await (supabase as any).from(table).delete().eq('id', id);
-    if (!error && store) { try { await deleteItem(store, id); } catch {} }
+    if (!error && store) { try { await deleteItem(store, id); } catch { /* best effort local cache */ } }
     if (!error || !isNetworkError(error)) return { error, offline: false };
   }
-  if (store) { try { await deleteItem(store, id); } catch {} }
+  if (store) { try { await deleteItem(store, id); } catch { /* best effort local cache */ } }
   await addToSyncQueue({ table, operation: 'delete', record_id: id, data: {}, timestamp: Date.now() });
   return { error: null, offline: true };
 }
