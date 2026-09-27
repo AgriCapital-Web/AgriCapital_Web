@@ -51,7 +51,7 @@ const AIAssistant = ({ mode, context }: AIAssistantProps) => {
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ messages: userMessages, context, mode: mode === "admin" ? "admin" : "subscriber" }),
+      body: JSON.stringify({ messages: userMessages, context, mode: mode === "admin" ? "admin" : "client" }),
     });
 
     if (!resp.ok || !resp.body) {
@@ -161,9 +161,9 @@ const AIAssistant = ({ mode, context }: AIAssistantProps) => {
                   : "Bonjour ! Comment puis-je vous aider aujourd'hui ?"}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                {(mode === "subscriber"
+                {(mode === "client"
                   ? ["Quel est mon solde ?", "Mes plantations", "Comment payer ?"]
-                  : ["Résumé des souscripteurs", "Analyse des paiements", "Guide utilisateur"]
+                  : ["Résumé des clients", "Analyse des paiements", "Guide utilisateur"]
                 ).map((q) => (
                   <Button
                     key={q}
