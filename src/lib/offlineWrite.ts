@@ -18,6 +18,8 @@ const TABLE_TO_STORE: Record<string, string> = {
   proprietaires_terres: STORES.PROPRIETAIRES_TERRES,
   parcelles: STORES.PARCELLES,
   cartes_personnel: STORES.CARTES_PERSONNEL,
+  rapports_visites_techniques: STORES.RAPPORTS_VISITES,
+  rapports_visites_medias: STORES.RAPPORTS_MEDIAS,
 };
 
 function isNetworkError(error: any): boolean {
