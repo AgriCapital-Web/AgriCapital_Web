@@ -210,13 +210,13 @@ export default function Leads() {
     onError: (e: any) => toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(e) }),
   });
 
-  const convertToSouscripteur = (lead: any) => {
+  const convertToClient = (lead: any) => {
     const isOwner = lead.assigned_to === user?.id || lead.created_by === user?.id;
     if (!isOwner && !canSupervise) {
       toast({ variant: "destructive", title: "Conversion refusée", description: "Ce prospect appartient à un autre commercial." });
       return;
     }
-    // Pré-remplir souscription via query params
+    // Pré-remplir acquisition via query params
     const params = new URLSearchParams({
       lead_id: lead.id,
       nom: lead.nom || "",
@@ -226,7 +226,7 @@ export default function Leads() {
       email: lead.email || "",
       region: lead.region_residence || "",
     });
-    navigate(`/nouvelle-souscription?${params.toString()}`);
+    navigate(`/nouvelle-acquisition?${params.toString()}`);
   };
 
   const publicUrl = `${window.location.origin}/leads/public`;
@@ -247,7 +247,7 @@ export default function Leads() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2"><Target className="h-6 w-6 text-primary" />Prospects / Leads</h1>
-            <p className="text-muted-foreground text-sm">Suivi commercial jusqu'à la conversion en souscripteur.</p>
+            <p className="text-muted-foreground text-sm">Suivi commercial jusqu'à la conversion en client.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4 mr-2" />Créer un lead</Button>
@@ -304,7 +304,7 @@ export default function Leads() {
                       <TableCell className="text-right space-x-2">
                         <Button size="sm" variant="outline" onClick={() => setSelected(l)}>Détails</Button>
                         {l.statut !== "converti" && (
-                          <Button size="sm" onClick={() => convertToSouscripteur(l)}><ArrowRight className="h-3 w-3 mr-1" />Convertir</Button>
+                          <Button size="sm" onClick={() => convertToClient(l)}><ArrowRight className="h-3 w-3 mr-1" />Convertir</Button>
                         )}
                       </TableCell>
                     </TableRow>
