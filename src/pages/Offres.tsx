@@ -187,6 +187,9 @@ const Offres = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-prix-effectif'] });
+      queryClient.invalidateQueries({ queryKey: ['promotion-active'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-acquisition'] });
       toast({ title: editingPromo ? "Promotion modifiée" : "Promotion créée" });
       resetPromoForm();
       setIsPromoDialogOpen(false);
