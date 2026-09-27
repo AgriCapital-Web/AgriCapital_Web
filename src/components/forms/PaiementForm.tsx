@@ -439,20 +439,20 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Montant unitaire:</span>
                   <span className="font-medium">
-                    {montantCalculeDA.toLocaleString()} F
+                    {montantCalculePI.toLocaleString()} F
                   </span>
                 </div>
                 {promotionActive && (
                   <div className="flex justify-between text-green-600">
                     <span>Économie:</span>
                     <span className="font-bold">
-                      {(30000 - montantCalculeDA).toLocaleString()} F
+                      {(30000 - montantCalculePI).toLocaleString()} F
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between pt-2 border-t text-lg font-bold">
                   <span>MONTANT À PAYER:</span>
-                  <span>{montantCalculeDA.toLocaleString()} F</span>
+                  <span>{montantCalculePI.toLocaleString()} F</span>
                 </div>
               </div>
             </CardContent>
