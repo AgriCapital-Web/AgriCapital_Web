@@ -1,9 +1,5 @@
 name: NodeJS with Vite
 
-permissions:
-  contents: read
-  issues: write
-
 on:
   push:
     branches: [ "main" ]
@@ -31,29 +27,7 @@ jobs:
       run: bun install --frozen-lockfile
 
     - name: Build
-      run: |
-        set -o pipefail
-        bun run build 2>&1 | tee build-error.log
-
-    - name: Publish build log to PR for diagnosis
-      if: ${{ failure() }}
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        jq -Rs '{body: .}' build-error.log > comment.json
-        curl -sS -X POST "https://api.github.com/repos/${{ github.repository }}/issues/1/comments" \
-          -H "Authorization: Bearer $GH_TOKEN" \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          --data-binary @comment.json
-
-    - name: Upload build log artifact
-      if: ${{ failure() }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: agricapital-build-log
-        path: build-error.log
-        if-no-files-found: warn
+      run: bun run build
 
     - name: Typecheck
       run: bun run typecheck
