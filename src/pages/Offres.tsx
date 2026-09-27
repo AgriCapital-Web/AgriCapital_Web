@@ -277,6 +277,7 @@ const Offres = () => {
         nom: editOffre.nom,
         description: editOffre.description,
         montant_pi_par_ha: pi,
+        montant_cash_par_ha: Math.max(0, Number(editOffre.montant_cash_par_ha) || 0),
         contribution_mensuelle_par_ha: lastMonthly,
         montant_total_par_ha: total,
         duree_paiement_mois: duree,
@@ -569,25 +570,22 @@ const Offres = () => {
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                   <Label htmlFor="montant_pi">Montant PI/ha (F)</Label>
-                                  <Input 
+                                  <Input
                                     id="montant_pi"
                                     type="number"
+                                    min="0"
                                     value={editOffre.montant_pi_par_ha ?? ""}
                                     onChange={(e) => setEditOffre({...editOffre, montant_pi_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
                                   />
                                 </div>
                                 <div>
-                                  <Label htmlFor="contribution">Échéancier mensuel / ha (F)</Label>
-                                  <Input 
-                                    id="contribution"
+                                  <Label htmlFor="montant_cash">Montant comptant/ha (F)</Label>
+                                  <Input
+                                    id="montant_cash"
                                     type="number"
-                                    value={editOffre.contribution_mensuelle_par_ha ?? ""}
-                                    onChange={(e) => {
-                                      const value = e.target.value === "" ? 0 : Number(e.target.value);
-                                      const current = getTranches(editOffre);
-                                      const next = current.length ? current.map((t:any,i:number)=>i===current.length-1?{...t,mensualite_par_ha:value}:t) : [{annee:1,mois:1,mensualite_par_ha:value}];
-                                      setEditOffre({...editOffre, contribution_mensuelle_par_ha:value, tranches_paiement:next});
-                                    }}
+                                    min="0"
+                                    value={editOffre.montant_cash_par_ha ?? ""}
+                                    onChange={(e) => setEditOffre({...editOffre, montant_cash_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
                                   />
                                 </div>
                               </div>
