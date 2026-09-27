@@ -323,6 +323,23 @@ serve(async (req) => {
         });
       }
 
+      case "rapports-techniques": {
+        const souscripteur = await getSouscripteur();
+        if (!souscripteur) return new Response(JSON.stringify({ error: "Souscripteur non trouvé" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const { data: rapports } = await supabase.from("rapports_visites_techniques")
+          .select("id,plantation_id,date_visite,type_visite,observations,recommandations,statut,client_visible,created_at")
+          .eq("souscripteur_id", souscripteur.id).eq("client_visible", true).order("date_visite",{ascending:false}).limit(100);
+        const ids=(rapports||[]).map((r:any)=>r.id);
+        const { data: medias } = ids.length ? await supabase.from("rapports_visites_medias")
+          .select("id,rapport_id,plantation_id,media_type,storage_path,mime_type,nom_fichier,description,client_visible,created_at")
+          .in("rapport_id",ids).eq("client_visible",true).order("created_at",{ascending:false}) : { data: [] as any[] };
+        const signed = await Promise.all((medias||[]).map(async (m:any) => {
+          const { data } = await supabase.storage.from("rapports-techniques").createSignedUrl(m.storage_path, 3600);
+          return { ...m, url: data?.signedUrl || null };
+        }));
+        return new Response(JSON.stringify({ rapports: rapports || [], medias: signed }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       case "tickets": {
         const { data: profile } = await supabase
           .from("profiles")
@@ -402,7 +419,7 @@ serve(async (req) => {
       default:
         return new Response(JSON.stringify({ error: "Action non reconnue", actions_disponibles: [
           "dashboard", "paiement-history", "plantations", "geo-data", 
-          "notifications", "mark-notification-read", "tickets", "profile"
+          "notifications", "mark-notification-read", "rapports-techniques", "tickets", "profile"
         ]}), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
