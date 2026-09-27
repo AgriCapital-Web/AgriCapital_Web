@@ -18,12 +18,6 @@ and not exists(select 1 from public.departements d where lower(trim(d.nom))=lowe
 update public.departements set est_actif=false
 where lower(trim(nom)) in ('anyama','bingerville','niakara','gbeleban','odienne','koun fao','sandegue','toulepleu');
 
-update public.departements set nom='Gbéléban',est_actif=true where lower(trim(nom))='gbeleban';
-update public.departements set nom='Odienné',est_actif=true where lower(trim(nom))='odienne';
-update public.departements set nom='Koun-Fao',est_actif=true where lower(trim(nom))='koun fao';
-update public.departements set nom='Sandégué',est_actif=true where lower(trim(nom))='sandegue';
-update public.departements set nom='Toulépleu',est_actif=true where lower(trim(nom))='toulepleu';
-update public.departements set nom='Niakaramadougou',est_actif=true where code='CI1703';
 
 update public.departements set est_actif=false where code is null and lower(trim(nom)) in ('dabakala','katiola','niakaramandougou');
 
