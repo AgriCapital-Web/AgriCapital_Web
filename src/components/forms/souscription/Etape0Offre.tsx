@@ -118,6 +118,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       totalNormal: totalUnitaire * ha,
       cashUnitaire: o.montant_cash_par_ha ?? 0,
       tranches,
+      duree: o.duree_paiement_mois ?? 0,
       promoCible,
       promoReduction,
       promotionAppliquee: !!promotionActive,
@@ -277,7 +278,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between">
-                 <span className="font-semibold">Total contrat ({offre.duree_paiement_mois} mois){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
+                 <span className="font-semibold">Total contrat ({calculs.duree} mois){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
                 <span className="text-lg font-bold text-primary">{formatMontant(calculs.totalFinal)} F</span>
               </div>
               {calculs.promotionAppliquee && (
