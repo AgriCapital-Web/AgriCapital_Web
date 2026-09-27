@@ -350,6 +350,21 @@ const AccountRequest = () => {
         </CardContent>
       </Card>
     </div>
+    {cameraOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3">
+        <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-background shadow-2xl">
+          <div className="flex items-center justify-between border-b p-3">
+            <p className="font-semibold">Prendre une photo</p>
+            <Button type="button" variant="ghost" size="icon" onClick={stopCamera}><X className="h-5 w-5" /></Button>
+          </div>
+          <div className="p-3"><video ref={cameraVideoRef} autoPlay playsInline muted className="aspect-[3/4] w-full rounded-xl bg-black object-cover" /></div>
+          <div className="flex gap-2 p-3 pt-0">
+            <Button type="button" variant="outline" className="flex-1" onClick={stopCamera}>Annuler</Button>
+            <Button type="button" className="flex-1" onClick={captureCameraPhoto}><Camera className="mr-2 h-4 w-4" />Capturer</Button>
+          </div>
+        </div>
+      </div>
+    )}
   );
 };
 
