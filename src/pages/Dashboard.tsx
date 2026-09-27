@@ -57,7 +57,7 @@ const Dashboard = () => {
     userRoles.length > 0 && userRoles.every((r) => r === "user");
 
   // Définition des actions rapides selon les permissions
-  const canCreateAcquisition = hasPermission(userRoles, PERMISSIONS.CREATE_SOUSCRIPTION);
+  const canCreateAcquisition = hasPermission(userRoles, PERMISSIONS.CREATE_ACQUISITION);
   const canViewPaiements = hasPermission(userRoles, PERMISSIONS.VIEW_PAIEMENTS);
   const canViewPlantations = hasPermission(userRoles, PERMISSIONS.VIEW_PLANTATIONS);
   const canValidateDocuments = hasPermission(userRoles, PERMISSIONS.VALIDATE_PAYMENTS);
