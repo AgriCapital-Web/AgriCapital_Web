@@ -179,8 +179,8 @@ const Promotions = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="w-full min-w-0 space-y-4 p-3 sm:space-y-6 sm:p-6 overflow-x-hidden">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">Gestion des Promotions</h1>
           <p className="text-muted-foreground">
@@ -192,7 +192,7 @@ const Promotions = () => {
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" />Nouvelle Promotion</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[92dvh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>{editingPromo ? "Modifier la promotion" : "Créer une promotion"}</DialogTitle>
               <DialogDescription>
@@ -200,7 +200,7 @@ const Promotions = () => {
               </DialogDescription>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="min-w-0 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="nom">Nom de la promotion *</Label>
                 <Input
@@ -416,7 +416,7 @@ const Promotions = () => {
           {isLoading ? (
             <p className="text-center py-8">Chargement...</p>
           ) : promotions && promotions.length > 0 ? (
-            <Table>
+            <div className="overflow-x-auto rounded-lg border"><Table className="min-w-[760px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Nom</TableHead>
