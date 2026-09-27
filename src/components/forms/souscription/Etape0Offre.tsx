@@ -255,7 +255,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 <span className="font-medium">{calculs.ha} ha</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Dépôt Initial{calculs.promoCible === 'paiement_initial' ? ' (promo)' : ''}:</span>
+                <span>Paiement Initial{calculs.promoCible === 'paiement_initial' ? ' (promo)' : ''}:</span>
                 <span className="font-bold text-primary">{formatMontant(calculs.totalPI)} F</span>
               </div>
               {calculs.tranches.length > 0 && (
@@ -276,7 +276,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
               {calculs.promotionAppliquee && (
                 <div className="flex items-center gap-1 text-xs text-amber-600">
                   <Sparkles className="h-3 w-3" />
-                  <span>Promo -{calculs.promoReduction}% appliquée sur {calculs.promoCible === 'total_contrat' ? 'le total' : 'le PI'}</span>
+                  <span>Promo -{calculs.promoReduction}% appliquée sur {calculs.promoCible === 'cout_global' ? 'le total' : 'le PI'}</span>
                 </div>
               )}
             </div>
