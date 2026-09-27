@@ -11,7 +11,6 @@ export interface OffreBase {
   nom: string;
   montant_total_par_ha?: number | null;
   montant_pi_par_ha?: number | null;
-  montant_pi_par_ha?: number | null;
   contribution_mensuelle_par_ha?: number | null;
   duree_paiement_mois?: number | null;
   actif?: boolean | null;
@@ -94,7 +93,7 @@ export const prixEffectif = (
   at: Date = new Date(),
 ): PrixEffectif => {
   const totalBase = num(offre.montant_total_par_ha);
-  const piBase = num(offre.montant_pi_par_ha ?? offre.montant_pi_par_ha);
+  const piBase = num(offre.montant_pi_par_ha);
   const mensBase = num(offre.contribution_mensuelle_par_ha);
   const duree = num(offre.duree_paiement_mois);
 
