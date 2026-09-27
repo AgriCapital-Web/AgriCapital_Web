@@ -266,23 +266,7 @@ const Promotions = () => {
                   </p>
                 </div>
               </div>
-              ) : (
-              <div className="space-y-2">
-                <Label htmlFor="montant_fixe">Montant de la remise (FCFA) *</Label>
-                <Input
-                  id="montant_fixe"
-                  type="number"
-                  min="1"
-                  value={formData.montant_fixe_reduction}
-                  onChange={(e) => setFormData({...formData, montant_fixe_reduction: e.target.value})}
-                  placeholder="Ex: 500000"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Cette option historique n'est plus proposée dans le formulaire. Utilisez PI ou CG.
-                </p>
-              </div>
-              )}
+
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
