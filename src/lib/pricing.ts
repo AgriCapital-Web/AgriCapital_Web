@@ -107,14 +107,16 @@ export const normaliserTranches = (offre: OffreBase): TranchePaiement[] => {
     mensualite_par_ha: mensualite, total_periode_par_ha: mensualite*duree }];
 };
 
-const effectiveTranches = (tranches: TranchePaiement[], ratio = 1): TrancheEffective[] =>
+const effectiveTranches = (tranches: TranchePaiement[], ratio = 1, cible: "paiement_initial" | "cout_global" | null = null): TrancheEffective[] =>
   tranches.map(t => {
     const b = trancheBase(t);
+    const isInitial = String(t.type || "").toLowerCase() === "paiement_initial" || (b.mensualite === 0 && b.montant > 0);
+    const applyRatio = cible === "cout_global" && !isInitial;
     return {
       ...t,
-      montant_effectif_par_ha: b.totalPeriode === 0 && b.montant > 0 ? b.montant*ratio : b.montant,
-      mensualite_par_ha_effective: b.mensualite*ratio,
-      total_periode_par_ha_effectif: b.totalPeriode*ratio,
+      montant_effectif_par_ha: b.montant,
+      mensualite_par_ha_effective: applyRatio ? b.mensualite * ratio : b.mensualite,
+      total_periode_par_ha_effectif: applyRatio ? b.totalPeriode * ratio : b.totalPeriode,
     };
   });
 
@@ -139,7 +141,7 @@ export const calculPrixEffectif = (
     montant_total_base: totalBase, depot_initial_base: mode==="comptant"?totalBase:piBase,
     mensualite_base: monthlyBase, montant_total_effectif: totalBase,
     depot_initial_effectif: mode==="comptant"?totalBase:piBase, mensualite_effective: monthlyBase,
-    tranches_effectives: effectiveTranches(tranches),
+    tranches_effectives: effectiveTranches(tranches, 1, null),
     promotion_id:null, promotion_nom:null, promotion_cible:null, reduction_pct:0, reduction_montant:0,
   };
 
@@ -160,7 +162,7 @@ export const calculPrixEffectif = (
     const remainingBase = Math.max(totalBase-piBase,0);
     const remainingEff = Math.max(totalEff-piEff,0);
     const ratio = remainingBase > 0 ? remainingEff/remainingBase : 1;
-    const tranchesEff = effectiveTranches(tranches, ratio);
+    const tranchesEff = effectiveTranches(tranches, ratio, cible);
     const monthlyValues = tranchesEff.filter(t=>num(t.mensualite_par_ha_effective)>0)
       .map(t=>num(t.mensualite_par_ha_effective));
     return {
