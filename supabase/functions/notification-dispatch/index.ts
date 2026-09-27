@@ -67,8 +67,8 @@ async function authorized(req: Request) {
 
 async function sendEmail(contact: Contact, subject: string, body: string, key: string) {
   if (!contact.email) throw new Error("Email absent");
-  const from = Deno.env.get("NOTIFICATION_FROM_EMAIL") || "notification@agricapital.ci";
-  const name = Deno.env.get("NOTIFICATION_FROM_NAME") || "AgriCapital";
+  const from = "notification@agricapital.ci";
+  const name = "AgriCapital";
   const resend = Deno.env.get("RESEND_API_KEY");
   const brevo = Deno.env.get("BREVO_API_KEY");
 
@@ -104,7 +104,7 @@ async function sendSms(contact: Contact, body: string, key: string) {
     method: "POST",
     headers: { "api-key": apiKey, "Content-Type": "application/json" },
     body: JSON.stringify({
-      sender: Deno.env.get("BREVO_SMS_SENDER") || "AgriCapital",
+      sender: "AgriCapital",
       recipient, content: normalizeSms(body), type: "transactional", unicodeEnabled: false,
       tag: ["AgriCapital", key.slice(0, 30)],
     }),
@@ -268,10 +268,10 @@ serve(async (req) => {
     if (mode === "status") return json({ ok: true, providers: {
       resend_email: Boolean(Deno.env.get("RESEND_API_KEY")),
       brevo_email: Boolean(Deno.env.get("BREVO_API_KEY")),
-      brevo_sms: Boolean(Deno.env.get("BREVO_API_KEY") && (Deno.env.get("BREVO_SMS_SENDER") || "AgriCapital")),
+      brevo_sms: Boolean(Deno.env.get("BREVO_API_KEY")),
       whatsapp: Boolean(Deno.env.get("WHATSAPP_ACCESS_TOKEN") || Deno.env.get("WHATSAPP_TOKEN")),
-      sender_id: Deno.env.get("BREVO_SMS_SENDER") || "AgriCapital",
-      from_email: Deno.env.get("NOTIFICATION_FROM_EMAIL") || "notification@agricapital.ci",
+      sender_id: "AgriCapital",
+      from_email: "notification@agricapital.ci",
     }});
     if (mode === "preview") {
       const list = await contacts(body.criteria || {});
