@@ -1,4 +1,5 @@
 import { Bell } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -80,6 +81,7 @@ export const NotificationCenter = () => {
             </div>
           )}
         </ScrollArea>
+        <div className="border-t p-2"><Button asChild variant="ghost" className="w-full justify-center text-sm"><Link to="/notifications">Voir toutes les notifications</Link></Button></div>
       </PopoverContent>
     </Popover>
   );
