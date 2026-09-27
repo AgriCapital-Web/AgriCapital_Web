@@ -1,25 +1,23 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+const ALLOWED_ORIGINS = new Set((Deno.env.get("ALLOWED_ORIGINS") || "https://agricapital.ci,https://www.agricapital.ci,https://app.agricapital.ci,https://portail.agricapital.ci,http://localhost:5173,http://localhost:8080").split(",").map((v) => v.trim()).filter(Boolean));
+const corsHeaders = (req: Request) => {
+  const origin = req.headers.get("origin") || "";
+  const headers: Record<string,string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST,OPTIONS",
+    "Vary": "Origin",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
 };
 
 const VALID_ROLES = [
-  "super_admin",
-  "directeur_tc",
-  "directeur_technico_commercial",
-  "responsable_zone",
-  "superviseur_tc",
-  "chef_equipe",
-  "comptable",
-  "commercial",
-  "technicien",
-  "service_client",
-  "operations",
-  "agent_terrain",
-  "user",
-  "admin",
+  "super_admin","responsable_operations","directeur_tc","responsable_commercial","comptable","commercial",
+  "service_client","assistant_administratif","chef_equipe_commercial","chef_equipe_technique",
+  "chef_equipe_service_client","associe_actionnaire",
 ];
 
 const jsonResponse = (payload: Record<string, unknown>, status = 200) =>
@@ -49,7 +47,7 @@ const findAuthUserByEmail = async (supabase: any, email: string) => {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders(req) });
   }
 
   try {
