@@ -1,0 +1,11 @@
+ALTER FUNCTION public.touch_technical_media_updated_at() SET search_path=public;
+REVOKE EXECUTE ON FUNCTION public.normalize_profile_org_scope() FROM anon,authenticated;
+REVOKE EXECUTE ON FUNCTION public.sync_governance_role_from_profile() FROM anon,authenticated;
+REVOKE EXECUTE ON FUNCTION public.validate_zone_assignment() FROM anon,authenticated;
+REVOKE EXECUTE ON FUNCTION public.recompute_profile_coverage_trigger() FROM anon,authenticated;
+REVOKE EXECUTE ON FUNCTION public.recompute_profile_coverage(uuid) FROM anon,authenticated;
+REVOKE EXECUTE ON FUNCTION public.zone_assignment_expected_type(uuid) FROM anon,authenticated;
+ALTER TABLE public.client_contracts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notification_event_outbox ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notification_cron_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.client_account_provision_outbox ENABLE ROW LEVEL SECURITY;
