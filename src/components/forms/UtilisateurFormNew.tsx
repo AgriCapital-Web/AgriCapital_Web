@@ -359,7 +359,12 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             <Label>Département *</Label>
             <Select
               defaultValue={utilisateur?.departement}
-              onValueChange={(value) => setValue("departement", value)}
+              onValueChange={(value) => {
+                setValue("departement", value);
+                if (value !== "Commercial" && value !== "Technique") {
+                  setValue("equipe_id", null);
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner" />
