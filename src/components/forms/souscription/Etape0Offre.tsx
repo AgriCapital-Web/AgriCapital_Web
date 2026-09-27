@@ -47,7 +47,6 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
   const { data: promotionActive } = usePromotionActive();
   
   // Determine type_offre filter based on type_souscripteur
-  const typeOffre = undefined;
   
   const { data: offres, isLoading } = useQuery({
     queryKey: ['offres-souscription'],
