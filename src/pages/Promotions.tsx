@@ -229,11 +229,12 @@ const Promotions = () => {
                 <p className="text-xs text-muted-foreground">
                   {formData.cible === "paiement_initial" && "La réduction s'applique uniquement sur le Paiement Initial (PI) du contrat."}
                   {formData.cible === "cout_global" && "La réduction s'applique sur le Coût Global (CG) du contrat. Le PI et les mensualités sont recalculés automatiquement."}
-                  {formData.cible === "special" && "Remise fixe en FCFA, appliquée manuellement lors du parcours client (geste commercial, bon d'achat)."}
+                  
                 </p>
               </div>
 
-              {true ? (
+              
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="pourcentage">Pourcentage de réduction (%) *</Label>
@@ -256,9 +257,9 @@ const Promotions = () => {
 
                 <div className="space-y-2">
                   <Label>Référence</Label>
-                  <Input value={formData.cible === "paiement_initial" ? "Paiement Initial selon l'offre" : "Total contrat 34 mois"} disabled />
+                  <Input value={formData.cible === "paiement_initial" ? "Paiement Initial selon l'offre" : "Coût Global du contrat"} disabled />
                   <p className="text-xs text-primary font-medium">
-                    Économie: {formData.cible === "depot_initial" 
+                    Économie: {formData.cible === "paiement_initial" 
                       ? `${formData.pourcentage_reduction}% sur le PI`
                       : `${formData.pourcentage_reduction}% sur le total`
                     }
@@ -307,7 +308,7 @@ const Promotions = () => {
                     Récapitulatif d'impact (par hectare)
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Cible: <strong>{formData.cible === "depot_initial" ? "Paiement Initial" : "Total du contrat (34 mois)"}</strong> — Réduction: <strong>{formData.pourcentage_reduction}%</strong>
+                    Cible: <strong>{formData.cible === "paiement_initial" ? "Paiement Initial (PI)" : "Coût Global (CG)"}</strong> — Réduction: <strong>{formData.pourcentage_reduction}%</strong>
                   </p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -321,7 +322,7 @@ const Promotions = () => {
                       </thead>
                       <tbody>
                         {offresRef!.map((o: any) => {
-                          const base = formData.cible === "depot_initial"
+                          const base = formData.cible === "paiement_initial"
                             ? Number(o.montant_depot_initial_par_ha || 0)
                             : Number(o.montant_total_par_ha || 0);
                           const reduction = base * (parseInt(formData.pourcentage_reduction || "0") / 100);
