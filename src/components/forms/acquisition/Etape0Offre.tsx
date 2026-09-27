@@ -288,7 +288,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                   {calculs.tranches.filter((t:any) => Number(t.mensualite_par_ha) > 0).map((t: any, i: number) => (
                     <div key={i} className="flex justify-between text-xs text-muted-foreground">
                       <span>An {t.annee} — {t.mois} mois</span>
-                      <span>{formatMontant(Number(t.mensualite_par_ha) * calculs.ha)} F/mois</span>
+                      <span>{formatMontant((calculs.promotionAppliquee && calculs.promoCible === 'cout_global' ? calculs.mensualiteEffective : Number(t.mensualite_par_ha)) * calculs.ha)} F/mois</span>
                     </div>
                   ))}
                 </div>
