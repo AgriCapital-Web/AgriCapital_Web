@@ -99,15 +99,14 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     const totalUnitaire = Number(prix.montant_total_base || 0);
     const totalFinal = Number(prix.montant_total_effectif || 0);
     const mensualiteEffective = Number(prix.mensualite_effective || 0);
-    const remainingBase = Math.max(totalUnitaire - piUnitaireBase, 0);
-    const remainingEffective = Math.max(totalFinal - piUnitaireFinal, 0);
-    const ratioEcheancier = remainingBase > 0 ? remainingEffective / remainingBase : 1;
-    const tranchesEffectives = tranches.map((t: any) => ({
+    // Le moteur de prix calcule chaque tranche. On ne reconstruit
+    // jamais une mensualité unique : PalmInvest/TerraPalm conservent
+    // leurs paliers An 1, An 2 et An 3.
+    const tranchesEffectives = (prix.tranches_effectives || tranches).map((t: any) => ({
       ...t,
-      mensualite_par_ha_effective:
-        prix.promotion_cible === "cout_global"
-          ? Number(t.mensualite_par_ha || 0) * ratioEcheancier
-          : Number(t.mensualite_par_ha || 0),
+      mensualite_par_ha_effective: Number(
+        t.mensualite_par_ha_effective ?? t.mensualite_par_ha ?? 0,
+      ),
     }));
 
     return {
