@@ -23,7 +23,7 @@ export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) =>
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Résumé de la souscription</CardTitle>
+          <CardTitle>Résumé du parcours client</CardTitle>
           <CardDescription>Vérifiez toutes les informations avant de soumettre</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
