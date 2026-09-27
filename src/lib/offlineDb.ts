@@ -20,6 +20,8 @@ export const STORES = {
   LEAD_RELANCES: 'lead_relances',
   PROPRIETAIRES_TERRES: 'proprietaires_terres',
   PARCELLES: 'parcelles',
+  RAPPORTS_VISITES: 'rapports_visites_techniques',
+  RAPPORTS_MEDIAS: 'rapports_visites_medias',
   CARTES_PERSONNEL: 'cartes_personnel',
   FILES: 'offline_files',
   SYNC_QUEUE: 'sync_queue',
