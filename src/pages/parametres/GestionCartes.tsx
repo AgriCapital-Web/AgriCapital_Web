@@ -312,11 +312,11 @@ const GestionCartes = () => {
 
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
-      a.download = \${nom}.png;
+      a.download = nom + ".png";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      toast.success(\${nom}.png exporté en 1080 × 1712 px.);
+      toast.success(nom + ".png exporté en 1080 × 1712 px.");
     } catch (e: any) {
       toast.error(e?.message || "Échec de l'export de la carte.");
     } finally {
