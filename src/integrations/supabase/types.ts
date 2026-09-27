@@ -141,7 +141,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "souscription_lots_lot_id_fkey"
+            foreignKeyName: "acquisition_lots_lot_id_fkey"
             columns: ["lot_id"]
             isOneToOne: false
             referencedRelation: "lots_hectares"
@@ -1216,25 +1216,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "agriplant_suivis_plantation_id_fkey"
-            columns: ["plantation_id"]
-            isOneToOne: false
-            referencedRelation: "plantations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplant_suivis_souscripteur_id_fkey"
+            foreignKeyName: "agriplant_suivis_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "agriplant_suivis_souscripteur_id_fkey"
+            foreignKeyName: "agriplant_suivis_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "agriplant_suivis_plantation_id_fkey"
+            columns: ["plantation_id"]
+            isOneToOne: false
+            referencedRelation: "plantations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1381,14 +1381,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "client_account_provision_outbox_souscripteur_id_fkey"
+            foreignKeyName: "client_account_provision_outbox_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "client_account_provision_outbox_souscripteur_id_fkey"
+            foreignKeyName: "client_account_provision_outbox_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
@@ -1444,14 +1444,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "client_contracts_souscripteur_id_fkey"
+            foreignKeyName: "client_contracts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "client_contracts_souscripteur_id_fkey"
+            foreignKeyName: "client_contracts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
@@ -1690,63 +1690,63 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "souscripteurs_departement_id_fkey"
+            foreignKeyName: "clients_departement_id_fkey"
             columns: ["departement_id"]
             isOneToOne: false
             referencedRelation: "departements"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_district_id_fkey"
+            foreignKeyName: "clients_district_id_fkey"
             columns: ["district_id"]
             isOneToOne: false
             referencedRelation: "districts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
+            foreignKeyName: "clients_offre_id_fkey"
             columns: ["offre_id"]
             isOneToOne: false
             referencedRelation: "offres"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
+            foreignKeyName: "clients_offre_id_fkey"
             columns: ["offre_id"]
             isOneToOne: false
             referencedRelation: "v_prix_effectif_offres"
             referencedColumns: ["offre_id"]
           },
           {
-            foreignKeyName: "souscripteurs_parcelle_id_fkey"
+            foreignKeyName: "clients_parcelle_id_fkey"
             columns: ["parcelle_id"]
             isOneToOne: false
             referencedRelation: "parcelles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_promotion_id_fkey"
+            foreignKeyName: "clients_promotion_id_fkey"
             columns: ["promotion_id"]
             isOneToOne: false
             referencedRelation: "promotions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_region_id_fkey"
+            foreignKeyName: "clients_region_id_fkey"
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "regions"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_sous_prefecture_id_fkey"
+            foreignKeyName: "clients_sous_prefecture_id_fkey"
             columns: ["sous_prefecture_id"]
             isOneToOne: false
             referencedRelation: "sous_prefectures"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_village_id_fkey"
+            foreignKeyName: "clients_village_id_fkey"
             columns: ["village_id"]
             isOneToOne: false
             referencedRelation: "villages"
@@ -2184,14 +2184,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "documents_souscription_souscripteur_id_fkey"
+            foreignKeyName: "documents_acquisition_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "documents_souscription_souscripteur_id_fkey"
+            foreignKeyName: "documents_acquisition_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
@@ -2439,14 +2439,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "historique_actions_souscripteur_id_fkey"
+            foreignKeyName: "historique_actions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "historique_actions_souscripteur_id_fkey"
+            foreignKeyName: "historique_actions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
@@ -2545,17 +2545,17 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "interventions_techniques_agent_technique_id_fkey"
+            columns: ["agent_technique_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "interventions_techniques_plantation_id_fkey"
             columns: ["plantation_id"]
             isOneToOne: false
             referencedRelation: "plantations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "interventions_techniques_technicien_id_fkey"
-            columns: ["agent_technique_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2789,14 +2789,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "leads_souscripteur_id_fkey"
+            foreignKeyName: "leads_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "leads_souscripteur_id_fkey"
+            foreignKeyName: "leads_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
@@ -2873,6 +2873,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "lots_hectares_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lots_hectares_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "lots_hectares_convention_id_fkey"
             columns: ["convention_id"]
             isOneToOne: false
@@ -2885,20 +2899,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "parcelles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lots_hectares_souscripteur_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lots_hectares_souscripteur_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "v_client_synthese"
-            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -3662,25 +3662,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "paiements_plantation_id_fkey"
-            columns: ["plantation_id"]
-            isOneToOne: false
-            referencedRelation: "plantations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "paiements_souscripteur_id_fkey"
+            foreignKeyName: "paiements_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "paiements_souscripteur_id_fkey"
+            foreignKeyName: "paiements_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "paiements_plantation_id_fkey"
+            columns: ["plantation_id"]
+            isOneToOne: false
+            referencedRelation: "plantations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -4040,6 +4040,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "plantations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plantations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "plantations_departement_id_fkey"
             columns: ["departement_id"]
             isOneToOne: false
@@ -4073,20 +4087,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "sous_prefectures"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plantations_souscripteur_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plantations_souscripteur_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "v_client_synthese"
-            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -4126,25 +4126,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "portail_messages_plantation_id_fkey"
-            columns: ["plantation_id"]
-            isOneToOne: false
-            referencedRelation: "plantations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portail_messages_souscripteur_id_fkey"
+            foreignKeyName: "portail_messages_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "portail_messages_souscripteur_id_fkey"
+            foreignKeyName: "portail_messages_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "portail_messages_plantation_id_fkey"
+            columns: ["plantation_id"]
+            isOneToOne: false
+            referencedRelation: "plantations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -4709,6 +4709,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "rapports_visites_techniques_agent_technique_id_fkey"
+            columns: ["agent_technique_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_techniques_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rapports_visites_techniques_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "rapports_visites_techniques_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -4720,27 +4741,6 @@ export type Database = {
             columns: ["plantation_id"]
             isOneToOne: false
             referencedRelation: "plantations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rapports_visites_techniques_souscripteur_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rapports_visites_techniques_souscripteur_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "v_client_synthese"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "rapports_visites_techniques_technicien_id_fkey"
-            columns: ["agent_technique_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4852,25 +4852,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "remboursements_paiement_id_fkey"
-            columns: ["paiement_id"]
-            isOneToOne: false
-            referencedRelation: "paiements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "remboursements_souscripteur_id_fkey"
+            foreignKeyName: "remboursements_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "remboursements_souscripteur_id_fkey"
+            foreignKeyName: "remboursements_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "remboursements_paiement_id_fkey"
+            columns: ["paiement_id"]
+            isOneToOne: false
+            referencedRelation: "paiements"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -5097,28 +5097,28 @@ export type Database = {
             referencedColumns: ["client_id"]
           },
           {
-            foreignKeyName: "transferts_paiements_souscripteur_dest_id_fkey"
+            foreignKeyName: "transferts_paiements_client_dest_id_fkey"
             columns: ["client_dest_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "transferts_paiements_souscripteur_dest_id_fkey"
+            foreignKeyName: "transferts_paiements_client_dest_id_fkey"
             columns: ["client_dest_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
             referencedColumns: ["client_id"]
           },
           {
-            foreignKeyName: "transferts_paiements_souscripteur_source_id_fkey"
+            foreignKeyName: "transferts_paiements_client_source_id_fkey"
             columns: ["client_source_id"]
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "transferts_paiements_souscripteur_source_id_fkey"
+            foreignKeyName: "transferts_paiements_client_source_id_fkey"
             columns: ["client_source_id"]
             isOneToOne: false
             referencedRelation: "v_client_synthese"
@@ -5269,14 +5269,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
+            foreignKeyName: "clients_offre_id_fkey"
             columns: ["offre_id"]
             isOneToOne: false
             referencedRelation: "offres"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
+            foreignKeyName: "clients_offre_id_fkey"
             columns: ["offre_id"]
             isOneToOne: false
             referencedRelation: "v_prix_effectif_offres"
