@@ -23,6 +23,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
   const [regions, setRegions] = useState<any[]>([]);
   const [departements, setDepartements] = useState<any[]>([]);
   const [sousPrefectures, setSousPrefectures] = useState<any[]>([]);
+  const [villages, setVillages] = useState<any[]>([]);
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -85,6 +86,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
 
   // Charger régions quand district change
   useEffect(() => {
+    setRegions([]); setDepartements([]); setSousPrefectures([]); setVillages([]);
     if (formData.district_id) {
       const fetchRegions = async () => {
         const { data } = await (supabase as any)
@@ -101,6 +103,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
 
   // Charger départements quand région change
   useEffect(() => {
+    setDepartements([]); setSousPrefectures([]); setVillages([]);
     if (formData.region_id) {
       const fetchDepartements = async () => {
         const { data } = await (supabase as any)
@@ -117,6 +120,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
 
   // Charger sous-préfectures quand département change
   useEffect(() => {
+    setSousPrefectures([]); setVillages([]);
     if (formData.departement_id) {
       const fetchSousPrefectures = async () => {
         const { data } = await (supabase as any)
@@ -413,7 +417,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
               <Select
                 value={formData.district_id}
                 onValueChange={(value) => {
-                  updateFormData({ district_id: value, region_id: null, departement_id: null, sous_prefecture_id: null });
+                  updateFormData({ district_id: value, region_id: null, departement_id: null, sous_prefecture_id: null, village_id: null });
                   setRegions([]);
                   setDepartements([]);
                   setSousPrefectures([]);
@@ -435,7 +439,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
               <Select
                 value={formData.region_id}
                 onValueChange={(value) => {
-                  updateFormData({ region_id: value, departement_id: null, sous_prefecture_id: null });
+                  updateFormData({ region_id: value, departement_id: null, sous_prefecture_id: null, village_id: null });
                   setDepartements([]);
                   setSousPrefectures([]);
                 }}
@@ -457,7 +461,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
               <Select
                 value={formData.departement_id}
                 onValueChange={(value) => {
-                  updateFormData({ departement_id: value, sous_prefecture_id: null });
+                  updateFormData({ departement_id: value, sous_prefecture_id: null, village_id: null });
                   setSousPrefectures([]);
                 }}
                 disabled={!formData.region_id}
@@ -477,7 +481,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
               <Label htmlFor="sous_prefecture">Sous-préfecture *</Label>
               <Select
                 value={formData.sous_prefecture_id}
-                onValueChange={(value) => updateFormData({ sous_prefecture_id: value })}
+                onValueChange={(value) => updateFormData({ sous_prefecture_id: value, village_id: null })}
                 disabled={!formData.departement_id}
               >
                 <SelectTrigger>
@@ -491,6 +495,16 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
               </Select>
             </div>
           </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="village">Village *</Label>
+              <Select value={formData.village_id || ""} onValueChange={(value) => updateFormData({ village_id: value })} disabled={!formData.sous_prefecture_id || villages.length === 0}>
+                <SelectTrigger><SelectValue placeholder={!formData.sous_prefecture_id ? "Sélectionner d'abord la sous-préfecture" : "Sélectionner le village"} /></SelectTrigger>
+                <SelectContent>
+                  {villages.map((v) => <SelectItem key={v.id} value={v.id}>{v.nom}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
 
           <div className="space-y-2">
             <Label htmlFor="domicile">Adresse complète du domicile *</Label>
