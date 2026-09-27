@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { BadgeCheck, ShieldAlert, Search, Loader2, ScanLine } from "lucide-react";
+import { BadgeCheck, ShieldAlert, Search, Loader2 } from "lucide-react";
 import ScanCarteDialog from "@/components/cartes/ScanCarteDialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -27,12 +27,11 @@ const fdate = (d?: string | null) => (d ? format(new Date(d), "dd MMMM yyyy", { 
 const VerificationCarte = () => {
   const { code } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [saisie, setSaisie] = useState(code || "");
   const [loading, setLoading] = useState(false);
   const [carte, setCarte] = useState<CarteVerifiee | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
-  const [scanOpen, setScanOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(true);
 
   const verifier = async (valeur: string) => {
     const c = valeur.trim();
@@ -60,9 +59,7 @@ const VerificationCarte = () => {
 
   useEffect(() => {
     if (code) verifier(code);
-    if (searchParams.get("scan") === "1") setScanOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, searchParams]);
+  }, [code]);
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-primary via-primary to-primary-hover px-3 py-8 sm:px-4">
@@ -102,10 +99,6 @@ const VerificationCarte = () => {
                 Vérifier
               </Button>
             </form>
-
-            <Button type="button" variant="secondary" className="h-11 w-full gap-2" onClick={() => setScanOpen(true)}>
-              <ScanLine className="h-4 w-4" />Scanner le QR code avec la caméra
-            </Button>
 
             <ScanCarteDialog
               open={scanOpen}
