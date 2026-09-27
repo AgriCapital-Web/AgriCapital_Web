@@ -5,7 +5,6 @@ import { PERMISSIONS, hasPermission, roleLabel } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 import { uploaderPhotoCarte, CARTE_BUCKET } from "@/lib/photoCarte";
 import { CarteRecto, CarteVerso, CONTRATS, STATUTS_AGENT, contratLabel, CarteData } from "@/components/cartes/CartePersonnel";
-import ScanCarteDialog from "@/components/cartes/ScanCarteDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BadgeCheck, Ban, Download, IdCard, Printer, QrCode, RefreshCw, Search, Upload } from "lucide-react";
+import { BadgeCheck, Ban, Download, IdCard, Printer, RefreshCw, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -44,7 +43,6 @@ const GestionCartes = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Row | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [scanOpen, setScanOpen] = useState(false);
   const [form, setForm] = useState({
     poste: "",
     departement: "",
@@ -352,14 +350,6 @@ const GestionCartes = () => {
             <Button variant="outline" className="w-full sm:w-auto" onClick={retraiterPhotosLot}>
               <RefreshCw className="mr-1 h-4 w-4" />Retraiter les photos
             </Button>
-            <Button variant="secondary" className="w-full sm:w-auto" onClick={() => setScanOpen(true)}>
-              <QrCode className="mr-1 h-4 w-4" />Scanner un badge
-            </Button>
-            <ScanCarteDialog
-              open={scanOpen}
-              onOpenChange={setScanOpen}
-              onCode={(code) => window.open(`/verifier-carte/${code}`, "_blank", "noreferrer")}
-            />
           </div>
         </CardHeader>
         <CardContent>
