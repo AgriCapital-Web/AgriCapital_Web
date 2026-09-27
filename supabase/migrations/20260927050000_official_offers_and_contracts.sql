@@ -14,6 +14,9 @@ alter table public.offres
 
 -- Désactivation des anciennes références commerciales : elles restent en historique
 -- pour ne pas casser les anciens dossiers, mais ne sont plus proposées.
+-- Certains anciens enregistrements utilisent un ancien format de tranches ; on neutralise
+-- temporairement le contrôle tarifaire uniquement pendant cette désactivation historique.
+drop trigger if exists trg_validate_offre_pricing on public.offres;
 update public.offres
 set actif=false, updated_at=now()
 where lower(code) in ('palmelite','palm-elite','agriplan','agri-plan');
@@ -174,6 +177,10 @@ on conflict(code) do update set
   contribution_mensuelle_par_ha=excluded.contribution_mensuelle_par_ha,montant_cash_par_ha=excluded.montant_cash_par_ha,montant_total_par_ha=excluded.montant_total_par_ha,
   duree_paiement_mois=excluded.duree_paiement_mois,duree_installation_mois=excluded.duree_installation_mois,duree_production_ans=excluded.duree_production_ans,
   tranches_paiement=excluded.tranches_paiement,avantages=excluded.avantages,updated_at=now();
+
+-- Réactiver le contrôle tarifaire après la migration des offres officielles.
+create trigger trg_validate_offre_pricing before insert or update on public.offres
+for each row execute function public.validate_offre_pricing_consistency();
 
 -- Terminologie officielle.
 update public.promotions set cible='paiement_initial',type_promotion='paiement_initial'
