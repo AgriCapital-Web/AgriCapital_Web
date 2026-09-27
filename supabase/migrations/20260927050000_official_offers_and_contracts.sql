@@ -30,8 +30,8 @@ insert into public.offres (
   'Plantation clé en main, sans terre préalable, remise après 36 mois — propriété 28 ans.',
   true,1,'sans_terre','propre','PALMINVEST','PALMINVEST','PalmInvest',
   true,true,false,true,'PALMINVEST',
-  90700,90700,83800,2266000,2465200,40,36,28,
-  '[{"libelle":"Paiement initial","montant":90700,"mois":"M1"},{"libelle":"Année 1","montant":350900,"mensualite":31900,"mois":"M2-M12"},{"libelle":"Année 2","montant":682800,"mensualite":56900,"mois":"M13-M24"},{"libelle":"Année 3","montant":1340800,"mensualite":83800,"mois":"M25-M40"}]',
+  0,90700,83800,2266000,2465200,40,36,28,
+  '[{"libelle":"Paiement initial","montant":90700,"mensualite_par_ha":90700,"mois":1},{"libelle":"Année 1","montant":350900,"mensualite_par_ha":31900,"mois":11},{"libelle":"Année 2","montant":682800,"mensualite_par_ha":56900,"mois":12},{"libelle":"Année 3","montant":1340800,"mensualite_par_ha":83800,"mois":16}]',
   '["Plantation clé en main","Sans terre préalable","Patrimoine actif à 36 mois","Gestion par vos soins","Exploitation autonome","Reporting et suivi digital","Revenus sur votre compte"]'::jsonb
 )
 on conflict(code) do update set
@@ -83,8 +83,8 @@ insert into public.offres (
   'Vous avez la terre, nous en faisons une plantation productive en 36 mois — 100% propriété.',
   true,3,'avec_terre','propre','TERRAPALM','TERRAPALM','TerraPalm',
   true,true,true,true,'TERRAPALM',
-  84700,84700,49800,1466200,1620200,40,36,28,
-  '[{"libelle":"Paiement initial","montant":84700,"mois":"M1"},{"libelle":"Année 1","montant":295900,"mensualite":26900,"mois":"M2-M12"},{"libelle":"Année 2","montant":442800,"mensualite":36900,"mois":"M13-M24"},{"libelle":"Année 3","montant":796800,"mensualite":49800,"mois":"M25-M40"}]',
+  0,84700,49800,1466200,1620200,40,36,28,
+  '[{"libelle":"Paiement initial","montant":84700,"mensualite_par_ha":84700,"mois":1},{"libelle":"Année 1","montant":295900,"mensualite_par_ha":26900,"mois":11},{"libelle":"Année 2","montant":442800,"mensualite_par_ha":36900,"mois":12},{"libelle":"Année 3","montant":796800,"mensualite_par_ha":49800,"mois":16}]',
   '["Votre terre reste la vôtre","Plantation clé en main","Exploitation autonome","Reporting et suivi digital","Revenus sur votre compte"]'::jsonb
 )
 on conflict(code) do update set
@@ -136,8 +136,8 @@ insert into public.offres (
   'Votre plantation de palmier à huile accessible progressivement. La parcelle est à la charge du client.',
   true,5,'avec_terre','propre','PALMTERROIR','PALMTERROIR_ESSENTIELLE','Essentielle',
   false,true,true,false,'PALMTERROIR',
-  230000,50000,3500,356000,356000,36,36,0,
-  '[{"libelle":"Paiement à la signature","montant":50000},{"libelle":"Paiement après trouaison","montant":180000},{"libelle":"Encadrement technique","montant":126000,"mensualite":3500,"mois":"36 mois"}]',
+  50000,50000,3500,356000,356000,37,36,0,
+  '[{"libelle":"Paiement après trouaison","montant":180000,"mensualite_par_ha":180000,"mois":1},{"libelle":"Encadrement technique","montant":126000,"mensualite_par_ha":3500,"mois":36}]',
   '["Inspection et validation de la parcelle","Piquetage","Trouaison","Transport des plants jusqu’à 10 km","Mise en terre","Suivi technique continu"]'::jsonb
 )
 on conflict(code) do update set
@@ -161,8 +161,8 @@ insert into public.offres (
   'Votre plantation de palmier à huile accessible progressivement avec un paiement mensuel adapté.',
   true,6,'avec_terre','propre','PALMTERROIR','PALMTERROIR_FLEXIBLE','Flexible',
   false,true,true,false,'PALMTERROIR',
-  518000,65000,12600,518000,518000,36,36,0,
-  '[{"libelle":"Paiement à la signature","montant":65000},{"libelle":"Mensualité","montant":453600,"mensualite":12600,"mois":"36 mois"}]',
+  65000,65000,12600,518000,518600,36,36,0,
+  '[{"libelle":"Mensualité","montant":453600,"mensualite_par_ha":12600,"mois":36}]',
   '["Inspection et validation de la parcelle","Piquetage","Trouaison","Transport des plants jusqu’à 10 km","Mise en terre","Suivi technique continu"]'::jsonb
 )
 on conflict(code) do update set
