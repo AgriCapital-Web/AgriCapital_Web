@@ -8,12 +8,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Camera, ClipboardCheck, AlertTriangle, TrendingUp, MapPin } from "lucide-react";
+import { FileText, Camera, ClipboardCheck, AlertTriangle, TrendingUp, MapPin, Plus, Upload, Video, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { offlineInsert } from "@/lib/offlineWrite";
+import { uploadOrQueueFile } from "@/lib/offlineFiles";
 
 const RapportsTechniques = () => {
   const [interventions, setInterventions] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
+  const { toast } = useToast();
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportSaving, setReportSaving] = useState(false);
+  const [reportForm, setReportForm] = useState({ plantation_id: "", date_visite: new Date().toISOString().slice(0,16), type_visite: "suivi", observations: "", recommandations: "", client_visible: false });
+  const [mediaDrafts, setMediaDrafts] = useState<Array<{file: File; client_visible: boolean; description: string}>>([]);
   const [stats, setStats] = useState({
     totalInterventions: 0,
     interventionsEnCours: 0,
@@ -91,6 +105,54 @@ const RapportsTechniques = () => {
     fetchData();
   }, []);
 
+  const saveTechnicalReport = async () => {
+    if (!reportForm.plantation_id) {
+      toast({ variant: "destructive", title: "Plantation requise" });
+      return;
+    }
+    setReportSaving(true);
+    try {
+      const plantation = interventions.find((i:any) => i.plantation?.id === reportForm.plantation_id)?.plantation
+        || (await supabase.from("plantations").select("id,souscripteur_id").eq("id", reportForm.plantation_id).maybeSingle()).data;
+      const reportId = crypto.randomUUID();
+      const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", (await supabase.auth.getUser()).data.user?.id || "").maybeSingle();
+      const payload = {
+        id: reportId,
+        plantation_id: reportForm.plantation_id,
+        souscripteur_id: plantation?.souscripteur_id || null,
+        technicien_id: profile?.id || null,
+        date_visite: new Date(reportForm.date_visite).toISOString(),
+        type_visite: reportForm.type_visite,
+        observations: reportForm.observations || null,
+        recommandations: reportForm.recommandations || null,
+        statut: "valide",
+        client_visible: reportForm.client_visible,
+        created_by: profile?.id || null,
+      };
+      const { error } = await offlineInsert("rapports_visites_techniques", payload);
+      if (error) throw error;
+
+      for (const media of mediaDrafts) {
+        const path = `plantations/${reportForm.plantation_id}/rapports/${reportId}/${crypto.randomUUID()}-${media.file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const uploaded = await uploadOrQueueFile({ bucket: "rapports-techniques", path, file: media.file, table: "rapports_visites_medias", record_id: crypto.randomUUID(), column: "storage_path" });
+        const mediaId = crypto.randomUUID();
+        await offlineInsert("rapports_visites_medias", {
+          id: mediaId, rapport_id: reportId, plantation_id: reportForm.plantation_id,
+          media_type: media.file.type.startsWith("video/") ? "video" : "photo",
+          storage_path: uploaded.path, mime_type: media.file.type, nom_fichier: media.file.name,
+          description: media.description || null, client_visible: media.client_visible, created_by: profile?.id || null,
+        });
+      }
+      toast({ title: navigator.onLine ? "Rapport enregistré" : "Rapport enregistré hors ligne", description: mediaDrafts.length ? `${mediaDrafts.length} média(s) associé(s).` : undefined });
+      setReportOpen(false);
+      setReportForm({ plantation_id: "", date_visite: new Date().toISOString().slice(0,16), type_visite: "suivi", observations: "", recommandations: "", client_visible: false });
+      setMediaDrafts([]);
+      fetchData();
+    } catch (error:any) {
+      toast({ variant: "destructive", title: "Enregistrement impossible", description: error?.message || "Erreur inconnue" });
+    } finally { setReportSaving(false); }
+  };
+
   useRealtime({ table: "interventions_techniques", onChange: fetchData });
   useRealtime({ table: "tickets_techniques", onChange: fetchData });
   useRealtime({ table: "photos_plantation", onChange: fetchData });
@@ -138,10 +200,30 @@ const RapportsTechniques = () => {
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Rapports Technico-Commerciaux</h1>
-            <p className="text-muted-foreground mt-1">
-              Suivi des interventions, tickets et documentation photographique
-            </p>
+            <p className="text-muted-foreground mt-1">Suivi des interventions, rapports de visite, tickets et médias terrain</p>
+            <Button className="mt-3" onClick={() => setReportOpen(true)}><Plus className="h-4 w-4 mr-2" />Nouveau rapport de visite</Button>
           </div>
+
+          <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader><DialogTitle>Rapport de visite technique</DialogTitle></DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div><Label>Plantation *</Label><Select value={reportForm.plantation_id} onValueChange={(v)=>setReportForm(p=>({...p,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une plantation" /></SelectTrigger><SelectContent>{interventions.map((i:any)=>i.plantation?.id).filter(Boolean).filter((v:string,i:number,a:string[])=>a.indexOf(v)===i).map((id:string)=><SelectItem key={id} value={id}>{interventions.find((i:any)=>i.plantation?.id===id)?.plantation?.nom_plantation || id}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label>Date et heure</Label><Input type="datetime-local" value={reportForm.date_visite} onChange={e=>setReportForm(p=>({...p,date_visite:e.target.value}))}/></div>
+                </div>
+                <div><Label>Type de visite</Label><Select value={reportForm.type_visite} onValueChange={v=>setReportForm(p=>({...p,type_visite:v}))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="suivi">Suivi</SelectItem><SelectItem value="inspection">Inspection</SelectItem><SelectItem value="traitement">Traitement</SelectItem><SelectItem value="incident">Incident</SelectItem><SelectItem value="mise_en_place">Mise en place</SelectItem></SelectContent></Select></div>
+                <div><Label>Observations</Label><Textarea value={reportForm.observations} onChange={e=>setReportForm(p=>({...p,observations:e.target.value}))} rows={5}/></div>
+                <div><Label>Recommandations</Label><Textarea value={reportForm.recommandations} onChange={e=>setReportForm(p=>({...p,recommandations:e.target.value}))} rows={4}/></div>
+                <label className="flex items-center gap-2 text-sm"><Checkbox checked={reportForm.client_visible} onCheckedChange={(v)=>setReportForm(p=>({...p,client_visible:Boolean(v)}))}/>Afficher le rapport texte dans l’espace client</label>
+                <div className="space-y-3 rounded-lg border p-4">
+                  <div className="flex items-center justify-between"><div><Label>Médias de la visite</Label><p className="text-xs text-muted-foreground">Photos et vidéos, avec visibilité client indépendante pour chaque fichier.</p></div><label className="inline-flex items-center gap-2 cursor-pointer"><Upload className="h-4 w-4"/><span className="text-sm">Ajouter</span><input type="file" className="hidden" accept="image/*,video/*" multiple onChange={e=>setMediaDrafts(p=>[...p,...Array.from(e.target.files||[]).map(file=>({file,client_visible:false,description:""}))])}/></label></div>
+                  {mediaDrafts.map((m,i)=><div key={i} className="rounded-lg border p-3 space-y-2"><div className="flex items-center gap-2 text-sm"><span className="truncate flex-1">{m.file.name}</span>{m.file.type.startsWith("video/")?<Video className="h-4 w-4"/>:<Camera className="h-4 w-4"/>}<button type="button" className="text-destructive text-xs" onClick={()=>setMediaDrafts(p=>p.filter((_,idx)=>idx!==i))}>Retirer</button></div><Input placeholder="Description (optionnel)" value={m.description} onChange={e=>setMediaDrafts(p=>p.map((x,idx)=>idx===i?{...x,description:e.target.value}:x))}/><label className="flex items-center gap-2 text-xs"><Checkbox checked={m.client_visible} onCheckedChange={v=>setMediaDrafts(p=>p.map((x,idx)=>idx===i?{...x,client_visible:Boolean(v)}:x))}/><Eye className="h-3 w-3"/>Afficher ce média dans l’espace client</label></div>)}
+                </div>
+                <Button onClick={saveTechnicalReport} disabled={reportSaving} className="w-full">{reportSaving ? "Enregistrement..." : "Enregistrer le rapport"}</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
