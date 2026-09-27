@@ -9,7 +9,7 @@ interface Etape5Props {
   updateFormData: (data: any) => void;
 }
 
-export const ANNEXES_SOUSCRIPTION = [
+export const ANNEXES_ACQUISITION = [
   { field: "annexe1_plan_bloc", label: "Annexe 1 — Plan du bloc ou de la zone de plantation", condition: () => true },
   { field: "annexe2_plan_individuel", label: "Annexe 2 — Fiche d’identification et plan individuel (polygonal GPS)", condition: () => true },
   { field: "annexe3_acte_remise", label: "Annexe 3 — Acte de Remise de Plantation", condition: () => true },
@@ -70,7 +70,7 @@ export const Etape5Documents = ({ formData, updateFormData }: Etape5Props) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {ANNEXES_SOUSCRIPTION.filter((a) => a.condition(formData)).map((a) => (
+          {ANNEXES_ACQUISITION.filter((a) => a.condition(formData)).map((a) => (
             <div key={a.field} className="space-y-3 rounded-md border p-3">
               <Label>{a.label}</Label>
               <RadioGroup
