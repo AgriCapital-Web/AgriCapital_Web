@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'agricapital_offline';
-const DB_VERSION = 7;
+const DB_VERSION = 8;
 
 export const STORES = {
   CLIENTS: 'clients',
@@ -37,6 +37,27 @@ function openDB(): Promise<IDBDatabase> {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      // Migrate legacy local cache name to the canonical client store without losing offline data.
+      const legacyStore = 'souscripteurs';
+      if (db.objectStoreNames.contains(legacyStore) && !db.objectStoreNames.contains(STORES.CLIENTS)) {
+        db.createObjectStore(STORES.CLIENTS, { keyPath: 'id' }).createIndex('updated_at', 'updated_at');
+      }
+      if (db.objectStoreNames.contains(legacyStore) && db.objectStoreNames.contains(STORES.CLIENTS)) {
+        const tx = (event.target as IDBOpenDBRequest).transaction;
+        if (tx) {
+          const oldStore = tx.objectStore(legacyStore);
+          const newStore = tx.objectStore(STORES.CLIENTS);
+          oldStore.openCursor().onsuccess = (cursorEvent) => {
+            const cursor = (cursorEvent.target as IDBRequest<IDBCursorWithValue | null>).result;
+            if (!cursor) return;
+            newStore.put(cursor.value);
+            cursor.continue();
+          };
+          tx.oncomplete = () => {
+            if (db.objectStoreNames.contains(legacyStore)) db.deleteObjectStore(legacyStore);
+          };
+        }
+      }
       const storeNames = Object.values(STORES);
       for (const name of storeNames) {
         if (!db.objectStoreNames.contains(name)) {
