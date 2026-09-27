@@ -493,7 +493,7 @@ const GestionPaiements = () => {
 
     try {
       const souscripteur = souscripteursMonnaie.find((s: any) => s?.id === selectedSouscripteurId);
-      if (!souscripteur) throw new Error('Souscripteur non trouvé');
+      if (!souscripteur) throw new Error('Client non trouvé');
 
       // Calculate amount based on period
       const tarifs: Record<string, number> = {
@@ -701,7 +701,7 @@ const GestionPaiements = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Souscripteur</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Montant</TableHead>
                       <TableHead>Statut</TableHead>
@@ -735,7 +735,7 @@ const GestionPaiements = () => {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">
-                              {paiement.type_paiement === 'DA' ? "Dépôt Initial" : 'Redevance'}
+                              {paiement.type_paiement === 'DA' ? "Paiement Initial" : 'Redevance'}
                             </Badge>
                           </TableCell>
                           <TableCell className="font-bold">
@@ -814,7 +814,7 @@ const GestionPaiements = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Coins className="h-5 w-5 text-amber-600" />
-                    Souscripteurs avec monnaie disponible
+                    Clients avec solde disponible
                   </CardTitle>
                   <CardDescription>
                     Les montants excédentaires payés par les souscripteurs peuvent être convertis en jours/mois de redevance
@@ -825,7 +825,7 @@ const GestionPaiements = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Souscripteur</TableHead>
+                          <TableHead>Client</TableHead>
                           <TableHead>Téléphone</TableHead>
                           <TableHead>Total payé</TableHead>
                           <TableHead>Attendu</TableHead>
@@ -938,7 +938,7 @@ const GestionPaiements = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Type</p>
-                      <p>{selectedPaiement.type_paiement === 'DA' ? "Dépôt Initial" : 'Redevance'}</p>
+                      <p>{selectedPaiement.type_paiement === 'DA' ? "Paiement Initial" : 'Redevance'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Montant</p>
