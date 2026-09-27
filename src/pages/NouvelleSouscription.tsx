@@ -185,9 +185,7 @@ const NouvelleSouscription = () => {
       if (typeFoncier === "OWN" && !parcelleId) {
         const surface = Number(formData.surface_propre_ha || formData.superficie_prevue || 0);
         if (surface <= 0) throw new Error("La surface de la parcelle du client est obligatoire");
-        const { data: parcelle, error: parcelleError } = await (supabase as any)
-          .from("parcelles")
-          .insert({
+        const { data: parcelle, error: parcelleError } = await offlineInsert("parcelles", {
             surface_totale_ha: surface,
             surface_proprietaire_ha: surface,
             surface_agricapital_ha: 0,
@@ -203,8 +201,7 @@ const NouvelleSouscription = () => {
             created_by: user.id,
             updated_by: user.id,
           })
-          .select("id")
-          .single();
+
         if (parcelleError || !parcelle) throw parcelleError || new Error("Parcelle client non créée");
         parcelleId = parcelle.id;
       }
