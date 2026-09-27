@@ -20,8 +20,8 @@ type Doc = {
   observations: string | null;
   created_at: string;
   validated_at: string | null;
-  souscripteur_id: string | null;
-  souscripteurs?: { nom_complet: string | null; id_unique: string | null } | null;
+  client_id: string | null;
+  clients?: { nom_complet: string | null; id_unique: string | null } | null;
 };
 
 const STATUTS = [
@@ -40,8 +40,8 @@ const Documents = () => {
   const load = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
-      .from("documents_souscription")
-      .select("*, souscripteurs(nom_complet, id_unique)")
+      .from("documents_acquisition")
+      .select("*, clients(nom_complet, id_unique)")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setDocs(data || []);
@@ -57,7 +57,7 @@ const Documents = () => {
       return;
     }
     const { error } = await (supabase as any)
-      .from("documents_souscription")
+      .from("documents_acquisition")
       .update({
         statut,
         observations: obs,
@@ -91,7 +91,7 @@ const Documents = () => {
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <FileCheck className="h-7 w-7 text-primary" /> Documents
             </h1>
-            <p className="text-muted-foreground">Validation des pièces déposées par les souscripteurs</p>
+            <p className="text-muted-foreground">Validation des pièces déposées par les clients</p>
           </div>
 
           <Tabs value={filter} onValueChange={setFilter}>
@@ -129,8 +129,8 @@ const Documents = () => {
                             return (
                               <TableRow key={d.id}>
                                 <TableCell>
-                                  <div className="font-medium">{d.souscripteurs?.nom_complet || "—"}</div>
-                                  <div className="font-mono text-xs text-muted-foreground">{d.souscripteurs?.id_unique}</div>
+                                  <div className="font-medium">{d.clients?.nom_complet || "—"}</div>
+                                  <div className="font-mono text-xs text-muted-foreground">{d.clients?.id_unique}</div>
                                 </TableCell>
                                 <TableCell className="capitalize">{d.type_document.replace(/_/g, " ")}</TableCell>
                                 <TableCell className="text-xs">{new Date(d.created_at).toLocaleDateString("fr-FR")}</TableCell>
