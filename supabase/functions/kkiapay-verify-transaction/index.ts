@@ -24,13 +24,13 @@ serve(async (req) => {
       return json({ success: false, error: "Identifiant de paiement invalide" }, 400);
     }
 
-    // 2) Autorisation : staff, ou souscripteur propriétaire du paiement ciblé/lié
+    // 2) Autorisation : staff, ou client propriétaire du paiement ciblé/lié
     const { data: isStaff } = await admin.rpc("is_staff", { _user_id: user!.id });
 
     // Paiement ciblé (le cas échéant) : chargé côté serveur, jamais fourni par le client
     let target: {
       id: string;
-      souscripteur_id: string | null;
+      client_id: string | null;
       montant: number | null;
       statut: string | null;
       kkiapay_transaction_id: string | null;
@@ -39,7 +39,7 @@ serve(async (req) => {
     if (paiementId) {
       const { data } = await admin
         .from("paiements")
-        .select("id, souscripteur_id, montant, statut, kkiapay_transaction_id")
+        .select("id, client_id, montant, statut, kkiapay_transaction_id")
         .eq("id", paiementId)
         .maybeSingle();
       if (!data) return json({ success: false, error: "Paiement introuvable" }, 404);
@@ -47,21 +47,21 @@ serve(async (req) => {
     }
 
     if (!isStaff) {
-      const { data: souscripteur } = await admin
-        .from("souscripteurs")
+      const { data: client } = await admin
+        .from("clients")
         .select("id")
         .eq("user_id", user!.id)
         .maybeSingle();
 
       let allowed = false;
-      if (souscripteur?.id) {
+      if (client?.id) {
         if (target) {
-          allowed = target.souscripteur_id === souscripteur.id;
+          allowed = target.client_id === client.id;
         } else {
           const { data: paiement } = await admin
             .from("paiements")
             .select("id")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", client.id)
             .contains("metadata", { kkiapay_transaction_id: transactionId })
             .maybeSingle();
           allowed = !!paiement;
