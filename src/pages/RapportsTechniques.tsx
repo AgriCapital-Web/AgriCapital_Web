@@ -134,7 +134,7 @@ const RapportsTechniques = () => {
 
       for (const media of mediaDrafts) {
         const path = `plantations/${reportForm.plantation_id}/rapports/${reportId}/${crypto.randomUUID()}-${media.file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-        const uploaded = await uploadOrQueueFile({ bucket: "rapports-techniques", path, file: media.file, table: "rapports_visites_medias", record_id: crypto.randomUUID(), column: "storage_path" });
+        const uploaded = await uploadOrQueueFile({ bucket: "rapports-techniques", path, file: media.file });
         const mediaId = crypto.randomUUID();
         await offlineInsert("rapports_visites_medias", {
           id: mediaId, rapport_id: reportId, plantation_id: reportForm.plantation_id,
