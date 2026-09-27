@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, type ReactNode } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -166,7 +166,7 @@ const Decor = () => (
   </>
 );
 
-const CardShell = ({ children }: { children: React.ReactNode }) => (
+const CardShell = ({ children }: { children: ReactNode }) => (
   <div
     style={{
       position: "relative",
