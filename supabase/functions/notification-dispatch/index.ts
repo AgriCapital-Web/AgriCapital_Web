@@ -40,7 +40,7 @@ const html = (text: string) => text.replace(/[&<>"']/g, (c) =>
 
 const isCiNumber = (value?: string | null) => {
   const digits = (value || "").replace(/\D/g, "");
-  return digits.startsWith("225") || digits.startsWith("00225") || digits.startsWith("0");
+  return digits.startsWith("225") || digits.startsWith("00225");
 };
 
 const toE164 = (value?: string | null) => {
