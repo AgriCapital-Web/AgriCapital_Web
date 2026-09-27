@@ -51,7 +51,12 @@ export interface PrixEffectif {
 const num = (v: unknown) => Number(v || 0);
 
 export const promotionCible = (p: PromotionBase) =>
-  p.cible || (p.type_promotion === "cout_global" ? "total_contrat" : p.type_promotion === "special" ? "special" : "depot_initial");
+  (() => {
+    const cible = p.cible || p.type_promotion;
+    if (["depot_initial", "dépôt_initial", "da", "di", "paiement_initial"].includes(String(cible).toLowerCase())) return "paiement_initial";
+    if (["total_contrat", "cout_global", "coût_global", "cg"].includes(String(cible).toLowerCase())) return "cout_global";
+    return "paiement_initial";
+  })();
 
 export const promotionActiveMaintenant = (p: PromotionBase, at: Date = new Date()) => {
   if (!p.active) return false;
@@ -102,11 +107,9 @@ export const prixEffectif = (
   let diEff = diBase;
 
   if (promo) {
-    if (cible === "total_contrat") {
+    if (cible === "cout_global") {
       totalEff = Math.max(totalBase * (1 - pct / 100) - fixe, 0);
-    } else if (cible === "special") {
-      totalEff = Math.max(totalBase - fixe, 0);
-    } else if (cible === "depot_initial") {
+    } else if (cible === "paiement_initial") {
       diEff = Math.max(diBase * (1 - pct / 100) - fixe, 0);
     }
   }
