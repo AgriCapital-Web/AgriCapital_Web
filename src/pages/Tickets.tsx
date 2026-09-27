@@ -13,7 +13,7 @@ import { AlertCircle, Plus, Eye } from "lucide-react";
 import TicketForm from "@/components/forms/TicketForm";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAuth } from "@/hooks/useAuth";
-import { hasPermission } from "@/lib/roles";
+import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
 
 const Tickets = () => {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -21,8 +21,8 @@ const Tickets = () => {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const { toast } = useToast();
   const { userRoles } = useAuth();
-  const canCreate = hasPermission(userRoles, "tickets.create");
-  const canUpdate = hasPermission(userRoles, "tickets.update");
+  const canCreate = userRoles.some((role) => DEFAULT_ROLE_PERMISSIONS[role]?.includes("tickets.create"));
+  const canUpdate = userRoles.some((role) => DEFAULT_ROLE_PERMISSIONS[role]?.includes("tickets.update"));
 
   const fetchTickets = async () => {
     const { data, error } = await (supabase as any)
