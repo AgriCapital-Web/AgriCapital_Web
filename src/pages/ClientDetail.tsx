@@ -68,7 +68,7 @@ const ClientDetail = () => {
           .from("interventions_techniques")
           .select(`
             *,
-            technicien:profiles!interventions_techniques_technicien_id_fkey(nom_complet)
+            agent_technique:profiles!interventions_techniques_agent_technique_id_fkey(nom_complet)
           `)
           .in("plantation_id", plantationIds)
           .order("date_intervention", { ascending: false });
@@ -361,7 +361,7 @@ const ClientDetail = () => {
                       <TableRow>
                         <TableHead>Date</TableHead>
                         <TableHead>Type</TableHead>
-                        <TableHead>Technicien</TableHead>
+                        <TableHead>Agent technique</TableHead>
                         <TableHead>Observations</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -379,7 +379,7 @@ const ClientDetail = () => {
                               {new Date(intervention.date_intervention).toLocaleDateString("fr-FR")}
                             </TableCell>
                             <TableCell>{intervention.type_intervention}</TableCell>
-                            <TableCell>{intervention.technicien?.nom_complet}</TableCell>
+                            <TableCell>{intervention.agent_technique?.nom_complet}</TableCell>
                             <TableCell className="max-w-xs truncate">
                               {intervention.observations}
                             </TableCell>
