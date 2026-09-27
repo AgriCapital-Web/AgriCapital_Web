@@ -176,7 +176,7 @@ export default function AgriPlanClientDetail({ clientId, onOpenChange, onChanged
     const photos = medias.filter((p) => !/\.(mp4|mov|avi|webm)$/i.test(p));
     const videos = medias.filter((p) => /\.(mp4|mov|avi|webm)$/i.test(p));
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("agriplan_visites")
       .insert({
         client_id: clientId,
