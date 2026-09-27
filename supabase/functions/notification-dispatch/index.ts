@@ -247,25 +247,50 @@ async function runEvent(eventCode: string, context: Record<string, unknown>) {
 }
 
 async function runScheduledAutomations() {
-  const { data: automations, error } = await admin.from("notification_automations")
-    .select("*").eq("actif", true).in("evenement", ["payment_due","contract_expiry","lead_followup"]);
-  if (error) throw error;
+  const now = new Date();
+  const inThreeDays = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
   const results = [];
-  for (const automation of automations || []) {
-    if (automation.derniere_execution_at && Date.now() - new Date(automation.derniere_execution_at).getTime() < automation.cooldown_minutes * 60000) continue;
-    const contacts = await resolveContacts(automation.criteres || {});
-    if (!contacts.length) continue;
-    const result = await deliver({
-      automationId: automation.id, canal: automation.canal, subject: automation.sujet,
-      content: automation.contenu, contacts,
-      eventKey: automation.evenement + ":" + new Date().toISOString().slice(0, 10),
-    });
-    await admin.from("notification_automations").update({ derniere_execution_at: new Date().toISOString() }).eq("id", automation.id);
-    results.push({ automation_id: automation.id, ...result });
+
+  // Les rappels sont ciblés par client et par échéance : aucun envoi massif à toute la base.
+  const { data: duePayments, error: dueError } = await admin.from("paiements")
+    .select("id,souscripteur_id,montant,date_echeance,statut")
+    .eq("type_paiement", "REDEVANCE")
+    .neq("statut", "valide")
+    .gte("date_echeance", now.toISOString().slice(0, 10))
+    .lte("date_echeance", inThreeDays.toISOString().slice(0, 10))
+    .limit(500);
+  if (dueError) throw dueError;
+
+  for (const paiement of duePayments || []) {
+    results.push(await runEvent("paiement_echeance", {
+      souscripteur_id: paiement.souscripteur_id,
+      paiement_id: paiement.id,
+      montant: paiement.montant,
+      date_echeance: paiement.date_echeance,
+    }));
   }
+
+  const { data: overduePayments, error: overdueError } = await admin.from("paiements")
+    .select("id,souscripteur_id,montant,date_echeance,statut")
+    .eq("type_paiement", "REDEVANCE")
+    .neq("statut", "valide")
+    .lt("date_echeance", now.toISOString().slice(0, 10))
+    .limit(500);
+  if (overdueError) throw overdueError;
+
+  for (const paiement of overduePayments || []) {
+    results.push(await runEvent("paiement_retard", {
+      souscripteur_id: paiement.souscripteur_id,
+      paiement_id: paiement.id,
+      montant: paiement.montant,
+      date_echeance: paiement.date_echeance,
+    }));
+  }
+
   const { data: scheduled } = await admin.from("notification_campaigns").select("id")
-    .eq("statut","programme").lte("programme_le",new Date().toISOString()).limit(20);
+    .eq("statut", "programme").lte("programme_le", now.toISOString()).limit(20);
   for (const campaign of scheduled || []) results.push(await runCampaign(campaign.id));
+
   return results;
 }
 
