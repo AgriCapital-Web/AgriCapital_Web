@@ -1,5 +1,4 @@
 import MainLayout from "@/components/layout/MainLayout";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +11,7 @@ const Notifications = () => {
   const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead, refetch } = useNotifications();
 
   return (
-    <ProtectedRoute>
-      <MainLayout>
+    <MainLayout>
         <div className="w-full min-w-0 space-y-4 sm:space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -55,8 +53,7 @@ const Notifications = () => {
             </CardContent>
           </Card>
         </div>
-      </MainLayout>
-    </ProtectedRoute>
+    </MainLayout>
   );
 };
 
