@@ -83,7 +83,7 @@ const VerificationCarte = () => {
               className="flex flex-col gap-2 sm:flex-row"
               onSubmit={(e) => {
                 e.preventDefault();
-                navigate(`/verifier-carte/${saisie.trim()}`);
+                navigate(`/verify/${saisie.trim()}`);
                 verifier(saisie);
               }}
             >
@@ -105,7 +105,7 @@ const VerificationCarte = () => {
               onOpenChange={setScanOpen}
               onCode={(c) => {
                 setSaisie(c);
-                navigate(`/verifier-carte/${c}`);
+                navigate(`/verify/${c}`);
                 verifier(c);
               }}
             />
