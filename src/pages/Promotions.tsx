@@ -410,7 +410,7 @@ const Promotions = () => {
       <Card>
         <CardHeader>
           <CardTitle>Liste des promotions</CardTitle>
-          <CardDescription>Gérez les promotions sur le PI (dépôt initial) et sur le coût global.</CardDescription>
+          <CardDescription>Gérez les promotions sur le Paiement Initial (PI) et sur le Coût Global (CG).</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
