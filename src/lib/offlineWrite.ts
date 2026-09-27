@@ -10,7 +10,7 @@ import {
 } from '@/lib/offlineDb';
 
 const TABLE_TO_STORE: Record<string, string> = {
-  souscripteurs: STORES.SOUSCRIPTEURS,
+  clients: STORES.CLIENTS,
   plantations: STORES.PLANTATIONS,
   paiements: STORES.PAIEMENTS,
   leads: STORES.LEADS,
