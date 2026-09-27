@@ -20,7 +20,9 @@ export class AppErrorBoundary extends React.Component<Props, State> {
   handleReload = () => {
     try {
       sessionStorage.setItem("agricapital_reload_after_error", String(Date.now()));
-    } catch {}
+    } catch {
+      // Ignore sessionStorage failures and continue with a normal reload.
+    }
     window.location.reload();
   };
 
