@@ -449,14 +449,26 @@ const Offres = () => {
                                 <span className="font-bold">{formatMontant(pe?.depot_initial_effectif ?? offre.montant_pi_par_ha)}F</span>
                               </span>
                             </div>
-                            <div className="flex items-baseline justify-between gap-2">
-                              <span className="text-muted-foreground">Redevance mensuelle / ha</span>
-                              <span className="flex items-baseline gap-2">
-                                {promoActive && pe && pe.mensualite_effective !== pe.mensualite_base && (
-                                  <span className="line-through text-muted-foreground">{formatMontant(pe.mensualite_base)}F</span>
-                                )}
-                                <span className="font-bold">{formatMontant(pe?.mensualite_effective ?? offre.contribution_mensuelle_par_ha)}F</span>
-                              </span>
+                            <div className="space-y-2">
+                              <span className="text-muted-foreground">Échéancier mensuel / ha</span>
+                              <div className="space-y-1 rounded-md bg-background/70 p-2">
+                                {(pe?.tranches_effectives?.length
+                                  ? pe.tranches_effectives
+                                  : getTranches(offre)
+                                ).filter((t: any) => Number(t.mensualite_par_ha ?? 0) > 0).map((t: any, i: number) => {
+                                  const base = Number(t.mensualite_par_ha ?? 0);
+                                  const eff = Number(t.mensualite_par_ha_effective ?? base);
+                                  return (
+                                    <div key={i} className="flex items-center justify-between text-xs">
+                                      <span>An {t.annee ?? i + 1} — {t.mois ?? ((t.mois_fin ?? 0) - (t.mois_debut ?? 0) + 1)} mois</span>
+                                      <span className="font-semibold">
+                                        {promoActive && eff !== base && <span className="mr-2 text-muted-foreground line-through">{formatMontant(base)}F</span>}
+                                        {formatMontant(eff)}F/mois
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
                           {promoActive && pe && (
