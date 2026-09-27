@@ -49,7 +49,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
       case 'telephone':
       case 'whatsapp':
         if (value && !validatePhone(value)) {
-          errors[field] = "Doit contenir exactement 10 chiffres";
+          errors[field] = "Doit contenir entre 6 et 15 chiffres";
         } else {
           delete errors[field];
         }
