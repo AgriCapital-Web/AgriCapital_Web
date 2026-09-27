@@ -100,9 +100,10 @@ export function useUserZones() {
         }
       }
     }
-    // No assignments = no zones
-    const { data } = await (supabase as any).from("districts").select("*").eq("est_actif", true).order("nom");
-    return data || [];
+    // Un utilisateur terrain sans affectation ne doit pas voir toutes les zones.
+    // Les comptes globaux sont traités par isAdmin ; les autres restent sans zone
+    // jusqu'à leur affectation explicite.
+    return [];
   };
 
   const fetchFilteredRegions = async (districtId: string) => {
