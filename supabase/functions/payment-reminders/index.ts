@@ -49,8 +49,8 @@ Deno.serve(async (req) => {
       .from("paiements")
       .select(`
         id, montant, date_echeance, reference, type_paiement,
-        souscripteur_id,
-        souscripteurs (id, nom_complet, telephone, user_id)
+        client_id,
+        clients (id, nom_complet, telephone, user_id)
       `)
       .in("statut", ["en_attente", "partiel"])
       .lt("date_echeance", today)
@@ -63,8 +63,8 @@ Deno.serve(async (req) => {
     const summary = { total: overduePaiements?.length || 0, notified: 0 };
 
     for (const paiement of overduePaiements || []) {
-      const souscripteur = paiement.souscripteurs as any;
-      if (!souscripteur) continue;
+      const client = paiement.clients as any;
+      if (!client) continue;
 
       const daysPastDue = Math.floor(
         (new Date().getTime() - new Date(paiement.date_echeance).getTime()) / (1000 * 60 * 60 * 24)
@@ -75,9 +75,9 @@ Deno.serve(async (req) => {
       else if (daysPastDue > 14) priority = "warning";
 
       // Create notification for the subscriber if they have a user_id
-      if (souscripteur.user_id) {
+      if (client.user_id) {
         notifications.push({
-          user_id: souscripteur.user_id,
+          user_id: client.user_id,
           type: "paiement_retard",
           title: `Paiement en retard - ${daysPastDue} jour(s)`,
           message: `Votre paiement de ${paiement.montant.toLocaleString()} FCFA (réf: ${paiement.reference || "N/A"}) est en retard de ${daysPastDue} jour(s). Veuillez régulariser votre situation.`,
@@ -93,11 +93,11 @@ Deno.serve(async (req) => {
       // Notify hierarchy (admins, managers)
       await supabase.rpc("notify_hierarchy", {
         p_type: "paiement_retard",
-        p_title: `Retard de paiement - ${souscripteur.nom_complet}`,
-        p_message: `Paiement de ${paiement.montant.toLocaleString()} FCFA en retard de ${daysPastDue} jour(s) pour ${souscripteur.nom_complet} (${souscripteur.telephone})`,
+        p_title: `Retard de paiement - ${client.nom_complet}`,
+        p_message: `Paiement de ${paiement.montant.toLocaleString()} FCFA en retard de ${daysPastDue} jour(s) pour ${client.nom_complet} (${client.telephone})`,
         p_data: {
           paiement_id: paiement.id,
-          souscripteur_id: souscripteur.id,
+          client_id: client.id,
           montant: paiement.montant,
           days_overdue: daysPastDue,
           priority,
@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
         await supabase
           .from("plantations")
           .update({ alerte_non_paiement: true })
-          .eq("souscripteur_id", souscripteur.id);
+          .eq("client_id", client.id);
       }
 
       summary.notified++;
