@@ -1,0 +1,1 @@
+-- Add leading-column indexes for every public foreign key that lacked a covering index.
