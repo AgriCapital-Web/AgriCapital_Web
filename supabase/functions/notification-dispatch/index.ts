@@ -17,7 +17,7 @@ const corsHeaders = (req: Request) => {
   if (origin && ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
   return headers;
 };
-const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+const json = (req: Request, body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { ...corsHeaders(req), "Content-Type": "application/json" },
 });
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -312,28 +312,28 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const mode = body.mode || "status";
     if (mode === "run_automations") {
-      if (!(await internalAuthorized(req))) return json({ error: "Non autorise" }, 401);
-      return json({ ok: true, results: await runScheduledAutomations() });
+      if (!(await internalAuthorized(req))) return json(req, { error: "Non autorise" }, 401);
+      return json(req, { ok: true, results: await runScheduledAutomations() });
     }
-    if (!(await staffAuthorized(req))) return json({ error: "Non autorise" }, 401);
-    if (mode === "status") return json({ ok: true, providers: await providerStatus() });
+    if (!(await staffAuthorized(req))) return json(req, { error: "Non autorise" }, 401);
+    if (mode === "status") return json(req, { ok: true, providers: await providerStatus() });
     if (mode === "preview") {
       const contacts = await resolveContacts(body.criteria || {});
-      return json({ ok: true, count: contacts.length, sample: contacts.slice(0,20).map((c) => ({
+      return json(req, { ok: true, count: contacts.length, sample: contacts.slice(0,20).map((c) => ({
         nom_complet:c.nom_complet,email:c.email,telephone:c.telephone,offre_nom:c.offre_nom,role_code:c.role_code
       }))});
     }
     if (mode === "event") {
-      if (!body.event_code) return json({ error: "event_code requis" }, 400);
-      return json({ ok: true, results: await runEvent(body.event_code, body.context || {}) });
+      if (!body.event_code) return json(req, { error: "event_code requis" }, 400);
+      return json(req, { ok: true, results: await runEvent(body.event_code, body.context || {}) });
     }
     if (mode === "campaign") {
-      if (!body.campaign_id) return json({ error: "campaign_id requis" }, 400);
-      return json({ ok: true, result: await runCampaign(body.campaign_id) });
+      if (!body.campaign_id) return json(req, { error: "campaign_id requis" }, 400);
+      return json(req, { ok: true, result: await runCampaign(body.campaign_id) });
     }
-    return json({ error: "Mode non reconnu" }, 400);
+    return json(req, { error: "Mode non reconnu" }, 400);
   } catch (error) {
     console.error("notification-dispatch error", error);
-    return json({ error: error instanceof Error ? error.message : String(error) }, 500);
+    return json(req, { error: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
