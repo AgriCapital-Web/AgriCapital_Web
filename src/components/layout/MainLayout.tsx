@@ -13,11 +13,10 @@ import { cn } from "@/lib/utils";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
-import ScanCarteDialog from "@/components/cartes/ScanCarteDialog";
 import {
   LayoutDashboard, Users, Sprout, CreditCard, LogOut, Menu, Receipt,
   BarChart3, Ticket, Wallet, FileText, Settings, UserCircle, Wifi, WifiOff, RefreshCw, Signal,
-  LandPlot, Layers, ScanLine, Target, CloudUpload, Leaf
+  LandPlot, Layers, Target, CloudUpload, Leaf
 } from "lucide-react";
 
 interface MainLayoutProps { children: ReactNode; }
@@ -27,7 +26,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [scanOpen, setScanOpen] = useState(false);
   const { isOnline, isSyncing, syncNow, pendingCount, networkQuality } = useOfflineSync();
   const photoUrl = useSignedUrl('photos-profils', profile?.photo_url);
   useGlobalRealtime();
@@ -135,10 +133,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
       <main className="min-w-0 flex-1 pt-14 md:pt-0">
         <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur md:flex">
-          <Button variant="outline" className="h-10 gap-2" onClick={() => setScanOpen(true)}>
-            <ScanLine className="h-4 w-4" />Scanner une carte
-          </Button>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex min-w-0 items-center gap-3">
             <NetworkIndicator />
             {pendingCount > 0 && <Badge variant="outline" className="border-accent text-accent">{pendingCount} en attente</Badge>}
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={syncNow} disabled={isSyncing || !isOnline} title="Synchroniser">
@@ -148,10 +143,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <Avatar className="h-9 w-9 cursor-pointer" onClick={() => navigate('/profil')}><AvatarImage src={photoUrl || ''} /><AvatarFallback className="bg-primary text-primary-foreground text-sm">{getInitials(profile?.nom_complet || '')}</AvatarFallback></Avatar>
           </div>
         </header>
-        <div className="p-3 sm:p-5 lg:p-7">{children}</div>
+        <div className="min-w-0 w-full max-w-full p-3 sm:p-5 lg:p-7">{children}</div>
       </main>
 
-      <ScanCarteDialog open={scanOpen} onOpenChange={setScanOpen} onCode={(code) => navigate(`/verifier-carte/${code}`)} />
 
       <AIAssistant mode="admin" context={`Utilisateur: ${profile?.nom_complet || 'Admin'}, Rôles: ${userRoles.join(', ') || 'N/A'}`} />
     </div>
