@@ -55,6 +55,7 @@ base as (
 )
 select id,code,nom,total_base,pi_base,monthly_base,total_eff,least(pi_eff,total_eff),
   case when pid is null then monthly_base
+       when cible='paiement_initial' then monthly_base
        when greatest(total_eff-least(pi_eff,total_eff),0)<=0 then 0
        else round(greatest(total_eff-least(pi_eff,total_eff),0)/duration) end,
   pid,pnom,cible,coalesce(pct,0),greatest(total_base-total_eff,0)
