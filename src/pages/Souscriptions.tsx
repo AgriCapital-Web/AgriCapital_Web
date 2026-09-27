@@ -136,7 +136,7 @@ const Souscriptions = () => {
 
       toast({
         title: "Succès",
-        description: "Souscripteur supprimé",
+        description: "Client supprimé",
       });
       fetchData();
     } catch (error: any) {
@@ -181,15 +181,15 @@ const Souscriptions = () => {
         <div className="space-y-4 sm:space-y-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Gestion des Souscriptions</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Gestion des parcours clients</h1>
               <p className="text-muted-foreground text-sm mt-1">
-                {souscripteurs.length} souscripteur(s) enregistré(s)
+                {souscripteurs.length} client(s) enregistré(s)
               </p>
             </div>
             <Link to="/nouvelle-souscription">
               <Button className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
                 <FileText className="mr-2 h-4 w-4" />
-                Nouvelle Souscription
+                Nouveau parcours client
               </Button>
             </Link>
           </div>
@@ -198,7 +198,7 @@ const Souscriptions = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Souscripteurs
+                  Total Clients
                 </CardTitle>
                 <FileText className="h-5 w-5 text-primary" />
               </CardHeader>
@@ -297,7 +297,7 @@ const Souscriptions = () => {
                     ) : filteredSouscripteurs.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={9} className="text-center py-8">
-                          Aucune souscription trouvée
+                          Aucun parcours client trouvé
                         </TableCell>
                       </TableRow>
                     ) : (
