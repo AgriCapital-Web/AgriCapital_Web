@@ -30,26 +30,26 @@ const RapportsFinanciers = () => {
     commissionsValidees: 0,
     commissionsPendantes: 0,
     commissionsPayees: 0,
-    totalPlanteurs: 0,
+    totalClients: 0,
     totalPlantations: 0,
     totalSuperficie: 0,
   });
 
   const fetchData = async () => {
     // Fetch all data
-    const [commissionsRes, regionsRes, departementsRes, equipesRes, usersRes, planteursRes, plantationsRes, syntheseRes] = await Promise.all([
+    const [commissionsRes, regionsRes, departementsRes, equipesRes, usersRes, clientsRes, plantationsRes, syntheseRes] = await Promise.all([
       (supabase as any).from("commissions").select(`
         *,
         profile:profiles!commissions_profile_id_fkey(id, nom_complet, equipe_id),
-        plantation:plantations(id_unique, nom_plantation, region_id, departement_id, souscripteur_id)
+        plantation:plantations(id_unique, nom_plantation, region_id, departement_id, client_id)
       `).order("date_calcul", { ascending: false }),
       (supabase as any).from("regions").select("*"),
       (supabase as any).from("departements").select("*"),
       (supabase as any).from("equipes").select("*"),
       (supabase as any).from("profils_annuaire").select("id, nom_complet, equipe_id"),
-      (supabase as any).from("souscripteurs").select("id"),
+      (supabase as any).from("clients").select("id"),
       (supabase as any).from("plantations").select("id, superficie_ha"),
-      (supabase as any).from("v_souscripteur_synthese").select("*").order("avancement_pct", { ascending: false }),
+      (supabase as any).from("v_client_synthese").select("*").order("avancement_pct", { ascending: false }),
     ]);
 
     if (commissionsRes.data) setCommissions(commissionsRes.data);
@@ -71,7 +71,7 @@ const RapportsFinanciers = () => {
       commissionsValidees: validees,
       commissionsPendantes: pendantes,
       commissionsPayees: payees,
-      totalPlanteurs: planteursRes.data?.length || 0,
+      totalClients: clientsRes.data?.length || 0,
       totalPlantations: plantationsRes.data?.length || 0,
       totalSuperficie: plantationsRes.data?.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0) || 0,
     });
@@ -82,7 +82,7 @@ const RapportsFinanciers = () => {
   }, []);
 
   useRealtime({ table: "commissions", onChange: fetchData });
-  useRealtime({ table: "souscripteurs", onChange: fetchData });
+  useRealtime({ table: "clients", onChange: fetchData });
   useRealtime({ table: "paiements", onChange: fetchData });
 
   const formatMontant = (m: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF" }).format(m);
@@ -133,7 +133,7 @@ const RapportsFinanciers = () => {
     { title: "Validées", value: formatMontant(stats.commissionsValidees), icon: TrendingUp, color: "text-blue-500" },
     { title: "En Attente", value: formatMontant(stats.commissionsPendantes), icon: Users, color: "text-yellow-500" },
     { title: "Payées", value: formatMontant(stats.commissionsPayees), icon: MapPin, color: "text-purple-500" },
-    { title: "Total Planteurs", value: stats.totalPlanteurs.toString(), icon: Users, color: "text-primary" },
+    { title: "Total Clients", value: stats.totalClients.toString(), icon: Users, color: "text-primary" },
     { title: "Total Plantations", value: stats.totalPlantations.toString(), icon: MapPin, color: "text-green-600" },
     { title: "Superficie Totale", value: `${stats.totalSuperficie.toFixed(2)} ha`, icon: TrendingUp, color: "text-blue-600" },
   ];
@@ -391,7 +391,7 @@ const RapportsFinanciers = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Souscripteur</TableHead>
+                        <TableHead>Client</TableHead>
                         <TableHead>Phase</TableHead>
                         <TableHead>Hectares</TableHead>
                         <TableHead>Total contrat</TableHead>
