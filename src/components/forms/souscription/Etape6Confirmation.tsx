@@ -11,13 +11,13 @@ interface Etape6Props {
 
 export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) => {
   const acceptations = [
-    { id: 'contrat_lu', label: "J'ai lu et approuvé le contrat V1" },
+    { id: 'contrats_lus', label: "J'ai lu et approuvé les contrats applicables à mon offre" },
     { id: 'documents_authentiques', label: 'Tous les documents fournis sont authentiques' },
     { id: 'accept_exclusivite', label: "J'accepte l'exclusivité commerciale" },
     { id: 'autorisation_donnees', label: 'J\'autorise l\'utilisation de mes données personnelles' },
   ];
 
-  const allAccepted = acceptations.every(acc => formData[acc.id]);
+  const allAccepted = acceptations.every(acc => Boolean(formData[acc.id]));
 
   return (
     <div className="space-y-6">
@@ -42,13 +42,11 @@ export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) =>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Offre</h4>
+              <h4 className="font-semibold text-sm">Offre & formule</h4>
               <p className="text-sm">
                 {formData.superficie_prevue || 0} ha prévu(s)
               </p>
-              <p className="text-xs text-muted-foreground">
-                 Paiement progressif sur 35 mois — création de la plantation sur 36 mois
-              </p>
+              <p className="text-xs text-muted-foreground">{formData.formule_nom || formData.formule_code || "Formule sélectionnée"} — Paiement Initial et échéancier selon la formule.</p>
             </div>
           </div>
 
@@ -58,7 +56,7 @@ export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) =>
               <h4 className="font-semibold">Documents fournis</h4>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Contrat signé</Badge>
+              {formData.contrat_acquisition_requis !== false && <Badge variant="outline">Contrat d’acquisition</Badge>} {formData.contrat_accompagnement_requis !== false && <Badge variant="outline">Contrat d’accompagnement</Badge>}
               <Badge variant="outline">Document foncier</Badge>
               <Badge variant="outline">Photos identité (multiples)</Badge>
             </div>
@@ -76,7 +74,7 @@ export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) =>
             <div key={acc.id} className="flex items-start space-x-2">
               <Checkbox
                 id={acc.id}
-                checked={formData[acc.id]}
+                checked={Boolean(formData[acc.id])}
                 onCheckedChange={(checked) => updateFormData({ [acc.id]: checked })}
               />
               <Label htmlFor={acc.id} className="text-sm font-normal leading-tight">
