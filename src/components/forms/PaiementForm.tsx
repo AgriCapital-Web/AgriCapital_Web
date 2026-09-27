@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { parseAmount } from "@/lib/amount";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import { calculPrixEffectif } from "@/lib/pricing";
 
 
 interface PaiementFormProps {
@@ -43,8 +44,11 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   const [filePreview, setFilePreview] = useState("");
   const [arriereInfo, setArriereInfo] = useState<any>(null);
   const [dureeCouverteMessage, setDureeCouverteMessage] = useState("");
+  const [clientOffre, setClientOffre] = useState<any>(null);
   
-  const { data: promotionActive } = usePromotionActive();
+  // Le montant du PI est toujours dérivé de l'offre réelle du client.
+  // Aucune valeur tarifaire n'est codée en dur ici.
+  const { data: promotionActive } = usePromotionActive(clientOffre?.id);
   const typePaiement = watch("type_paiement");
   const clientId = watch("client_id");
   const plantationId = watch("plantation_id");
@@ -95,19 +99,55 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
     }
   }, [plantationId, typePaiement, plantations]);
 
-  // Pour PI: calculer montant automatiquement
+  // Pour PI: récupérer l'offre du client puis calculer le PI via le moteur central.
   useEffect(() => {
-    if (typePaiement === "PI" && clientId) {
-      let montantPI = 30000; // Prix normal
-      
-      if (promotionActive) {
-        // Appliquer la réduction en pourcentage
-        montantPI = 30000 - (30000 * promotionActive.pourcentage_reduction / 100);
+    let cancelled = false;
+    const loadClientOffer = async () => {
+      if (typePaiement !== "PI" || !clientId) {
+        setClientOffre(null);
+        return;
       }
-      
-      setValue("montant_theorique", montantPI);
-    }
-  }, [typePaiement, clientId, promotionActive, setValue]);
+
+      const { data: client, error: clientError } = await (supabase as any)
+        .from("clients")
+        .select("offre_id")
+        .eq("id", clientId)
+        .maybeSingle();
+      if (clientError) {
+        toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(clientError) });
+        return;
+      }
+      if (!client?.offre_id) {
+        setClientOffre(null);
+        setValue("montant_theorique", undefined);
+        return;
+      }
+
+      const { data: offre, error: offreError } = await (supabase as any)
+        .from("offres")
+        .select("*")
+        .eq("id", client.offre_id)
+        .maybeSingle();
+      if (offreError) {
+        toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(offreError) });
+        return;
+      }
+      if (!cancelled) setClientOffre(offre || null);
+    };
+
+    void loadClientOffer();
+    return () => { cancelled = true; };
+  }, [typePaiement, clientId, setValue, toast]);
+
+  useEffect(() => {
+    if (typePaiement !== "PI" || !clientOffre) return;
+    const prix = calculPrixEffectif(
+      clientOffre,
+      promotionActive ? [promotionActive as any] : [],
+      { modePaiement: "echeancier" },
+    );
+    setValue("montant_theorique", prix.depot_initial_effectif);
+  }, [typePaiement, clientOffre, promotionActive, setValue]);
 
   // Calculer jours/mois/trimestre pour CONTRIBUTION
   useEffect(() => {
@@ -350,9 +390,14 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   };
 
 
-  const montantCalculePI = clientId && typePaiement === "PI" 
-    ? (promotionActive ? 30000 - (30000 * promotionActive.pourcentage_reduction / 100) : 30000)
+  const prixPI = clientOffre && typePaiement === "PI"
+    ? calculPrixEffectif(
+        clientOffre,
+        promotionActive ? [promotionActive as any] : [],
+        { modePaiement: "echeancier" },
+      )
     : null;
+  const montantCalculePI = prixPI ? prixPI.depot_initial_effectif : null;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -427,12 +472,19 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {promotionActive && (
+              {clientOffre && (
+                <div className="text-muted-foreground text-xs mb-2">
+                  Offre : <strong>{clientOffre.nom}</strong>
+                </div>
+              )}
+              {promotionActive && prixPI && (
                 <div className="flex items-center gap-2 text-green-600">
                   <Badge variant="outline" className="bg-green-50">
                     🎉 PROMO ACTIVE
                   </Badge>
-                  <span>{promotionActive.nom} (-{promotionActive.pourcentage_reduction}%)</span>
+                  <span>
+                    {promotionActive.nom} — {prixPI.reduction_pct}% sur {prixPI.promotion_cible === "cout_global" ? "le coût global" : "le Paiement Initial"}
+                  </span>
                 </div>
               )}
               <div className="space-y-1">
@@ -446,7 +498,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
                   <div className="flex justify-between text-green-600">
                     <span>Économie:</span>
                     <span className="font-bold">
-                      {(30000 - montantCalculePI).toLocaleString()} F
+                      {(prixPI?.depot_initial_base || 0) - montantCalculePI}.toLocaleString()} F
                     </span>
                   </div>
                 )}
@@ -470,7 +522,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
               className="bg-muted font-bold text-lg"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Le PI complet est obligatoire (pas de paiement partiel)
+              Le PI complet de l'offre sélectionnée est obligatoire (pas de paiement partiel).
             </p>
           </div>
         )}
