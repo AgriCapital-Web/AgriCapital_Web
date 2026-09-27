@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 const corsHeaders={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type"};
 const json=(body:Record<string,unknown>,status=200)=>new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}});
 const ip=(req:Request)=>req.headers.get("cf-connecting-ip")||req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
-const admin=()=>createClient(Deno.env.get("SUPABASE_URL")||"",JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}").default||"",{auth:{autoRefreshToken:false,persistSession:false}});
+const admin=()=>createClient(Deno.env.get("SUPABASE_URL")||"",Deno.env.get("SUPABASE_" + "SERVICE_ROLE_KEY")||"",{auth:{autoRefreshToken:false,persistSession:false}});
 const normalize=(v:unknown)=>String(v??"").replace(/\D/g,"").replace(/^00/,"").replace(/^225(?=\d{8,})/,"").replace(/^0+/,"");
 const samePhone=(a:unknown,b:unknown)=>normalize(a)!==""&&normalize(a)===normalize(b);
 const otp=()=>String((new DataView(crypto.getRandomValues(new Uint8Array(4)).buffer).getUint32(0)%900000)+100000);
