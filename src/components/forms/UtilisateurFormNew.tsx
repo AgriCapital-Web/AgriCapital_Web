@@ -336,7 +336,11 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             <Label>Relation RH *</Label>
             <Select
               defaultValue={utilisateur?.relation_rh}
-              onValueChange={(value) => setValue("relation_rh", value)}
+              onValueChange={(value) => {
+                setValue("relation_rh", value);
+                if (value === "PDG") setSelectedRoles([APP_ROLES.SUPER_ADMIN]);
+                else if (value === "Associé / Actionnaire") setSelectedRoles([APP_ROLES.ASSOCIE_ACTIONNAIRE]);
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner" />
@@ -459,7 +463,8 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
                 <Checkbox
                   id={role.code}
                   checked={selectedRoles.includes(role.code)}
-                  onCheckedChange={() => toggleRole(role.code)}
+                  onCheckedChange={() => !governanceOnly && toggleRole(role.code)}
+                  disabled={governanceOnly}
                 />
                 <label htmlFor={role.code} className="text-sm cursor-pointer leading-tight">
                   <span className="font-medium">{role.nom}</span>
