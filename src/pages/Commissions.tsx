@@ -22,7 +22,7 @@ const Commissions = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const { userRoles } = useAuth();
-  const canManage = hasPermission(userRoles, PERMISSIONS.VALIDATE_PAYMENTS);
+  const canManage = hasPermission(userRoles, 'commissions.validate');
 
   const fetchCommissions = async () => {
     try {
