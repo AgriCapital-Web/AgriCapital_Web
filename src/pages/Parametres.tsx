@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { PERMISSIONS, hasPermission } from "@/lib/roles";
 import Utilisateurs from "@/pages/Utilisateurs";
 import Offres from "@/pages/Offres";
-import Promotions from "@/pages/Promotions";
 import Equipes from "@/pages/Equipes";
 import AccountRequests from "@/pages/AccountRequests";
 import GestionRoles from "@/pages/parametres/GestionRoles";
@@ -49,7 +48,6 @@ const Parametres = () => {
     { value: 'demandes', label: 'Demandes', icon: UserPlus, permission: PERMISSIONS.MANAGE_USERS, component: AccountRequests },
     { value: 'zones', label: 'Zones', icon: MapPinned, permission: PERMISSIONS.MANAGE_TEAMS, component: GestionZones },
     { value: 'offres', label: 'Offres', icon: Package, permission: PERMISSIONS.MANAGE_OFFERS, component: Offres },
-    { value: 'promotions', label: 'Promotions', icon: Package, permission: PERMISSIONS.MANAGE_OFFERS, component: Promotions },
     { value: 'districts', label: 'Districts', icon: Map, permission: PERMISSIONS.MANAGE_GEO, component: GestionDistricts },
     { value: 'regions', label: 'Régions', icon: MapPin, permission: PERMISSIONS.MANAGE_GEO, component: GestionRegions },
     { value: 'departements', label: 'Départements', icon: Building, permission: PERMISSIONS.MANAGE_GEO, component: GestionDepartements },
