@@ -57,8 +57,8 @@ async function staffAuthorized(req: Request) {
   if (!data.user) return false;
   const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", data.user.id);
   return (roles || []).some((r) => [
-    "super_admin","admin","directeur_tc","directeur_technico_commercial","responsable_operations",
-    "responsable_commercial","chef_equipe_commercial","service_client","chef_equipe_service_client","comptable"
+    "super_admin","directeur_tc","responsable_operations","responsable_commercial",
+    "chef_equipe_commercial","chef_equipe_technique","service_client","chef_equipe_service_client","comptable"
   ].includes(r.role));
 }
 
@@ -310,13 +310,4 @@ serve(async (req) => {
       if (!body.campaign_id) return json({ error: "campaign_id requis" }, 400);
       return json({ ok: true, result: await runCampaign(body.campaign_id) });
     }
-    if (mode === "event") {
-      if (!body.event_code) return json({ error: "event_code requis" }, 400);
-      return json({ ok: true, result: await runEvent(body.event_code, body.context || {}) });
-    }
-    return json({ error: "Mode inconnu" }, 400);
-  } catch (error) {
-    console.error("notification-dispatch error", error);
-    return json({ error: error instanceof Error ? error.message : String(error) }, 500);
-  }
-});
+
