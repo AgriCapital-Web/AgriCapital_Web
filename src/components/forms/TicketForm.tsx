@@ -17,9 +17,10 @@ interface TicketFormProps {
   plantationId?: string;
   onSuccess: () => void;
   onCancel: () => void;
+  readOnly?: boolean;
 }
 
-const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormProps) => {
+const TicketForm = ({ ticket, plantationId, onSuccess, onCancel, readOnly = false }: TicketFormProps) => {
   const { register, handleSubmit, setValue } = useForm({
     defaultValues: ticket || {},
   });
@@ -132,7 +133,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
         <Select
           defaultValue={plantationId || ticket?.plantation_id}
           onValueChange={(value) => setValue("plantation_id", value)}
-          disabled={!!plantationId}
+          disabled={!!plantationId || readOnly}
         >
           <SelectTrigger>
             <SelectValue placeholder="Sélectionner" />
@@ -153,6 +154,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
           <Select
             defaultValue={ticket?.priorite || "moyenne"}
             onValueChange={(value) => setValue("priorite", value)}
+            disabled={readOnly}
           >
             <SelectTrigger>
               <SelectValue />
@@ -171,6 +173,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
           <Select
             defaultValue={ticket?.assigne_a}
             onValueChange={(value) => setValue("assigne_a", value)}
+            disabled={readOnly}
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un technicien" />
@@ -188,12 +191,12 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
 
       <div className="space-y-2">
         <Label>Titre *</Label>
-        <Input {...register("titre", { required: true })} />
+        <Input {...register("titre", { required: true })} disabled={readOnly} />
       </div>
 
       <div className="space-y-2">
         <Label>Description *</Label>
-        <Textarea {...register("description", { required: true })} rows={4} />
+        <Textarea {...register("description", { required: true })} rows={4} disabled={readOnly} />
       </div>
 
       <Card>
@@ -205,6 +208,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
             multiple
             onChange={handlePhotoChange}
             className="mt-2 w-full"
+            disabled={readOnly}
           />
           {photoPreviews.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
@@ -237,6 +241,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
           <Select
             defaultValue={ticket.statut}
             onValueChange={(value) => setValue("statut", value)}
+            disabled={readOnly}
           >
             <SelectTrigger>
               <SelectValue />
@@ -255,7 +260,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
         <Button type="button" variant="secondary" onClick={onCancel}>
           Annuler
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading || readOnly}>
           {loading ? "Enregistrement..." : ticket ? "Modifier" : "Créer"}
         </Button>
       </div>
