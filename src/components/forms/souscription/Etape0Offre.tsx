@@ -46,7 +46,7 @@ const getCouleur = (code: string) => {
 export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
   const { data: promotionActive } = usePromotionActive();
   
-  // Determine type_offre filter based on type_souscripteur
+  // Les offres sont pilotées par leur configuration métier. Aucun montant n'est saisi manuellement ici.
   
   const { data: offres, isLoading } = useQuery({
     queryKey: ['offres-souscription'],
@@ -87,8 +87,22 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
 
     const ha = Number(formData.superficie_prevue);
     const o = offre as any;
-    const piUnitaire = o.montant_depot_initial_par_ha ?? o.montant_da_par_ha ?? 0;
-    const totalUnitaire = o.montant_total_par_ha ?? 0;
+    const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
+    const piUnitaire = Number(o.montant_depot_initial_par_ha ?? o.montant_da_par_ha ?? 0);
+
+    // PalmTerroir : le total est toujours recalculé depuis la formule sélectionnée
+    // (PI + somme des mensualités de la formule × nombre de mois).
+    const isPalmTerroir = String(o.code || '').startsWith('palm-terroir');
+    const mensualitesFormule = tranches.filter((t: any) =>
+      Number(t.mensualite_par_ha) > 0 && t.type !== 'paiement_initial'
+    );
+    const totalMensualitesParHa = mensualitesFormule.reduce(
+      (sum: number, t: any) => sum + Number(t.mensualite_par_ha) * Number(t.mois || 0),
+      0,
+    );
+    const totalUnitaire = isPalmTerroir
+      ? piUnitaire + totalMensualitesParHa
+      : Number(o.montant_total_par_ha ?? 0);
 
     let piUnitaireFinal = piUnitaire;
     let totalFinal = totalUnitaire * ha;
@@ -106,7 +120,6 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     }
 
     const totalPI = piUnitaireFinal * ha;
-    const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
 
     return {
       ha,
@@ -143,7 +156,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
             <span>🎉 Promotion en cours: {promotionActive.nom}</span>
           </div>
           <p className="text-sm text-amber-600">
-             {`-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'cout_global' ? 'le Coût Global' : 'le Paiement Initial'}`}
+             {`-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'cout_global' ? 'le coût global' : 'le Paiement Initial'}`}
           </p>
         </div>
       )}
@@ -237,7 +250,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       <Card>
         <CardHeader>
           <CardTitle>Superficie prévue</CardTitle>
-          <CardDescription>Indiquez la superficie approximative pour calculer le Paiement Initial (PI)</CardDescription>
+          <CardDescription>Indiquez la superficie pour calculer automatiquement le PI, les mensualités et le coût total selon la formule sélectionnée</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
