@@ -16,12 +16,16 @@ export interface Notification {
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
   const fetchNotifications = async () => {
-    if (!user) return;
+    if (!user) { setNotifications([]); setUnreadCount(0); return; }
 
+    setLoading(true);
+    setError(null);
     try {
       const { data, error } = await (supabase as any)
         .from('notifications')
@@ -32,13 +36,17 @@ export const useNotifications = () => {
 
       if (error) {
         console.error('Error fetching notifications:', error);
+        setError(error.message || 'Impossible de charger les notifications');
         return;
       }
 
       setNotifications((data as Notification[]) || []);
       setUnreadCount(data?.filter((n: Notification) => !n.read).length || 0);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      setError(error?.message || 'Impossible de charger les notifications');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,6 +142,8 @@ export const useNotifications = () => {
     unreadCount,
     markAsRead,
     markAllAsRead,
+    loading,
+    error,
     refetch: fetchNotifications
   };
 };
