@@ -1,234 +1,178 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-kkiapay-signature",
+  "Access-Control-Allow-Headers": "content-type, x-kkiapay-signature",
+};
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const getStatus = async (transactionId: string) => {
+  const privateKey = Deno.env.get("KKIAPAY_PRIVATE_KEY");
+  if (!privateKey) throw new Error("KKIAPAY_PRIVATE_KEY non configure");
+  const response = await fetch("https://api.kkiapay.me/api/v1/transactions/status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-private-key": privateKey },
+    body: JSON.stringify({ transactionId }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload?.message || "Verification KKiaPay impossible");
+  return payload;
 };
 
 serve(async (req) => {
-  console.log("=== KKiaPay Webhook received ===");
-  
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ success: false, error: "Methode non autorisee" }, 405);
 
   try {
-    // --- Vérification obligatoire de la signature HMAC KKiaPay (fail-closed) ---
-    const webhookSecret = Deno.env.get("KKIAPAY_WEBHOOK_SECRET") ?? Deno.env.get("KKIAPAY_PRIVATE_KEY");
-    if (!webhookSecret) {
-      console.error("KKIAPAY_WEBHOOK_SECRET non configuré — webhook refusé");
-      return new Response(JSON.stringify({ success: false, error: "Webhook non configuré" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 503,
-      });
+    const body = await req.json();
+    const transactionId = String(body?.transactionId || body?.transaction_id || "").trim();
+    if (!transactionId || transactionId.length > 128) {
+      return json({ success: false, error: "Transaction invalide" }, 400);
     }
 
-    const signature = req.headers.get("x-kkiapay-signature");
-    if (!signature) {
-      return new Response(JSON.stringify({ success: false, error: "Signature manquante" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401,
-      });
+    // Le webhook ne fait jamais confiance au statut transmis par le navigateur/provider.
+    // La transaction est relue directement chez KKiaPay avec la cle privee serveur.
+    const transaction = await getStatus(transactionId);
+    const status = String(transaction?.status || "").toUpperCase();
+
+    // FAILED, PENDING, CANCELLED et tout statut inconnu sont acknowledges mais ne modifient rien.
+    if (status !== "SUCCESS") {
+      return json({ success: true, ignored: true, status });
     }
 
-    const rawBody = await req.text();
-    const key = await crypto.subtle.importKey(
-      "raw", new TextEncoder().encode(webhookSecret),
-      { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+    const providerAmount = Number(transaction?.amount);
+    if (!Number.isFinite(providerAmount) || providerAmount <= 0) {
+      return json({ success: false, error: "Montant fournisseur invalide" }, 422);
+    }
+
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+      { auth: { autoRefreshToken: false, persistSession: false } },
     );
-    const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody));
-    const expected = Array.from(new Uint8Array(sigBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 
-    if (signature.toLowerCase().replace(/^sha256=/, "") !== expected) {
-      console.error("Signature KKiaPay invalide");
-      return new Response(JSON.stringify({ success: false, error: "Signature invalide" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401,
+    // Le webhook doit retrouver le paiement par transaction, reference ou paiement_id.
+    let payment: any = null;
+    const reference = body?.data?.reference ?? body?.reference ?? null;
+    const paiementId = body?.data?.paiement_id ?? body?.paiement_id ?? null;
+
+    if (paiementId) {
+      const { data } = await admin.from("paiements").select("*").eq("id", paiementId).maybeSingle();
+      payment = data;
+    }
+    if (!payment && reference) {
+      const { data } = await admin.from("paiements").select("*").eq("reference", reference).maybeSingle();
+      payment = data;
+    }
+    if (!payment) {
+      const { data } = await admin.from("paiements").select("*").eq("kkiapay_transaction_id", transactionId).maybeSingle();
+      payment = data;
+    }
+    if (!payment) {
+      const { data } = await admin.from("paiements")
+        .select("*")
+        .contains("metadata", { kkiapay_transaction_id: transactionId })
+        .maybeSingle();
+      payment = data;
+    }
+
+    // Toujours journaliser le webhook valide, meme lorsqu'aucun paiement local n'est encore retrouve.
+    const { data: existingEvent } = await admin.from("kkiapay_events")
+      .select("id,processed").eq("transaction_id", transactionId).eq("status", "SUCCESS").maybeSingle();
+    if (existingEvent?.processed && payment) {
+      return json({ success: true, already_processed: true, paiement_id: payment.id });
+    }
+
+    if (!payment) {
+      await admin.from("kkiapay_events").insert({
+        transaction_id: transactionId,
+        reference,
+        status: "SUCCESS",
+        amount: providerAmount,
+        fees: Number(transaction?.fees || 0),
+        source: transaction?.source || "kkiapay",
+        signature_valid: true,
+        raw_payload: body,
+        processed: false,
       });
+      return json({ success: true, acknowledged: true, matched: false });
     }
 
-    let body: any;
-    try {
-      body = JSON.parse(rawBody);
-    } catch {
-      return new Response(JSON.stringify({ success: false, error: "Payload invalide" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400,
+    const expectedAmount = Number(payment.montant || 0);
+    if (!Number.isFinite(expectedAmount) || providerAmount + 0.01 < expectedAmount) {
+      await admin.from("kkiapay_events").insert({
+        transaction_id: transactionId,
+        reference: payment.reference,
+        paiement_id: payment.id,
+        status: "SUCCESS",
+        amount: providerAmount,
+        fees: Number(transaction?.fees || 0),
+        source: transaction?.source || "kkiapay",
+        signature_valid: true,
+        raw_payload: body,
+        processed: false,
       });
+      return json({ success: false, error: "Montant de transaction insuffisant" }, 409);
     }
-    
-    const { status, transactionId, amount, fees, source, data, performed_at } = body;
-    console.log(`Transaction ${transactionId}: Status=${status}, Amount=${amount}`);
-    
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    const reference = data?.reference;
-    const paiementId = data?.paiement_id;
 
-    // Find the payment record
-    let paiement: any = null;
-    
-    if (reference) {
-      const { data: records } = await supabase.from('paiements').select('*').eq('reference', reference);
-      paiement = records?.[0];
-    }
-    
-    if (!paiement && paiementId) {
-      const { data: records } = await supabase.from('paiements').select('*').eq('id', paiementId);
-      paiement = records?.[0];
-    }
-    
-    if (!paiement && transactionId) {
-      const { data: records } = await supabase
-        .from('paiements')
-        .select('*')
-        .contains('metadata', { kkiapay_transaction_id: transactionId });
-      paiement = records?.[0];
-    }
-    
-    if (!paiement) {
-      console.log("No matching payment found");
-      return new Response(
-        JSON.stringify({ success: true, message: "No matching payment found, webhook acknowledged" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
-    }
-    
-    console.log("Found payment:", paiement.id);
-    
-    // Map status
-    let newStatus: string;
-    switch (status?.toUpperCase()) {
-      case "SUCCESS": newStatus = "valide"; break;
-      case "FAILED": newStatus = "echoue"; break;
-      case "PENDING": newStatus = "en_attente"; break;
-      default: newStatus = paiement.statut;
-    }
-    
-    const updateData: any = {
-      statut: newStatus,
-      updated_at: new Date().toISOString(),
-      metadata: {
-        ...(paiement.metadata || {}),
+    // Point unique de vérité métier: cette RPC ne passe le paiement à valide
+    // qu'après confirmation SUCCESS et contrôle du montant.
+    const { data: finalized, error: finalizeError } = await admin.rpc("finalize_portal_payment", {
+      _paiement_id: payment.id,
+      _transaction_id: transactionId,
+      _provider_amount: providerAmount,
+      _metadata: {
         kkiapay_transaction_id: transactionId,
-        kkiapay_status: status,
-        method: source || data?.method,
-        fees: fees || 0,
-        performed_at: performed_at || new Date().toISOString(),
-        webhook_received_at: new Date().toISOString()
-      }
-    };
-    
-    if (newStatus === "valide") {
-      updateData.date_paiement = new Date().toISOString();
-      updateData.montant_paye = amount || paiement.montant;
-      updateData.mode_paiement = source || 'KKiaPay';
-      
-      // DA payment: activate plantation
-      if (paiement.type_paiement === 'DA' && paiement.plantation_id) {
-        const { data: plantation } = await supabase
-          .from('plantations')
-          .select('superficie_ha, superficie_activee, montant_da, montant_da_paye')
-          .eq('id', paiement.plantation_id)
-          .single();
-        
-        if (plantation) {
-          const newDaPaye = (plantation.montant_da_paye || 0) + (amount || 0);
-          const totalDa = plantation.montant_da || 0;
-          const isFullyPaid = newDaPaye >= totalDa;
-          
-          const plantUpdate: any = {
-            montant_da_paye: newDaPaye,
-            updated_at: new Date().toISOString()
-          };
-          
-          if (isFullyPaid) {
-            plantUpdate.superficie_activee = plantation.superficie_ha;
-            plantUpdate.date_activation = new Date().toISOString();
-            plantUpdate.statut = 'active';
-            plantUpdate.statut_global = 'active';
-          }
-          
-          await supabase.from('plantations').update(plantUpdate).eq('id', paiement.plantation_id);
-          console.log(`Plantation ${paiement.plantation_id} updated, DA payé: ${newDaPaye}/${totalDa}`);
-        }
-      }
-    }
-    
-    const { error: updateError } = await supabase.from('paiements').update(updateData).eq('id', paiement.id);
-    
-    if (updateError) {
-      console.error("Error updating payment:", updateError);
-      throw updateError;
-    }
-    
-    console.log(`Payment ${paiement.id} updated to: ${newStatus}`);
+        kkiapay_status: "SUCCESS",
+        kkiapay_method: transaction?.source || null,
+        kkiapay_fees: Number(transaction?.fees || 0),
+        webhook_received_at: new Date().toISOString(),
+      },
+      _validated_at: new Date().toISOString(),
+    });
+    if (finalizeError) throw finalizeError;
 
-    // --- Activation temps réel (0 jour) du compte souscripteur ---
-    let activation: any = null;
-    if (newStatus === "valide") {
-      // 1) Finalisation métier centralisée (échéances, commissions, statuts)
-      const { data: finalized, error: finalizeError } = await supabase.rpc('finalize_portal_payment', {
-        _paiement_id: paiement.id,
-        _transaction_id: transactionId,
-        _provider_amount: amount ?? paiement.montant,
-        _metadata: updateData.metadata,
-        _validated_at: new Date().toISOString(),
-      });
-      if (finalizeError) console.error("finalize_portal_payment:", finalizeError.message);
-      else activation = finalized;
-
-      // 2) Activation immédiate du compte au paiement du dépôt initial
-      if (paiement.souscripteur_id && (paiement.est_depot_initial || paiement.type_paiement === 'DA')) {
-        const nowIso = new Date().toISOString();
-        const { error: activationError } = await supabase
-          .from('souscripteurs')
-          .update({
-            compte_actif: true,
-            da_paye_at: nowIso,
-            statut: 'actif',
-            statut_global: 'actif',
-            updated_at: nowIso,
-          })
-          .eq('id', paiement.souscripteur_id);
-        if (activationError) console.error("Activation compte:", activationError.message);
-        else console.log(`Compte souscripteur ${paiement.souscripteur_id} activé immédiatement`);
-      }
-    }
-
-    // Trace de l'événement KKiaPay (source unique d'agrégateur)
-    await supabase.from('kkiapay_events').insert({
+    await admin.from("kkiapay_events").insert({
       transaction_id: transactionId,
-      reference: reference ?? paiement.reference,
-      paiement_id: paiement.id,
-      status: status ?? newStatus,
-      amount: amount ?? paiement.montant,
-      fees: fees ?? 0,
-      source: source ?? 'kkiapay',
+      reference: payment.reference,
+      paiement_id: payment.id,
+      status: "SUCCESS",
+      amount: providerAmount,
+      fees: Number(transaction?.fees || 0),
+      source: transaction?.source || "kkiapay",
       signature_valid: true,
       raw_payload: body,
       processed: true,
       processed_at: new Date().toISOString(),
     });
-    
-    // Log in historique_activites
-    await supabase.from('historique_activites').insert({
-      table_name: 'paiements',
-      record_id: paiement.id,
-      action: 'WEBHOOK_KKIAPAY',
-      details: `Webhook KKiaPay: ${status} - ${amount} FCFA - Transaction: ${transactionId}`,
-    });
-    
-    return new Response(
-      JSON.stringify({ success: true, paiement_id: paiement.id, new_status: newStatus, activation }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
 
-    
-  } catch (error: any) {
-    console.error("Webhook error:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: "Erreur de traitement", acknowledged: true }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+    await admin.from("historique_activites").insert({
+      table_name: "paiements",
+      record_id: payment.id,
+      action: "WEBHOOK_KKIAPAY_SUCCESS",
+      details: "Paiement KKiaPay confirme et enregistre automatiquement.",
+      nouvelles_valeurs: {
+        transaction_id: transactionId,
+        amount: providerAmount,
+        status: "SUCCESS",
+      },
+    });
+
+    return json({
+      success: true,
+      paiement_id: payment.id,
+      status: "valide",
+      finalized,
+    });
+  } catch (error) {
+    console.error("kkiapay-webhook error", error);
+    // 5xx: KKiaPay peut retenter et le paiement ne doit pas etre marque comme traite a tort.
+    return json({ success: false, error: "Erreur interne de traitement" }, 500);
   }
 });
