@@ -1,14 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+const ALLOWED_ORIGINS = new Set(
+  (Deno.env.get("ALLOWED_ORIGINS") || "https://agricapital.ci,https://www.agricapital.ci,https://app.agricapital.ci,https://portail.agricapital.ci,http://localhost:5173,http://localhost:8080")
+    .split(",").map((v) => v.trim()).filter(Boolean),
+);
+const corsHeaders = (req: Request) => {
+  const origin = req.headers.get("origin") || "";
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Vary": "Origin",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders(req) });
   }
 
   try {
@@ -19,7 +31,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Non autorisé" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+        status: 401, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
       });
     }
 
@@ -28,7 +40,7 @@ serve(async (req) => {
     
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Token invalide" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+        status: 401, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
       });
     }
 
@@ -50,7 +62,7 @@ serve(async (req) => {
         const client = await getClient();
         if (!client) {
           return new Response(JSON.stringify({ error: "Client non trouvé" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
 
@@ -127,7 +139,7 @@ serve(async (req) => {
             depotInitialDu: depotInitial && depotInitial.statut !== 'valide' ? depotInitial.montant : 0,
           },
         }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -135,7 +147,7 @@ serve(async (req) => {
         const client = await getClient();
         if (!client) {
           return new Response(JSON.stringify({ error: "Client non trouvé" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
         const { data: depot } = await supabase
@@ -145,7 +157,7 @@ serve(async (req) => {
           .eq("est_depot_initial", true)
           .maybeSingle();
         return new Response(JSON.stringify({ depot_initial: depot || null, client }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -153,7 +165,7 @@ serve(async (req) => {
         const client = await getClient();
         if (!client) {
           return new Response(JSON.stringify({ error: "Client non trouvé" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
         const { data: echeances } = await supabase
@@ -163,7 +175,7 @@ serve(async (req) => {
           .eq("type_paiement", "REDEVANCE")
           .order("numero_echeance", { ascending: true });
         return new Response(JSON.stringify({ echeances: echeances || [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -171,7 +183,7 @@ serve(async (req) => {
         const client = await getClient();
         if (!client) {
           return new Response(JSON.stringify({ error: "Client non trouvé" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
         const { data: synthese } = await supabase
@@ -180,27 +192,27 @@ serve(async (req) => {
           .eq("id", client.id)
           .maybeSingle();
         return new Response(JSON.stringify({ synthese: synthese || null }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
       case "simuler-paiement": {
         if (req.method !== "POST") {
           return new Response(JSON.stringify({ error: "POST requis" }), {
-            status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 405, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
         const body = await req.json();
         const montant = Number(body?.montant);
         if (!montant || montant <= 0) {
           return new Response(JSON.stringify({ error: "Montant invalide" }), {
-            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 400, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
         const client = await getClient();
         if (!client) {
           return new Response(JSON.stringify({ error: "Client non trouvé" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
         const { data, error } = await supabase.rpc("simuler_paiement_fractionne", {
@@ -209,7 +221,7 @@ serve(async (req) => {
         });
         if (error) throw error;
         return new Response(JSON.stringify({ simulation: Array.isArray(data) ? data[0] : data }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -222,7 +234,7 @@ serve(async (req) => {
         if (cible) q = q.eq("cible", cible);
         const { data: promos } = await q.order("created_at", { ascending: false });
         return new Response(JSON.stringify({ promotions: promos || [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -230,7 +242,7 @@ serve(async (req) => {
         const client = await getClient();
         if (!client) {
           return new Response(JSON.stringify({ error: "Client non trouvé" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
 
@@ -242,7 +254,7 @@ serve(async (req) => {
           .limit(200);
 
         return new Response(JSON.stringify({ paiements: paiements || [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -250,7 +262,7 @@ serve(async (req) => {
         const client = await getClient();
         if (!client) {
           return new Response(JSON.stringify({ error: "Client non trouvé" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
 
@@ -261,7 +273,7 @@ serve(async (req) => {
           .order("created_at", { ascending: false });
 
         return new Response(JSON.stringify({ plantations: plantations || [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -287,7 +299,7 @@ serve(async (req) => {
           sous_prefectures: sousPrefectures || [],
           villages: villages || [],
         }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -300,14 +312,14 @@ serve(async (req) => {
           .limit(50);
 
         return new Response(JSON.stringify({ notifications: notifications || [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
       case "mark-notification-read": {
         if (req.method !== "POST") {
           return new Response(JSON.stringify({ error: "Method not allowed" }), {
-            status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" }
+            status: 405, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
         const body = await req.json();
@@ -319,13 +331,13 @@ serve(async (req) => {
         
         if (error) throw error;
         return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
       case "rapports-techniques": {
         const client = await getClient();
-        if (!client) return new Response(JSON.stringify({ error: "Client non trouvé" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (!client) return new Response(JSON.stringify({ error: "Client non trouvé" }), { status: 404, headers: { ...corsHeaders(req), "Content-Type": "application/json" } });
         const { data: rapports } = await supabase.from("rapports_visites_techniques")
           .select("id,plantation_id,date_visite,type_visite,observations,recommandations,statut,client_visible,created_at")
           .eq("client_id", client.id).eq("client_visible", true).order("date_visite",{ascending:false}).limit(100);
@@ -337,7 +349,7 @@ serve(async (req) => {
           const { data } = await supabase.storage.from("rapports-techniques").createSignedUrl(m.storage_path, 3600);
           return { ...m, url: data?.signedUrl || null };
         }));
-        return new Response(JSON.stringify({ rapports: rapports || [], medias: signed }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ rapports: rapports || [], medias: signed }), { headers: { ...corsHeaders(req), "Content-Type": "application/json" } });
       }
 
       case "tickets": {
@@ -362,7 +374,7 @@ serve(async (req) => {
               .maybeSingle();
             if (!ownedPlantation) {
               return new Response(JSON.stringify({ error: "Plantation introuvable" }), {
-                status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" }
+                status: 403, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
               });
             }
             plantationId = ownedPlantation.id;
@@ -387,7 +399,7 @@ serve(async (req) => {
           });
 
           return new Response(JSON.stringify({ success: true }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
+            headers: { ...corsHeaders(req), "Content-Type": "application/json" }
           });
         }
 
@@ -398,7 +410,7 @@ serve(async (req) => {
           .order("created_at", { ascending: false });
 
         return new Response(JSON.stringify({ tickets: tickets || [] }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -412,7 +424,7 @@ serve(async (req) => {
         const client = await getClient();
 
         return new Response(JSON.stringify({ profile, client }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
       }
 
@@ -421,13 +433,13 @@ serve(async (req) => {
           "dashboard", "paiement-history", "plantations", "geo-data", 
           "notifications", "mark-notification-read", "rapports-techniques", "tickets", "profile"
         ]}), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+          status: 400, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
         });
     }
   } catch (error: any) {
     console.error("Portal API error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      status: 500, headers: { ...corsHeaders(req), "Content-Type": "application/json" }
     });
   }
 });
