@@ -13,7 +13,7 @@ import { Search, DollarSign, TrendingUp, CheckCircle, XCircle } from "lucide-rea
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
-import { PERMISSIONS, hasPermission } from "@/lib/roles";
+import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
 import { getSafeErrorMessage } from "@/lib/safeError";
 
 const Commissions = () => {
@@ -22,7 +22,7 @@ const Commissions = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const { userRoles } = useAuth();
-  const canManage = hasPermission(userRoles, PERMISSIONS.VALIDATE_PAYMENTS);
+  const canManage = userRoles.some((role) => DEFAULT_ROLE_PERMISSIONS[role]?.includes("commissions.validate"));
 
   const fetchCommissions = async () => {
     try {
