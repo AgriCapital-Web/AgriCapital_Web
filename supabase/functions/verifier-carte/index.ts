@@ -32,6 +32,15 @@ Deno.serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } },
     );
 
+    const sourceIp = (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown").slice(0, 120);
+    const since = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count } = await admin.from("rate_limits").select("*", { count: "exact", head: true })
+      .eq("identifier", sourceIp).eq("action", "card_verification").gt("first_attempt_at", since);
+    if ((count || 0) >= 30) {
+      return new Response(JSON.stringify({ valide: false, error: "Trop de requêtes" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    await admin.from("rate_limits").insert({ identifier: sourceIp, action: "card_verification" });
+
     const { data, error } = await admin.rpc("verifier_carte", { _code: code });
     if (error) {
       console.error("verifier-carte rpc error", error.message);
