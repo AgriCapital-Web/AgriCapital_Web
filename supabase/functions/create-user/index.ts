@@ -72,6 +72,7 @@ Deno.serve(async (req) => {
     if (!isAdmin) {
       return jsonResponse({ success: false, error: "Accès réservé aux administrateurs" }, 403);
     }
+    const { data: isSuperAdmin } = await supabase.rpc("has_role", { _user_id: caller.id, _role: "super_admin" });
 
 
 
@@ -104,10 +105,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: false, error: "Email invalide" }, 400);
     }
 
-    if (!password || password.length < 8 || password.length > 128) {
+    if (!password || password.length < 12 || password.length > 128) {
       return jsonResponse({ 
         success: false, 
-        error: "Mot de passe invalide. Doit contenir entre 8 et 128 caractères." 
+        error: "Mot de passe invalide. Doit contenir entre 12 et 128 caractères." 
       }, 400);
     }
 
@@ -123,6 +124,10 @@ Deno.serve(async (req) => {
         success: false,
         error: "Aucun rôle fourni. La création doit passer par user_roles avec au moins un rôle valide.",
       }, 400);
+    }
+
+    if (requestedRoles.includes("super_admin") && !isSuperAdmin) {
+      return jsonResponse({ success: false, error: "Seul le super administrateur peut attribuer le rôle super_admin." }, 403);
     }
 
     if (invalidRoles.length > 0 || roleInserts.length === 0) {
