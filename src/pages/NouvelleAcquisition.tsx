@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
+import { calculPrixEffectif } from "@/lib/pricing";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -210,10 +211,29 @@ const NouvelleAcquisition = () => {
       const selectedOffer = formData.offre || {};
       const modePaiement = formData.mode_paiement === "comptant" ? "comptant" : "echeancier";
       const superficie = Number(formData.superficie_prevue || 0);
-      const paiementInitialMontant = modePaiement === "comptant"
-        ? Number(selectedOffer.montant_cash_par_ha || selectedOffer.montant_total_par_ha || 0) * superficie
-        : Number(selectedOffer.montant_pi_par_ha || 0) * superficie;
-      
+
+      // Recalculer la promotion au moment de l'enregistrement pour ne jamais
+      // persister un montant différent de celui affiché dans le formulaire.
+      const now = new Date().toISOString();
+      const { data: activePromotions, error: promoError } = await (supabase as any)
+        .from("promotions")
+        .select("*")
+        .eq("active", true)
+        .lte("date_debut", now)
+        .gte("date_fin", now);
+      if (promoError) throw promoError;
+
+      const prixEffectif = calculPrixEffectif(
+        selectedOffer,
+        activePromotions || [],
+        { modePaiement },
+      );
+
+      const paiementInitialMontant = Number(prixEffectif.depot_initial_effectif || 0) * superficie;
+      const montantTotalContrat = Number(prixEffectif.montant_total_effectif || 0) * superficie;
+      const mensualiteMontant = Number(prixEffectif.mensualite_effective || 0) * superficie;
+      const montantPromo = Number(prixEffectif.reduction_montant || 0) * superficie;
+
       const { data: client, error: errorSous, offline } = await offlineInsert("clients", {
           offre_id: formData.offre_id,
           parcelle_id: parcelleId,
@@ -250,6 +270,10 @@ const NouvelleAcquisition = () => {
           statut_global: 'actif',
           mode_paiement: modePaiement,
           paiement_initial_montant: paiementInitialMontant,
+          montant_total_contrat: montantTotalContrat,
+          mensualite_montant: mensualiteMontant,
+          montant_promo_applique: montantPromo,
+          promotion_id: prixEffectif.promotion_id || null,
         });
 
       if (errorSous) throw errorSous;
