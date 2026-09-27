@@ -10,8 +10,8 @@ export interface OffreBase {
   code: string;
   nom: string;
   montant_total_par_ha?: number | null;
-  montant_depot_initial_par_ha?: number | null;
-  montant_da_par_ha?: number | null;
+  montant_pi_par_ha?: number | null;
+  montant_pi_par_ha?: number | null;
   contribution_mensuelle_par_ha?: number | null;
   duree_paiement_mois?: number | null;
   actif?: boolean | null;
@@ -94,7 +94,7 @@ export const prixEffectif = (
   at: Date = new Date(),
 ): PrixEffectif => {
   const totalBase = num(offre.montant_total_par_ha);
-  const diBase = num(offre.montant_depot_initial_par_ha ?? offre.montant_da_par_ha);
+  const piBase = num(offre.montant_pi_par_ha ?? offre.montant_pi_par_ha);
   const mensBase = num(offre.contribution_mensuelle_par_ha);
   const duree = num(offre.duree_paiement_mois);
 
@@ -104,36 +104,36 @@ export const prixEffectif = (
   const cible = promo ? promotionCible(promo) : null;
 
   let totalEff = totalBase;
-  let diEff = diBase;
+  let piEff = piBase;
 
   if (promo) {
     if (cible === "cout_global") {
       totalEff = Math.max(totalBase * (1 - pct / 100) - fixe, 0);
     } else if (cible === "paiement_initial") {
-      diEff = Math.max(diBase * (1 - pct / 100) - fixe, 0);
+      piEff = Math.max(piBase * (1 - pct / 100) - fixe, 0);
     }
   }
 
   // Le dépôt ne peut jamais dépasser le total effectif
-  diEff = Math.min(diEff, totalEff || diEff);
+  piEff = Math.min(piEff, totalEff || piEff);
 
-  const mensualiteEffective = duree > 0 ? Math.round(Math.max(totalEff - diEff, 0) / duree) : mensBase;
+  const mensualiteEffective = duree > 0 ? Math.round(Math.max(totalEff - piEff, 0) / duree) : mensBase;
 
   return {
     offre_id: offre.id,
     code: offre.code,
     nom: offre.nom,
     montant_total_base: totalBase,
-    depot_initial_base: diBase,
+    depot_initial_base: piBase,
     mensualite_base: mensBase,
     montant_total_effectif: totalEff,
-    depot_initial_effectif: diEff,
+    depot_initial_effectif: piEff,
     mensualite_effective: mensualiteEffective,
     promotion_id: promo?.id ?? null,
     promotion_nom: promo?.nom ?? null,
     promotion_cible: cible,
     reduction_pct: pct,
-    reduction_montant: Math.max(totalBase - totalEff, 0) + Math.max(diBase - diEff, 0),
+    reduction_montant: Math.max(totalBase - totalEff, 0) + Math.max(piBase - piEff, 0),
   };
 };
 
