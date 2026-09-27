@@ -454,10 +454,10 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                   alt="Signature de la direction"
                   style={{
                     position: "absolute",
-                    right: 0,
+                    right: 22,
                     bottom: 4,
                     height: 44,
-                    width: 104,
+                    width: 112,
                     objectFit: "contain",
                     zIndex: 10,
                   }}
@@ -467,10 +467,10 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                   alt="Cachet AgriCapital"
                   style={{
                     position: "absolute",
-                    right: 12,
-                    bottom: -6,
-                    height: 68,
-                    width: 68,
+                    right: 0,
+                    bottom: -10,
+                    height: 74,
+                    width: 74,
                     objectFit: "contain",
                     zIndex: 12,
                   }}
