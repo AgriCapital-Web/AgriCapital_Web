@@ -118,6 +118,8 @@ const Offres = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['offres'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-prix-effectif'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-acquisition'] });
       toast({ title: "Offre mise à jour" });
       setIsOffreDialogOpen(false);
       setEditOffre(null);
@@ -139,6 +141,8 @@ const Offres = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['offres'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-prix-effectif'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-acquisition'] });
     }
   });
 
@@ -150,6 +154,8 @@ const Offres = () => {
     onSuccess: () => {
       toast({ title: 'Offre supprimée' });
       queryClient.invalidateQueries({ queryKey: ['offres'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-prix-effectif'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-acquisition'] });
     },
     onError: (err: any) => {
       toast({ variant: 'destructive', title: 'Suppression impossible', description: err?.message });
