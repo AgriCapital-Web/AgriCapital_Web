@@ -47,7 +47,7 @@ const Plantations = () => {
         .from("plantations")
         .select(`
           *,
-          souscripteurs (nom, prenoms, id),
+          clients (nom, prenoms, id),
           regions (nom),
           departements (nom)
         `)
@@ -85,7 +85,7 @@ const Plantations = () => {
     p.id_unique?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.nom_plantation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.souscripteurs?.nom + ' ' + p.souscripteurs?.prenoms)?.toLowerCase().includes(searchTerm.toLowerCase())
+    (p.clients?.nom + ' ' + p.clients?.prenoms)?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const nombreTotal = plantations.length;
@@ -220,7 +220,7 @@ const Plantations = () => {
               <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedPlantation ? "Modifier la plantation" : "Convertir un souscripteur en plantation"}
+                    {selectedPlantation ? "Modifier la plantation" : "Convertir un client en plantation"}
                   </DialogTitle>
                 </DialogHeader>
                 <PlantationForm
@@ -239,7 +239,7 @@ const Plantations = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher par nom, ID ou planteur..."
+                placeholder="Rechercher par nom, ID ou client..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -253,7 +253,7 @@ const Plantations = () => {
                 <TableRow>
                   <TableHead>ID Unique</TableHead>
                   <TableHead>Nom</TableHead>
-                  <TableHead>Planteur</TableHead>
+                  <TableHead>Client</TableHead>
                   <TableHead>Superficie</TableHead>
                   <TableHead>Région</TableHead>
                   <TableHead>Statut</TableHead>
@@ -283,8 +283,8 @@ const Plantations = () => {
                         {plantation.nom_plantation || plantation.nom}
                       </TableCell>
                       <TableCell>
-                        {plantation.souscripteurs 
-                          ? `${plantation.souscripteurs.nom} ${plantation.souscripteurs.prenoms || ''}`
+                        {plantation.clients 
+                          ? `${plantation.clients.nom} ${plantation.clients.prenoms || ''}`
                           : '-'}
                       </TableCell>
                       <TableCell>
