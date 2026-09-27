@@ -94,12 +94,41 @@ const ScanCarteDialog = ({ open, onOpenChange, onCode }: Props) => {
           returnDetailedScanResult: true,
           highlightScanRegion: false,
           highlightCodeOutline: true,
+          // Analyse toute l'image caméra : le QR n'a pas besoin d'être parfaitement centré.
+          // La réduction à ~720 px conserve un bon compromis entre sensibilité et fluidité.
+          calculateScanRegion: (streamVideo) => {
+            const width = streamVideo.videoWidth || 1280;
+            const height = streamVideo.videoHeight || 720;
+            const maxWidth = 720;
+            const scale = Math.min(1, maxWidth / width);
+            return {
+              x: 0,
+              y: 0,
+              width,
+              height,
+              downScaledWidth: Math.max(1, Math.round(width * scale)),
+              downScaledHeight: Math.max(1, Math.round(height * scale)),
+            };
+          },
           onDecodeError: () => undefined,
         },
       );
 
       scannerRef.current = scanner;
       await scanner.start();
+
+      // Sur les navigateurs mobiles qui exposent le contrôle de mise au point,
+      // privilégier l'autofocus continu pour les cartes imprimées.
+      const track = (video.srcObject as MediaStream | null)?.getVideoTracks()[0];
+      const capabilities = track?.getCapabilities?.() as MediaTrackCapabilities & {
+        focusMode?: string[];
+      };
+      if (track && capabilities.focusMode?.includes("continuous")) {
+        await track.applyConstraints({
+          advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet],
+        }).catch(() => undefined);
+      }
+
       if (scannerRef.current !== scanner) {
         scanner.stop();
         scanner.destroy();
