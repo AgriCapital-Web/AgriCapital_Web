@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import { getSafeErrorMessage } from "@/lib/safeError";
 
 interface KanbanPipelineProps {
-  souscripteurs: any[];
+  clients: any[];
   onRefresh: () => void;
 }
 
@@ -25,13 +25,13 @@ const STAGES = [
   { key: "archive", label: "Archivé", color: "bg-slate-500", textColor: "text-slate-700", bgLight: "bg-slate-50 dark:bg-slate-950/20 border-slate-200 dark:border-slate-800" },
 ];
 
-const KanbanPipeline = ({ souscripteurs, onRefresh }: KanbanPipelineProps) => {
+const KanbanPipeline = ({ clients, onRefresh }: KanbanPipelineProps) => {
   const { toast } = useToast();
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
   const getStageItems = (stageKey: string) => {
-    return souscripteurs.filter((s) => {
+    return clients.filter((s) => {
       const statut = s.statut || s.statut_global || "actif";
       if (stageKey === "en_attente") return statut === "en_attente" || statut === "inactif";
       if (stageKey === "documents_requis") return statut === "documents_requis";
@@ -62,7 +62,7 @@ const KanbanPipeline = ({ souscripteurs, onRefresh }: KanbanPipelineProps) => {
 
     try {
       const { error } = await supabase
-        .from("souscripteurs")
+        .from("clients")
         .update({ statut: newStage, statut_global: newStage })
         .eq("id", draggedItem);
 
