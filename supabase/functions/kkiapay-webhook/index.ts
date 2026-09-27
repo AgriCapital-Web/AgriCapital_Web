@@ -32,12 +32,12 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const transactionId = String(body?.transactionId || body?.transaction_id || "").trim();
-    if (!transactionId || transactionId.length > 128) {
+    if (!/^[A-Za-z0-9_-]{8,128}$/.test(transactionId)) {
       return json({ success: false, error: "Transaction invalide" }, 400);
     }
 
     // Le webhook ne fait jamais confiance au statut transmis par le navigateur/provider.
-    // La transaction est relue directement chez KKiaPay avec la cle privee serveur.
+    // La transaction est relue directement chez KKiaPay avec la clé privée serveur.
     const transaction = await getStatus(transactionId);
     const status = String(transaction?.status || "").toUpperCase();
 
@@ -56,6 +56,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
       { auth: { autoRefreshToken: false, persistSession: false } },
     );
+
+    const sourceIp = (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown").slice(0, 120);
+    const since = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count: recent } = await admin.from("rate_limits").select("*", { count: "exact", head: true })
+      .eq("identifier", sourceIp).eq("action", "kkiapay_webhook").gt("first_attempt_at", since);
+    if ((recent || 0) >= 120) return json({ success: false, error: "Trop de requêtes" }, 429);
+    await admin.from("rate_limits").insert({ identifier: sourceIp, action: "kkiapay_webhook" });
 
     // Le webhook doit retrouver le paiement par transaction, reference ou paiement_id.
     let payment: any = null;
@@ -165,7 +172,7 @@ serve(async (req) => {
           event_code: "paiement_recu",
           context: {
             paiement_id: payment.id,
-            souscripteur_id: payment.souscripteur_id,
+            client_id: payment.client_id,
             montant: providerAmount,
             reference: payment.reference,
             transaction_id: transactionId,
