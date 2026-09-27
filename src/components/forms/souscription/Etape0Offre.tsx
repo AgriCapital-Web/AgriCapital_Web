@@ -159,6 +159,8 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
               const selected = offres?.find((o: any) => o.id === value);
               updateFormData({
                 offre_id: value,
+                offre_code: selected?.code || "",
+                offre: selected,
                 type_souscripteur: selected?.type_offre === "sans_terre" ? "sans_terre" : "avec_terre",
                 ...(selected?.type_offre === "sans_terre" ? {} : { parcelle_id: null }),
               });
