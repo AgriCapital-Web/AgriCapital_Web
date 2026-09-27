@@ -319,10 +319,14 @@ const Clients = () => {
                           </TableCell>
                           <TableCell>{client.telephone}</TableCell>
                           <TableCell>
-                            {client.offres && (
+                            {client.type_client === "beneficiaire_particulier" ? (
+                              <Badge variant="secondary">Bénéficiaire particulier</Badge>
+                            ) : client.offres ? (
                               <Badge style={{ backgroundColor: client.offres.couleur }}>
                                 {client.offres.nom}
                               </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
                           <TableCell>
