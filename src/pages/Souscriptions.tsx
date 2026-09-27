@@ -4,7 +4,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { offlineUpdate, offlineDelete } from "@/lib/offlineWrite";
-import { getCachedSouscripteurs, getCachedPlantations } from "@/lib/offlineDb";
+import { getCachedClients, getCachedPlantations } from "@/lib/offlineDb";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -20,18 +20,18 @@ import { Search, FileText, Eye, CheckCircle, Clock, MoreVertical, Edit, Archive,
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
-import PlanteurForm from "@/components/forms/PlanteurForm";
+import ClientForm from "@/components/forms/ClientForm";
 import KanbanPipeline from "@/components/souscriptions/KanbanPipeline";
 import { getSafeErrorMessage } from "@/lib/safeError";
 
 const Souscriptions = () => {
-  const [souscripteurs, setSouscripteurs] = useState<any[]>([]);
+  const [souscripteurs, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSouscripteur, setSelectedSouscripteur] = useState<any>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [souscripteurToDelete, setSouscripteurToDelete] = useState<any>(null);
+  const [souscripteurToDelete, setClientToDelete] = useState<any>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
@@ -55,14 +55,14 @@ const Souscriptions = () => {
         total_hectares: s.plantations?.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0) || 0,
       }));
 
-      setSouscripteurs(enrichedData);
+      setClients(enrichedData);
     } catch (error: any) {
       if (!navigator.onLine) {
-        const [cachedSouscripteurs, cachedPlantations] = await Promise.all([
-          getCachedSouscripteurs(),
+        const [cachedClients, cachedPlantations] = await Promise.all([
+          getCachedClients(),
           getCachedPlantations(),
         ]);
-        const enrichedData = cachedSouscripteurs.map((s: any) => {
+        const enrichedData = cachedClients.map((s: any) => {
           const plantations = cachedPlantations.filter((p: any) => p.souscripteur_id === s.id);
           return {
             ...s,
@@ -70,7 +70,7 @@ const Souscriptions = () => {
             total_hectares: plantations.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0),
           };
         });
-        setSouscripteurs(enrichedData);
+        setClients(enrichedData);
         toast({ title: "Mode hors ligne", description: "Données locales affichées. Les modifications seront synchronisées au retour du réseau." });
       } else {
         toast({
@@ -91,7 +91,7 @@ const Souscriptions = () => {
   useRealtime({ table: "souscripteurs", onChange: fetchData });
   useRealtime({ table: "plantations", onChange: fetchData });
 
-  const filteredSouscripteurs = souscripteurs.filter((s) =>
+  const filteredClients = souscripteurs.filter((s) =>
     s.id_unique?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.telephone?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -147,13 +147,13 @@ const Souscriptions = () => {
       });
     } finally {
       setDeleteDialogOpen(false);
-      setSouscripteurToDelete(null);
+      setClientToDelete(null);
     }
   };
 
   const handleFormSuccess = () => {
     setIsFormOpen(false);
-    setSelectedSouscripteur(null);
+    setSelectedClient(null);
     fetchData();
   };
 
@@ -268,7 +268,7 @@ const Souscriptions = () => {
             </div>
 
             <TabsContent value="kanban">
-              <KanbanPipeline souscripteurs={filteredSouscripteurs} onRefresh={fetchData} />
+              <KanbanPipeline souscripteurs={filteredClients} onRefresh={fetchData} />
             </TabsContent>
 
             <TabsContent value="table">
@@ -294,14 +294,14 @@ const Souscriptions = () => {
                           Chargement...
                         </TableCell>
                       </TableRow>
-                    ) : filteredSouscripteurs.length === 0 ? (
+                    ) : filteredClients.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={9} className="text-center py-8">
                           Aucun parcours client trouvé
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredSouscripteurs.map((souscripteur) => (
+                      filteredClients.map((souscripteur) => (
                         <TableRow key={souscripteur.id}>
                           <TableCell className="font-mono text-sm font-medium">
                             {souscripteur.id_unique}
@@ -348,7 +348,7 @@ const Souscriptions = () => {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => {
-                                    setSelectedSouscripteur(souscripteur);
+                                    setSelectedClient(souscripteur);
                                     setIsFormOpen(true);
                                   }}>
                                     <Edit className="mr-2 h-4 w-4" />
@@ -377,7 +377,7 @@ const Souscriptions = () => {
                                   <DropdownMenuItem 
                                     className="text-destructive"
                                     onClick={() => {
-                                      setSouscripteurToDelete(souscripteur);
+                                      setClientToDelete(souscripteur);
                                       setDeleteDialogOpen(true);
                                     }}
                                   >
@@ -403,15 +403,15 @@ const Souscriptions = () => {
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {selectedSouscripteur ? "Modifier" : "Nouveau"} Souscripteur
+                {selectedClient ? "Modifier" : "Nouveau"} Client
               </DialogTitle>
             </DialogHeader>
-            <PlanteurForm
-              planteur={selectedSouscripteur}
+            <ClientForm
+              planteur={selectedClient}
               onSuccess={handleFormSuccess}
               onCancel={() => {
                 setIsFormOpen(false);
-                setSelectedSouscripteur(null);
+                setSelectedClient(null);
               }}
             />
           </DialogContent>
