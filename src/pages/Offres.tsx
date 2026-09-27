@@ -252,7 +252,6 @@ const Offres = () => {
         nom: editOffre.nom,
         description: editOffre.description,
         montant_pi_par_ha: pi,
-        montant_pi_par_ha: pi,
         contribution_mensuelle_par_ha: lastMonthly,
         montant_total_par_ha: total,
         duree_paiement_mois: duree,
