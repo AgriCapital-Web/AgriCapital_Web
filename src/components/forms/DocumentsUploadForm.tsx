@@ -20,14 +20,14 @@ const DocumentsUploadForm = ({ onSuccess }: DocumentsUploadFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [souscripteurs, setSouscripteurs] = useState<any[]>([]);
+  const [clients, setSouscripteurs] = useState<any[]>([]);
   const [files, setFiles] = useState<{ [key: string]: File | null }>({});
   const [previews, setPreviews] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const fetchSouscripteurs = async () => {
       const { data } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("id, id_unique, nom_complet, prenoms")
         .order("created_at", { ascending: false });
       setSouscripteurs(data || []);
@@ -86,8 +86,8 @@ const DocumentsUploadForm = ({ onSuccess }: DocumentsUploadFormProps) => {
         if (file) {
           const result = await uploadFile(docType.bucket, file);
           if (result) {
-            await (supabase as any).from("documents_souscription").insert({
-              souscripteur_id: data.souscripteur_id,
+            await (supabase as any).from("documents_acquisition").insert({
+              client_id: data.client_id,
               type_document: docType.key,
               fichier_url: result.url,
               statut: "en_attente",
@@ -116,12 +116,12 @@ const DocumentsUploadForm = ({ onSuccess }: DocumentsUploadFormProps) => {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
         <Label>Souscripteur *</Label>
-        <Select onValueChange={(value) => setValue("souscripteur_id", value)}>
+        <Select onValueChange={(value) => setValue("client_id", value)}>
           <SelectTrigger>
             <SelectValue placeholder="Sélectionner un souscripteur" />
           </SelectTrigger>
           <SelectContent>
-            {souscripteurs.map((s) => (
+            {clients.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.id_unique} - {s.nom_complet} {s.prenoms}
               </SelectItem>
