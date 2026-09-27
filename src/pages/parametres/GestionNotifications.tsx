@@ -28,6 +28,8 @@ const CHANNELS = [
   { value: "email", label: "Email", icon: Mail },
   { value: "sms", label: "SMS", icon: Smartphone },
   { value: "email_sms", label: "Email + SMS", icon: MessageSquare },
+  { value: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+  { value: "auto", label: "Automatique (SMS/WhatsApp → email)", icon: Zap },
 ];
 
 const EVENTS = [
@@ -41,6 +43,8 @@ const EVENTS = [
   ["nouveau_client", "Nouveau client"],
   ["prospect_relance", "Relance prospect"],
   ["campagne_speciale", "Campagne speciale"],
+  ["nouvelle_demande_compte", "Nouvelle demande de compte"],
+  ["compte_active", "Compte activé"],
 ];
 
 const AUDIENCES = [
@@ -53,6 +57,8 @@ const AUDIENCES = [
   ["terrapalm", "Clients TerraPalm"],
   ["palmterroir", "Clients PalmTerroir"],
   ["palmterroir_plus", "Clients PalmTerroir+"],
+  ["palminvest_plus", "Clients PalmInvest+"],
+  ["terrapalm_plus", "Clients TerraPalm+"],
   ["agriplan", "Clients AgriPlan"],
 ];
 
