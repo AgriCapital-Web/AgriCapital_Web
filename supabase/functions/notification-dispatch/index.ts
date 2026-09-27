@@ -231,8 +231,8 @@ async function runEvent(eventCode: string, context: Record<string, unknown>) {
   const results = [];
   for (const automation of automations || []) {
     let contacts = await resolveContacts(automation.criteres || {});
-    if (context.souscripteur_id) {
-      contacts = contacts.filter((c) => c.source_id === context.souscripteur_id && c.source_type === "client");
+    if (context.client_id) {
+      contacts = contacts.filter((c) => c.source_id === context.client_id && c.source_type === "client");
     }
     if (context.user_id) contacts = contacts.filter((c) => c.user_id === context.user_id);
     const result = await deliver({
@@ -253,7 +253,7 @@ async function runScheduledAutomations() {
 
   // Les rappels sont ciblés par client et par échéance : aucun envoi massif à toute la base.
   const { data: duePayments, error: dueError } = await admin.from("paiements")
-    .select("id,souscripteur_id,montant,date_echeance,statut")
+    .select("id,client_id,montant,date_echeance,statut")
     .eq("type_paiement", "REDEVANCE")
     .neq("statut", "valide")
     .gte("date_echeance", now.toISOString().slice(0, 10))
@@ -263,7 +263,7 @@ async function runScheduledAutomations() {
 
   for (const paiement of duePayments || []) {
     results.push(await runEvent("paiement_echeance", {
-      souscripteur_id: paiement.souscripteur_id,
+      client_id: paiement.client_id,
       paiement_id: paiement.id,
       montant: paiement.montant,
       date_echeance: paiement.date_echeance,
@@ -271,7 +271,7 @@ async function runScheduledAutomations() {
   }
 
   const { data: overduePayments, error: overdueError } = await admin.from("paiements")
-    .select("id,souscripteur_id,montant,date_echeance,statut")
+    .select("id,client_id,montant,date_echeance,statut")
     .eq("type_paiement", "REDEVANCE")
     .neq("statut", "valide")
     .lt("date_echeance", now.toISOString().slice(0, 10))
@@ -280,7 +280,7 @@ async function runScheduledAutomations() {
 
   for (const paiement of overduePayments || []) {
     results.push(await runEvent("paiement_retard", {
-      souscripteur_id: paiement.souscripteur_id,
+      client_id: paiement.client_id,
       paiement_id: paiement.id,
       montant: paiement.montant,
       date_echeance: paiement.date_echeance,
