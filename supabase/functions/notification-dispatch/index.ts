@@ -202,7 +202,7 @@ async function runEvent(eventCode: string, context: Record<string, unknown>) {
   const results = [];
   for (const automation of data || []) {
     let list = await contacts(automation.criteres || {});
-    if (context.souscripteur_id) list = list.filter((c) => c.source_id === context.souscripteur_id && c.source_type === "client");
+    if (context.client_id) list = list.filter((c) => c.source_id === context.client_id && c.source_type === "client");
     if (context.user_id) list = list.filter((c) => c.user_id === context.user_id);
     for (const contact of list) {
       const subject = render(automation.sujet || "Information AgriCapital", contact, context);
@@ -239,8 +239,8 @@ async function runScheduled() {
   for (const automation of autos || []) {
     if (automation.derniere_execution_at && Date.now() - new Date(automation.derniere_execution_at).getTime() < automation.cooldown_minutes * 60000) continue;
     const { data: rows } = automation.evenement === "paiement_retard"
-      ? await admin.from("souscripteurs").select("id").gt("jours_retard", 0).eq("compte_actif", true).limit(1000)
-      : await admin.from("souscripteurs").select("id").gte("prochaine_echeance", today).lte("prochaine_echeance", inThreeDays).eq("compte_actif", true).limit(1000);
+      ? await admin.from("clients").select("id").gt("jours_retard", 0).eq("compte_actif", true).limit(1000)
+      : await admin.from("clients").select("id").gte("prochaine_echeance", today).lte("prochaine_echeance", inThreeDays).eq("compte_actif", true).limit(1000);
     const ids = new Set((rows || []).map((r: any) => r.id));
     const list = (await contacts(automation.criteres || {})).filter((c) => c.source_type === "client" && ids.has(c.source_id));
     for (const contact of list) {
