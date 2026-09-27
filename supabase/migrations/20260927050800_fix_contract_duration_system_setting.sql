@@ -1,0 +1,2 @@
+-- Acquisition contracts use 40 months. PalmTerroir remains governed by its own 36-month formula.
+UPDATE public.configurations_systeme SET valeur='40', description='Durée de référence du contrat d’acquisition (mois)', updated_at=now() WHERE cle='souscription_duree_contrat_mois';
