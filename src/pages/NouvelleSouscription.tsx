@@ -4,7 +4,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Etape1Souscripteur } from "@/components/forms/souscription/Etape1Souscripteur";
+import { Etape1Client } from "@/components/forms/souscription/Etape1Client";
 import { Etape2Cotitulaire } from "@/components/forms/souscription/Etape2Cotitulaire";
 import { Etape0Offre } from "@/components/forms/souscription/Etape0Offre";
 import { Etape3Foncier } from "@/components/forms/souscription/Etape3Foncier";
@@ -32,7 +32,7 @@ const NouvelleSouscription = () => {
   // La conversion en plantation se fait depuis la page Plantations.
   const etapes = useMemo(() => {
     return [
-      { num: 1, titre: "Souscripteur", component: Etape1Souscripteur },
+      { num: 1, titre: "Client", component: Etape1Client },
       { num: 2, titre: "Co-titulaire", component: Etape2Cotitulaire },
       { num: 3, titre: "Offre", component: Etape0Offre },
       { num: 4, titre: "Foncier", component: Etape3Foncier },
@@ -75,7 +75,7 @@ const NouvelleSouscription = () => {
         setEtapeActuelle(Math.min(brouillon.etape_actuelle, etapes.length - 1));
         toast({
           title: "Brouillon récupéré",
-          description: "Reprise de votre souscription en cours",
+          description: "Reprise de votre parcours client en cours",
         });
       }
     };
@@ -162,7 +162,7 @@ const NouvelleSouscription = () => {
       const typeFoncier = formData.type_souscripteur_foncier || (formData.type_souscripteur === "avec_terre" ? "OWN" : "EXT");
       if (typeFoncier === "EXT") {
         if (!formData.convention_id || !formData.lot_id) {
-          throw new Error("Souscripteur EXT : convention Planter-Partager et lot Hxx obligatoires");
+          throw new Error("Client externe : convention Planter-Partager et lot Hxx obligatoires");
         }
         // Vérifier que le lot appartient bien à la convention sélectionnée et est disponible
         const { data: lot, error: lotErr } = await (supabase as any)
@@ -219,7 +219,7 @@ const NouvelleSouscription = () => {
         });
 
       if (errorSous) throw errorSous;
-      if (!souscripteur) throw new Error("Souscripteur non créé");
+      if (!souscripteur) throw new Error("Client non créé");
       setSyncState(offline ? "queued" : "syncing");
 
       const requiredMissing = ANNEXES_SOUSCRIPTION.find((a) => a.condition(formData) && formData[`${a.field}_status`] === "joint" && !formData[`${a.field}_file`]);
