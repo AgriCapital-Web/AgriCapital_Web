@@ -163,8 +163,9 @@ const Offres = () => {
         nom: data.nom,
         pourcentage_reduction: Number(data.pourcentage_reduction || 0),
         montant_fixe_reduction: Number(data.montant_fixe_reduction || 0),
-        date_debut: new Date(data.date_debut).toISOString(),
-        date_fin: new Date(data.date_fin).toISOString(),
+        date_debut: new Date(`${data.date_debut}T00:00:00`).toISOString(),
+        // Une date de fin saisie dans le formulaire couvre toute la journée.
+        date_fin: new Date(`${data.date_fin}T23:59:59.999`).toISOString(),
         description: data.description,
         active: true,
         applique_toutes_offres: data.applique_toutes_offres,
@@ -433,7 +434,11 @@ const Offres = () => {
                           {formatMontant(prix?.depot_initial_effectif ?? offre.montant_pi_par_ha)}F
                         </span>
                         <span className="text-sm">/ha</span>
-                        {promoApplicable && prix && <Badge className="bg-green-500">-{prix.reduction_pct}%</Badge>}
+                        {promoApplicable && prix && (
+                          <Badge className="bg-green-500">
+                            {prix.reduction_pct > 0 ? `-${prix.reduction_pct}%` : "Promotion"}
+                          </Badge>
+                        )}
                       </div>
                     </div>
 
