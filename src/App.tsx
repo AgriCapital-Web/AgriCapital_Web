@@ -10,15 +10,15 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import Souscriptions from "./pages/Souscriptions";
-import PlanteurDetail from "./pages/PlanteurDetail";
+import Clients from "./pages/Clients";
+import ClientDetail from "./pages/ClientDetail";
 import Plantations from "./pages/Plantations";
 import GestionPaiements from "./pages/GestionPaiements";
 import RapportsFinanciers from "./pages/RapportsFinanciers";
 import RapportsTechniques from "./pages/RapportsTechniques";
 import Commissions from "./pages/Commissions";
 import Portefeuilles from "./pages/Portefeuilles";
-import NouvelleSouscription from "./pages/NouvelleSouscription";
+import NouvelleAcquisition from "./pages/NouvelleAcquisition";
 import Parametres from "./pages/Parametres";
 import Profil from "./pages/Profil";
 import HistoriqueComplet from "./pages/HistoriqueComplet";
@@ -82,16 +82,16 @@ const DomainRouter = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/leads" element={<Leads />} />
       <Route path="/synchronisation" element={<SyncQueue />} />
-      <Route path="/souscriptions" element={<Souscriptions />} />
-      <Route path="/planteur/:id" element={<PlanteurDetail />} />
-      <Route path="/planteur/:id/historique" element={<HistoriqueComplet />} />
+      <Route path="/clients" element={<Clients />} />
+      <Route path="/client/:id" element={<ClientDetail />} />
+      <Route path="/client/:id/historique" element={<HistoriqueComplet />} />
       <Route path="/plantations" element={<Plantations />} />
       <Route path="/agriplan" element={<AgriPlan />} />
       <Route path="/agriplant" element={<Navigate to="/agriplan" replace />} />
       <Route path="/proprietaires-terres" element={<ProprietairesTerres />} />
       <Route path="/parcelles" element={<Parcelles />} />
       <Route path="/documents" element={<Documents />} />
-      <Route path="/nouvelle-souscription" element={<NouvelleSouscription />} />
+      <Route path="/nouvelle-acquisition" element={<NouvelleAcquisition />} />
       <Route path="/profil" element={<Profil />} />
       
       {/* Paiements */}
@@ -103,7 +103,7 @@ const DomainRouter = () => {
       <Route path="/equipes" element={<Navigate to="/parametres?tab=equipes" replace />} />
       <Route path="/offres" element={<Navigate to="/parametres?tab=offres" replace />} />
       <Route path="/promotions" element={<Navigate to="/parametres?tab=offres" replace />} />
-      <Route path="/portefeuille-clients" element={<Navigate to="/souscriptions" replace />} />
+      <Route path="/portefeuille-clients" element={<Navigate to="/clients" replace />} />
       
       <Route path="/account-requests" element={<Navigate to="/parametres?tab=demandes" replace />} />
       
