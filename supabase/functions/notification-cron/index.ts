@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const scheduled = await call({ mode: "run_automations" });
 
     const { data: accounts } = await admin.from("client_account_provision_outbox")
-      .select("id,souscripteur_id,tentatives")
+      .select("id,client_id,tentatives")
       .eq("statut", "en_attente")
       .order("created_at")
       .limit(20);
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
         const response = await fetch(url + "/functions/v1/provision-client-account", {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-agricapital-account-secret": serviceKey },
-          body: JSON.stringify({ souscripteur_id: account.souscripteur_id }),
+          body: JSON.stringify({ client_id: account.client_id }),
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok || !payload.success) throw new Error(payload.error || "Provisionnement HTTP " + response.status);
