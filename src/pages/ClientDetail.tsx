@@ -11,9 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Sprout, DollarSign, FileText, Settings, Camera } from "lucide-react";
+import { ArrowLeft, Sprout, DollarSign, FileText, Settings, Camera, LandPlot, UserRound, ExternalLink } from "lucide-react";
 import TicketForm from "@/components/forms/TicketForm";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import { resolveStorageUrl } from "@/utils/storage";
 
 const ClientDetail = () => {
   const { id } = useParams();
@@ -24,6 +25,8 @@ const ClientDetail = () => {
   const [paiements, setPaiements] = useState<any[]>([]);
   const [interventions, setInterventions] = useState<any[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
+  const [parcelle, setParcelle] = useState<any>(null);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
 
@@ -38,6 +41,29 @@ const ClientDetail = () => {
 
       if (clientError) throw clientError;
       setClient(clientData);
+
+      if (clientData.parcelle_id) {
+        const { data: parcelleData } = await (supabase as any)
+          .from("parcelles")
+          .select("*, proprietaires_terres(*)")
+          .eq("id", clientData.parcelle_id)
+          .maybeSingle();
+        setParcelle(parcelleData || null);
+      }
+
+      const { data: docsData } = await (supabase as any)
+        .from("beneficiaire_documents")
+        .select("*")
+        .eq("client_id", id)
+        .order("created_at", { ascending: true });
+
+      const docsWithUrls = await Promise.all((docsData || []).map(async (doc: any) => ({
+        ...doc,
+        displayUrl: doc.fichier_url && doc.storage_bucket
+          ? await resolveStorageUrl(doc.storage_bucket, doc.storage_path || doc.fichier_url)
+          : null,
+      })));
+      setDocuments(docsWithUrls);
 
       // Fetch plantations
       const { data: plantationsData, error: plantationsError } = await (supabase as any)
@@ -258,6 +284,12 @@ const ClientDetail = () => {
                 <Camera className="h-4 w-4 mr-2" />
                 Photos
               </TabsTrigger>
+              {client.type_client === "beneficiaire_particulier" && (
+                <TabsTrigger value="dossier">
+                  <LandPlot className="h-4 w-4 mr-2" />
+                  Dossier
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="plantations">
@@ -391,6 +423,65 @@ const ClientDetail = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {client.type_client === "beneficiaire_particulier" && (
+              <TabsContent value="dossier">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2"><UserRound className="h-5 w-5" /> Propriétaire foncier</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <p className="font-semibold">{parcelle?.proprietaires_terres?.nom_complet || "À compléter"}</p>
+                      <p className="text-sm text-muted-foreground">Statut foncier : {parcelle?.proprietaires_terres?.statut_foncier || "—"}</p>
+                      <p className="text-sm text-muted-foreground">Téléphone : {parcelle?.proprietaires_terres?.telephone || "À compléter"}</p>
+                      <p className="text-sm text-muted-foreground">Documents et photo du propriétaire : à compléter depuis sa fiche.</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2"><LandPlot className="h-5 w-5" /> Parcelle</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <p className="font-mono text-sm">{parcelle?.code_parc || parcelle?.id_unique || "—"}</p>
+                      <p><span className="font-medium">{Number(parcelle?.surface_totale_ha || 0).toFixed(2)} ha</span> · {parcelle?.village || "—"}</p>
+                      <p className="text-sm text-muted-foreground">Mode : {parcelle?.mode_surface === "actif_agricole" ? "Actif agricole" : "Foncier"}</p>
+                      <p className="text-sm text-muted-foreground">Plan, GPS et annexes foncières : à compléter ultérieurement.</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle>Documents du dossier</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {documents.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">Aucun document enregistré.</p>
+                        ) : documents.map((doc: any) => (
+                          <div key={doc.id} className="flex items-center justify-between gap-3 border rounded-lg p-3">
+                            <div>
+                              <p className="font-medium">{doc.libelle}</p>
+                              <p className="text-xs text-muted-foreground">{doc.categorie} · {doc.statut}</p>
+                            </div>
+                            {doc.displayUrl ? (
+                              <Button variant="outline" size="sm" asChild>
+                                <a href={doc.displayUrl} target="_blank" rel="noreferrer">
+                                  <ExternalLink className="h-4 w-4 mr-2" /> Ouvrir
+                                </a>
+                              </Button>
+                            ) : (
+                              <Badge variant="outline">À ajouter</Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            )}
 
             <TabsContent value="photos">
               <Card>
