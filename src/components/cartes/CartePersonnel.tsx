@@ -397,9 +397,10 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                 lineHeight: "28px",
                 textTransform: "uppercase",
                 overflow: "hidden",
+                whiteSpace: "nowrap",
               }}
             >
-              {coupe(nom, 42)}
+              {coupe(nom, 28)}
             </p>
             <p
               style={{
@@ -410,9 +411,11 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                 lineHeight: "16px",
                 textTransform: "uppercase",
                 minHeight: 16,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
               }}
             >
-              {coupe(fonction, 44)}
+              {coupe(fonction, 40)}
             </p>
           </div>
 
