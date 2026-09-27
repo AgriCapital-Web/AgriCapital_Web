@@ -89,7 +89,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     const ha = Number(formData.superficie_prevue);
     const o = offre as any;
     const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
-    const piUnitaire = Number(o.montant_depot_initial_par_ha ?? o.montant_da_par_ha ?? 0);
+    const piUnitaire = Number(o.montant_pi_par_ha ?? o.montant_pi_par_ha ?? 0);
 
     // PalmTerroir : le total est toujours recalculé depuis la formule sélectionnée
     // (PI + somme des mensualités de la formule × nombre de mois).
@@ -232,7 +232,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                              <span className="text-xs text-muted-foreground">/ha · {offre.duree_paiement_mois} mois</span>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            PI: {formatMontant(offre.montant_depot_initial_par_ha)}F/ha {["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(offre.code || "").toLowerCase()) ? `· Comptant: ${formatMontant(offre.montant_cash_par_ha)}F/ha` : ""}
+                            PI: {formatMontant(offre.montant_pi_par_ha)}F/ha {["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(offre.code || "").toLowerCase()) ? `· Comptant: ${formatMontant(offre.montant_cash_par_ha)}F/ha` : ""}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {offre.gestion_type === 'deleguee' ? 'Gestion déléguée · 70% revenus' : 'Gestion propre · 100% revenus'}
