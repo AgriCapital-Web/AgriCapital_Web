@@ -56,10 +56,10 @@ const AUDIENCES = [
   ["palminvest", "Clients PalmInvest"],
   ["terrapalm", "Clients TerraPalm"],
   ["palmterroir", "Clients PalmTerroir"],
-  ["palmterroir_plus", "Clients PalmTerroir+"],
   ["palminvest_plus", "Clients PalmInvest+"],
   ["terrapalm_plus", "Clients TerraPalm+"],
-  ["agriplan", "Clients AgriPlan"],
+  ["palmterroir_essentielle", "Clients PalmTerroir — Essentielle"],
+  ["palmterroir_flexible", "Clients PalmTerroir — Flexible"],
 ];
 
 const normalizeSms = (value: string) =>
