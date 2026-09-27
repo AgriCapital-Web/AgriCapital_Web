@@ -169,7 +169,7 @@ const Promotions = () => {
 
   const getTypeBadge = (promo: any) => {
     const cible = promo.cible || (promo.type_promotion === "cout_global" ? "cout_global" : "paiement_initial");
-    if (cible === "cout_global") return <Badge className="bg-amber-500">Total du Contrat</Badge>;
+    if (cible === "cout_global") return <Badge className="bg-amber-500">Coût Global (CG)</Badge>;
     return cible === "paiement_initial" ? <Badge className="bg-blue-500">Paiement Initial (PI)</Badge> : <Badge className="bg-amber-500">Coût Global (CG)</Badge>;
   };
 
@@ -261,7 +261,7 @@ const Promotions = () => {
                   <p className="text-xs text-primary font-medium">
                     Économie: {formData.cible === "paiement_initial" 
                       ? `${formData.pourcentage_reduction}% sur le PI`
-                      : `${formData.pourcentage_reduction}% sur le total`
+                      : `${formData.pourcentage_reduction}% sur le CG`
                     }
                   </p>
                 </div>
