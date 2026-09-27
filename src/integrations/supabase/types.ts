@@ -4288,28 +4288,28 @@ export type Database = {
       v_prix_effectif_offres: {
         Row: {
           code: string | null
-          di_base: number | null
-          di_effectif: number | null
           nom: string | null
           offre_id: string | null
+          pi_base: number | null
+          pi_effectif: number | null
           total_base: number | null
           total_effectif: number | null
         }
         Insert: {
           code?: string | null
-          di_base?: never
-          di_effectif?: never
           nom?: string | null
           offre_id?: string | null
+          pi_base?: never
+          pi_effectif?: never
           total_base?: number | null
           total_effectif?: never
         }
         Update: {
           code?: string | null
-          di_base?: never
-          di_effectif?: never
           nom?: string | null
           offre_id?: string | null
+          pi_base?: never
+          pi_effectif?: never
           total_base?: number | null
           total_effectif?: never
         }
@@ -4352,6 +4352,10 @@ export type Database = {
         Args: { _client_id: string }
         Returns: undefined
       }
+      ensure_client_repayment_schedule: {
+        Args: { _client_id: string }
+        Returns: undefined
+      }
       finalize_portal_payment: {
         Args: {
           _metadata?: Json
@@ -4366,7 +4370,7 @@ export type Database = {
       generate_parcelle_id: { Args: never; Returns: string }
       generate_plantation_id: { Args: never; Returns: string }
       generate_proprietaire_id: { Args: never; Returns: string }
-      get_client_effective_di: { Args: { _client_id: string }; Returns: number }
+      get_client_effective_pi: { Args: { _client_id: string }; Returns: number }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_demo: { Args: { _user_id: string }; Returns: boolean }
@@ -4431,7 +4435,7 @@ export type Database = {
         Args: { _client_id: string }
         Returns: undefined
       }
-      recompute_pending_di: { Args: never; Returns: undefined }
+      recompute_pending_pi: { Args: never; Returns: undefined }
       recompute_profile_coverage: {
         Args: { _user_id: string }
         Returns: undefined
