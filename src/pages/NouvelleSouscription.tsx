@@ -295,7 +295,7 @@ const NouvelleSouscription = () => {
       }
 
       // Le Paiement initial est enregistré comme échéance à payer. Le terme officiel remplace
-      // partout le legacy "Dépôt Initial".
+      // Le terme commercial officiel est désormais « Paiement initial ».
       const offreRow = (await (supabase as any).from("offres").select("montant_depot_initial_par_ha,montant_total_par_ha").eq("id", formData.offre_id).single()).data;
       const paiementInitial = Math.round(Number(offreRow?.montant_depot_initial_par_ha || 0) * Number(formData.superficie_prevue || 0));
       await (supabase as any).from("souscripteurs").update({ paiement_initial_montant: paiementInitial }).eq("id", souscripteur.id);
