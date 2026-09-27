@@ -283,3 +283,19 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-medium);
   }
 }
+
+
+/* Global responsive safeguards: fluid sizing first, scrolling only when content cannot fit. */
+html, body, #root { width: 100%; min-width: 0; max-width: 100%; overflow-x: hidden; }
+*, *::before, *::after { box-sizing: border-box; }
+img, video, canvas, svg { max-width: 100%; }
+input, textarea, select, button { max-width: 100%; }
+table { max-width: 100%; }
+.break-anywhere { overflow-wrap: anywhere; word-break: break-word; }
+[data-radix-dialog-content] { width: min(100% - 1rem, 42rem); max-width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); overflow: auto; }
+@media (max-width: 640px) {
+  h1 { font-size: clamp(1.35rem, 6vw, 1.9rem); line-height: 1.15; }
+  h2 { font-size: clamp(1.15rem, 5vw, 1.5rem); line-height: 1.2; }
+  h3 { font-size: clamp(1rem, 4.5vw, 1.25rem); line-height: 1.25; }
+  .card, [data-radix-dialog-content] { min-width: 0; }
+}
