@@ -92,7 +92,7 @@ const DomainRouter = () => {
       <Route path="/utilisateurs" element={<Navigate to="/parametres?tab=utilisateurs" replace />} />
       <Route path="/equipes" element={<Navigate to="/parametres?tab=equipes" replace />} />
       <Route path="/offres" element={<Navigate to="/parametres?tab=offres" replace />} />
-      <Route path="/promotions" element={<Navigate to="/parametres?tab=promotions" replace />} />
+      <Route path="/promotions" element={<Navigate to="/parametres?tab=offres" replace />} />
       <Route path="/portefeuille-clients" element={<Navigate to="/souscriptions" replace />} />
       
       <Route path="/account-requests" element={<Navigate to="/parametres?tab=demandes" replace />} />
