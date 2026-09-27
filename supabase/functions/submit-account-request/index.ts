@@ -44,8 +44,8 @@ serve(async (req) => {
       poste_souhaite, district_id, region_id, departement_geo_id, departement, justification,
     } = body ?? {};
 
-    if (!username || !password || !email || !nom_complet || !telephone || !role_souhaite) {
-      return json({ error: "Champs obligatoires manquants (identifiant, mot de passe, email, nom, téléphone, rôle).", step: "validate_body" }, 400);
+    if (!username || !password || !email || !nom_complet || !telephone || !role_souhaite || !photo_url) {
+      return json({ error: "Champs obligatoires manquants (identifiant, mot de passe, email, nom, téléphone, rôle, photo).", step: "validate_body" }, 400);
     }
     if (String(password).length < 8) {
       return json({ error: "Le mot de passe doit contenir au moins 8 caractères.", step: "validate_password" }, 400);
@@ -100,6 +100,22 @@ serve(async (req) => {
     }
 
     const userId = created.user!.id;
+    const pendingPhoto = String(photo_url || "");
+    if (!pendingPhoto.startsWith("pending/") || pendingPhoto.length > 180) {
+      await admin.auth.admin.deleteUser(userId).catch(() => {});
+      return json({ error: "Photo de profil invalide.", step: "validate_photo" }, 400);
+    }
+    const extension = pendingPhoto.split(".").pop()?.toLowerCase() || "webp";
+    const safeExtension = ["jpg", "jpeg", "png", "webp"].includes(extension) ? extension : "webp";
+    const finalPhotoPath = "profiles/" + userId + "/photo-" + crypto.randomUUID() + "." + safeExtension;
+    const { error: photoMoveError } = await admin.storage
+      .from("account-request-photos")
+      .move(pendingPhoto, finalPhotoPath, { destinationBucket: "photos-profils" });
+    if (photoMoveError) {
+      await admin.auth.admin.deleteUser(userId).catch(() => {});
+      return json({ error: "La photo n'a pas pu être enregistrée.", step: "save_photo" }, 400);
+    }
+
 
     // Envoi du lien de vérification d'adresse email
     try {
@@ -141,7 +157,13 @@ serve(async (req) => {
       district_id: district_id ?? null,
       region_id: region_id ?? null,
       actif: false,
+      photo_url: finalPhotoPath,
     }, { onConflict: "id" });
+    if (profErr) {
+      await admin.storage.from("photos-profils").remove([finalPhotoPath]).catch(() => {});
+      await admin.auth.admin.deleteUser(userId).catch(() => {});
+      return json({ error: "Le profil n'a pas pu être enregistré.", step: "save_profile" }, 400);
+    }
 
     const { error: reqErr } = await admin.from("account_requests").insert({
       nom_complet,
@@ -156,10 +178,12 @@ serve(async (req) => {
       departement_geo_id: departement_geo_id ?? null,
       departement: departement ?? null,
       justification: justification ?? null,
+      photo_url: finalPhotoPath,
       statut: "en_attente",
     });
 
     if (reqErr) {
+      await admin.storage.from("photos-profils").remove([finalPhotoPath]).catch(() => {});
       await admin.auth.admin.deleteUser(userId).catch(() => {});
       console.error("insert account_requests failed", reqErr);
       return json({ error: "Votre demande n'a pas pu être enregistrée. Veuillez réessayer." }, 400);
