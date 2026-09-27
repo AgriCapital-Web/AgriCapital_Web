@@ -1,14 +1,4 @@
-/**
- * SOURCE DE VÉRITÉ UNIQUE — Rôles officiels AgriCapital CRM
- *
- * Les 11 rôles officiels ci-dessous sont les SEULS rôles valides du système.
- * Ils sont utilisés partout : utilisateurs, rôles, permissions, formulaires,
- * demandes de compte, filtres, menus, règles d'accès et portail.
- *
- * Les anciens rôles sont conservés uniquement dans LEGACY_ROLE_MAP afin de
- * remapper automatiquement l'affichage tant que la migration SQL n'est pas
- * exécutée. Aucun nouvel enregistrement ne doit les utiliser.
- */
+/** Source de vérité unique — rôles officiels AgriCapital CRM. */
 
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
@@ -22,6 +12,7 @@ export const ROLES = {
   CHEF_EQUIPE_COMMERCIAL: 'chef_equipe_commercial',
   CHEF_EQUIPE_TECHNIQUE: 'chef_equipe_technique',
   CHEF_EQUIPE_SERVICE_CLIENT: 'chef_equipe_service_client',
+  ASSOCIE_ACTIONNAIRE: 'associe_actionnaire',
 } as const;
 
 export type AppRole = typeof ROLES[keyof typeof ROLES];
@@ -45,33 +36,17 @@ export const OFFICIAL_ROLES: RoleDefinition[] = [
   { code: ROLES.CHEF_EQUIPE_COMMERCIAL, nom: "Chef d'Equipe Commercial", court: 'CEC', description: "Encadrement d'une équipe commerciale terrain", niveau: 4, niveauLabel: 'Encadrement', couleur: 'bg-secondary text-secondary-foreground' },
   { code: ROLES.CHEF_EQUIPE_TECHNIQUE, nom: "Chef d'Equipe Technique", court: 'CET', description: "Encadrement d'une équipe technique terrain", niveau: 4, niveauLabel: 'Encadrement', couleur: 'bg-secondary text-secondary-foreground' },
   { code: ROLES.CHEF_EQUIPE_SERVICE_CLIENT, nom: "Chef d'Equipe Service Client", court: 'CESC', description: "Encadrement de l'équipe service client", niveau: 4, niveauLabel: 'Encadrement', couleur: 'bg-secondary text-secondary-foreground' },
-  { code: ROLES.COMMERCIAL, nom: 'Commercial', court: 'Comm', description: 'Prospection, leads et souscriptions', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
+  { code: ROLES.COMMERCIAL, nom: 'Commercial', court: 'Comm', description: 'Prospection, leads et clients', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
   { code: ROLES.SERVICE_CLIENT, nom: 'Service Client', court: 'SC', description: 'Support, tickets et assistance client', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
   { code: ROLES.ASSISTANT_ADMIN, nom: 'Assistant(e) Administratif(ve)', court: 'AA', description: 'Appui administratif et gestion documentaire', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
+  { code: ROLES.ASSOCIE_ACTIONNAIRE, nom: 'Associé / Actionnaire', court: 'A/A', description: 'Lecture seule des indicateurs, ventes, clients, plantations et finances autorisées', niveau: 2, niveauLabel: 'Gouvernance', couleur: 'bg-emerald-500/10 text-emerald-700' },
 ];
 
 export const OFFICIAL_ROLE_CODES: string[] = OFFICIAL_ROLES.map((r) => r.code);
 
-/** Anciens rôles → rôle officiel correspondant (utilisé par la migration SQL et l'affichage) */
-export const LEGACY_ROLE_MAP: Record<string, AppRole> = {
-  superviseur_tc: ROLES.RESPONSABLE_COMMERCIAL,
-  responsable_zone: ROLES.RESPONSABLE_COMMERCIAL,
-  responsable_technique_agronomique: ROLES.RESPONSABLE_OPERATIONS,
-  operations: ROLES.RESPONSABLE_OPERATIONS,
-  chef_equipe: ROLES.CHEF_EQUIPE_COMMERCIAL,
-  technicien: ROLES.CHEF_EQUIPE_TECHNIQUE,
-  agent_service_client: ROLES.SERVICE_CLIENT,
-  assistant: ROLES.ASSISTANT_ADMIN,
-  assistante: ROLES.ASSISTANT_ADMIN,
-  secretaire: ROLES.ASSISTANT_ADMIN,
-  raf: ROLES.COMPTABLE,
-};
-
-/** Normalise un code de rôle (legacy → officiel) */
 export function normalizeRole(role?: string | null): string {
   if (!role) return '';
-  if (OFFICIAL_ROLE_CODES.includes(role)) return role;
-  return LEGACY_ROLE_MAP[role] || role;
+  return OFFICIAL_ROLE_CODES.includes(role) ? role : '';
 }
 
 export function normalizeRoles(roles: string[] = []): string[] {
@@ -113,7 +88,7 @@ export const TERRITORIAL_ROLES: string[] = [
 ];
 
 /**
- * Compatibilité : anciennes constantes de navigation.
+ * Matrice de permissions de navigation.
  * Elles sont désormais dérivées de la matrice de permissions (voir permissions.ts).
  */
 export function hasPermission(userRoles: string[], permission: readonly string[]): boolean {
@@ -122,16 +97,16 @@ export function hasPermission(userRoles: string[], permission: readonly string[]
 }
 
 export const PERMISSIONS = {
-  VIEW_DASHBOARD: OFFICIAL_ROLE_CODES,
-  VIEW_SOUSCRIPTIONS: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL, ROLES.SERVICE_CLIENT, ROLES.ASSISTANT_ADMIN],
-  VIEW_LEADS: OFFICIAL_ROLE_CODES,
-  VIEW_PLANTATIONS: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_TECHNIQUE, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL],
-  VIEW_PAIEMENTS: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE, ROLES.SERVICE_CLIENT, ROLES.CHEF_EQUIPE_SERVICE_CLIENT, ROLES.RESPONSABLE_COMMERCIAL],
-  VIEW_COMMISSIONS: [ROLES.SUPER_ADMIN, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL],
-  VIEW_PORTEFEUILLES: [ROLES.SUPER_ADMIN, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE],
-  VIEW_RAPPORTS_TECHNIQUES: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.CHEF_EQUIPE_TECHNIQUE, ROLES.RESPONSABLE_COMMERCIAL],
-  VIEW_RAPPORTS_FINANCIERS: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE, ROLES.RESPONSABLE_COMMERCIAL],
-  VIEW_TICKETS: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.SERVICE_CLIENT, ROLES.CHEF_EQUIPE_SERVICE_CLIENT, ROLES.CHEF_EQUIPE_TECHNIQUE],
+  VIEW_DASHBOARD: [ROLES.ASSOCIE_ACTIONNAIRE, ...OFFICIAL_ROLE_CODES],
+  VIEW_CLIENTS: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL, ROLES.SERVICE_CLIENT, ROLES.ASSISTANT_ADMIN],
+  VIEW_LEADS: [ROLES.ASSOCIE_ACTIONNAIRE, ...OFFICIAL_ROLE_CODES],
+  VIEW_PLANTATIONS: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_TECHNIQUE, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL],
+  VIEW_PAIEMENTS: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE, ROLES.SERVICE_CLIENT, ROLES.CHEF_EQUIPE_SERVICE_CLIENT, ROLES.RESPONSABLE_COMMERCIAL],
+  VIEW_COMMISSIONS: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL],
+  VIEW_PORTEFEUILLES: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE],
+  VIEW_RAPPORTS_TECHNIQUES: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.CHEF_EQUIPE_TECHNIQUE, ROLES.RESPONSABLE_COMMERCIAL],
+  VIEW_RAPPORTS_FINANCIERS: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.COMPTABLE, ROLES.RESPONSABLE_COMMERCIAL],
+  VIEW_TICKETS: [ROLES.ASSOCIE_ACTIONNAIRE, ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.SERVICE_CLIENT, ROLES.CHEF_EQUIPE_SERVICE_CLIENT, ROLES.CHEF_EQUIPE_TECHNIQUE],
   VIEW_PARAMETRES: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC],
   VIEW_EQUIPES: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.CHEF_EQUIPE_TECHNIQUE, ROLES.CHEF_EQUIPE_SERVICE_CLIENT],
   MANAGE_USERS: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS],
@@ -143,6 +118,6 @@ export const PERMISSIONS = {
   /** Journal de traçabilité (qui a fait quoi, quand) */
   VIEW_AUDIT: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS],
   VALIDATE_PAYMENTS: [ROLES.SUPER_ADMIN, ROLES.COMPTABLE, ROLES.SERVICE_CLIENT, ROLES.CHEF_EQUIPE_SERVICE_CLIENT],
-  CREATE_SOUSCRIPTION: [ROLES.SUPER_ADMIN, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL],
+  CREATE_ACQUISITION: [ROLES.SUPER_ADMIN, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL],
   DELETE_DATA: [ROLES.SUPER_ADMIN],
 } as const;
