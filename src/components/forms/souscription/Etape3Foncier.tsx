@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * Identification de la plantation — Contrat V1, article 4.
+ * Identification de la plantation, article 4.
  * - type_souscripteur_foncier : EXT (souscripteur externe — terre AgriCapital) | OWN (propriétaire foncier)
  * - Sélection de la convention PP active et d'un lot Hxx disponible.
  * - La référence finale du contrat est construite côté DB (AGC-SUB-YYYY-SPxxx-NNNN).
@@ -23,8 +23,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
   const [loading, setLoading] = useState(false);
 
   const typeFoncier: "EXT" | "OWN" =
-    formData.type_souscripteur_foncier ||
-    (formData.type_souscripteur === "avec_terre" ? "OWN" : "EXT");
+    formData.famille_offre === "PALMINVEST" ? "EXT" : "OWN";
 
   useEffect(() => {
     const load = async () => {
@@ -62,37 +61,24 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Identification foncière — Contrat V1</CardTitle>
+          <CardTitle>Identification foncière</CardTitle>
           <CardDescription>
-            Le client est-il externe (terre fournie par AgriCapital) ou propriétaire de la terre ?
+            Le type de foncier est déterminé automatiquement par l'offre sélectionnée.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={() => updateFormData({ type_souscripteur_foncier: "EXT", proprietaire_id: null })}
-              className={`p-4 rounded-lg border-2 text-left transition ${
-                typeFoncier === "EXT" ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/50"
-              }`}
-            >
-              <div className="font-semibold">EXT — Client externe</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                AgriCapital fournit la terre via une convention Planter-Partager. Sélection d'un lot Hxx.
-              </p>
-            </button>
-            <button
-              type="button"
-              onClick={() => updateFormData({ type_souscripteur_foncier: "OWN", convention_id: null, lot_id: null })}
-              className={`p-4 rounded-lg border-2 text-left transition ${
-                typeFoncier === "OWN" ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/50"
-              }`}
-            >
-              <div className="font-semibold">OWN — Propriétaire foncier</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Le client apporte sa propre terre, enregistrée comme parcelle client.
-              </p>
-            </button>
+          <div className="rounded-lg border bg-muted/30 p-4">
+            {typeFoncier === "EXT" ? (
+              <>
+                <div className="font-semibold">PalmInvest — foncier sécurisé par AgriCapital</div>
+                <p className="mt-1 text-sm text-muted-foreground">Sélection obligatoire d'une convention active et d'un lot Hxx.</p>
+              </>
+            ) : (
+              <>
+                <div className="font-semibold">{formData.famille_offre === "PALMTERROIR" ? "PalmTerroir" : "TerraPalm"} — foncier du client</div>
+                <p className="mt-1 text-sm text-muted-foreground">La parcelle du client reste sa base de travail et doit être identifiée dans le dossier.</p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
