@@ -1,5 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { adminClient, corsHeaders, json, requireUser } from "../_shared/auth.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+const corsHeaders={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type"};
+const json=(p:Record<string,unknown>,status=200)=>new Response(JSON.stringify(p),{status,headers:{...corsHeaders,"Content-Type":"application/json"}});
+const adminClient=()=>createClient(Deno.env.get("SUPABASE_URL")||"",Deno.env.get("SUPABASE_SECRET_KEYS") ? JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!).default : Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"",{auth:{autoRefreshToken:false,persistSession:false}});
+const requireUser=async(req:Request,admin:any)=>{
+ const token=(req.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"").trim();
+ if(!token) return {user:null,error:json({success:false,error:"Non authentifié"},401)};
+ const {data}=await admin.auth.getUser(token);
+ if(!data?.user) return {user:null,error:json({success:false,error:"Session invalide"},401)};
+ return {user:data.user,error:null as Response|null};
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
