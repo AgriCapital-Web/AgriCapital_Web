@@ -15,8 +15,6 @@ export const usePromotionActive = (offreId?: string | null) => {
         .from("promotions")
         .select("*")
         .eq("active", true)
-        .lte("date_debut", now)
-        .gte("date_fin", now)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

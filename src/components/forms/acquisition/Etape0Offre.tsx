@@ -146,7 +146,14 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
             <span>🎉 Promotion en cours: {promotionActive.nom}</span>
           </div>
           <p className="text-sm text-amber-600">
-             {`-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'cout_global' ? 'le coût global' : 'le Paiement Initial'}`}
+             {(() => {
+              const pct = Number((promotionActive as any).pourcentage_reduction || 0);
+              const fixe = Number((promotionActive as any).montant_fixe_reduction || 0);
+              const cible = (promotionActive as any).cible === 'cout_global' ? 'le coût global' : 'le Paiement Initial';
+              return fixe > 0 && pct > 0 ? '-'+pct+'% + '+formatMontant(fixe)+' F sur '+cible
+                : fixe > 0 ? '-'+formatMontant(fixe)+' F sur '+cible
+                : '-'+pct+'% sur '+cible;
+            })()}
           </p>
         </div>
       )}
@@ -294,7 +301,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
               {calculs.modePaiement !== "comptant" && calculs.tranches.length > 0 && (
                 <div className="border-t pt-2 space-y-1 text-sm">
                    <div className="font-medium mb-1">Échéancier de paiement :</div>
-                  {calculs.tranches.filter((t:any) => Number(t.mensualite_par_ha) > 0).map((t: any, i: number) => (
+                  {calculs.tranches.filter((t:any) => Number(t.mensualite_par_ha_effective ?? t.mensualite_par_ha) > 0).map((t: any, i: number) => (
                     <div key={i} className="flex justify-between text-xs text-muted-foreground">
                       <span>An {t.annee} — {t.mois} mois</span>
                       <span>{formatMontant(Number(t.mensualite_par_ha_effective ?? t.mensualite_par_ha ?? 0) * calculs.ha)} F/mois</span>

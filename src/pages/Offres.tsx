@@ -315,8 +315,8 @@ const Offres = () => {
     return [];
   };
 
-  const calculateReducedAmount = (offreMontant: number, percentage: number) => {
-    return offreMontant - (offreMontant * percentage / 100);
+  const calculateReducedAmount = (offreMontant: number, percentage: number, fixed = 0) => {
+    return Math.max(offreMontant - (offreMontant * percentage / 100) - fixed, 0);
   };
 
   // Récupérer la promo active
