@@ -32,11 +32,11 @@ interface PaiementFormProps {
 const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   const { toast } = useToast();
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
-    defaultValues: paiement || { type_paiement: "DA" },
+    defaultValues: paiement || { type_paiement: "PI" },
   });
-  const [souscripteurs, setSouscripteurs] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [plantations, setPlantations] = useState<any[]>([]);
-  const [selectedSouscripteur, setSelectedSouscripteur] = useState<any>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
   const [selectedPlantation, setSelectedPlantation] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [fileUrl, setFileUrl] = useState(paiement?.fichier_preuve_url || "");
@@ -46,43 +46,43 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   
   const { data: promotionActive } = usePromotionActive();
   const typePaiement = watch("type_paiement");
-  const souscripteurId = watch("souscripteur_id");
+  const clientId = watch("client_id");
   const plantationId = watch("plantation_id");
   const typePreuve = watch("type_preuve");
   const montantPaye = watch("montant_paye");
 
   useEffect(() => {
-    fetchSouscripteurs();
+    fetchClients();
   }, []);
 
   // Quand type de paiement change
   useEffect(() => {
     if (typePaiement) {
-      setValue("souscripteur_id", "");
+      setValue("client_id", "");
       setValue("plantation_id", "");
-      setSelectedSouscripteur(null);
+      setSelectedClient(null);
       setSelectedPlantation(null);
       setPlantations([]);
     }
   }, [typePaiement, setValue]);
 
-  // Quand souscripteur change
+  // Quand client change
   useEffect(() => {
-    if (souscripteurId) {
-      const souscripteur = souscripteurs.find((s) => s.id === souscripteurId);
-      setSelectedSouscripteur(souscripteur);
+    if (clientId) {
+      const client = clients.find((s) => s.id === clientId);
+      setSelectedClient(client);
       
-      // Si type = CONTRIBUTION, charger plantations du souscripteur
+      // Si type = CONTRIBUTION, charger plantations du client
       if (typePaiement === "CONTRIBUTION") {
-        fetchPlantationsBySouscripteur(souscripteurId);
+        fetchPlantationsByClient(clientId);
       }
       
-      // Si type = DA, pas besoin de plantation
-      if (typePaiement === "DA") {
+      // Si type = PI, pas besoin de plantation
+      if (typePaiement === "PI") {
         setPlantations([]);
       }
     }
-  }, [souscripteurId, typePaiement, souscripteurs]);
+  }, [clientId, typePaiement, clients]);
 
   // Quand plantation change (pour CONTRIBUTION)
   useEffect(() => {
@@ -95,19 +95,19 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
     }
   }, [plantationId, typePaiement, plantations]);
 
-  // Pour DA: calculer montant automatiquement
+  // Pour PI: calculer montant automatiquement
   useEffect(() => {
-    if (typePaiement === "DA" && souscripteurId) {
-      let montantDA = 30000; // Prix normal
+    if (typePaiement === "PI" && clientId) {
+      let montantPI = 30000; // Prix normal
       
       if (promotionActive) {
         // Appliquer la réduction en pourcentage
-        montantDA = 30000 - (30000 * promotionActive.pourcentage_reduction / 100);
+        montantPI = 30000 - (30000 * promotionActive.pourcentage_reduction / 100);
       }
       
       setValue("montant_theorique", montantDA);
     }
-  }, [typePaiement, souscripteurId, promotionActive, setValue]);
+  }, [typePaiement, clientId, promotionActive, setValue]);
 
   // Calculer jours/mois/trimestre pour CONTRIBUTION
   useEffect(() => {
@@ -148,15 +148,15 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
     }
   }, [montantPaye, typePaiement]);
 
-  const fetchSouscripteurs = async () => {
+  const fetchClients = async () => {
     try {
       const { data, error } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setSouscripteurs(data || []);
+      setClients(data || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -166,12 +166,12 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
     }
   };
 
-  const fetchPlantationsBySouscripteur = async (souscripteurId: string) => {
+  const fetchPlantationsByClient = async (clientId: string) => {
     try {
       const { data, error } = await (supabase as any)
         .from("plantations")
         .select("*")
-        .eq("souscripteur_id", souscripteurId)
+        .eq("client_id", clientId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -350,7 +350,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   };
 
 
-  const montantCalculeDA = souscripteurId && typePaiement === "DA" 
+  const montantCalculePI = clientId && typePaiement === "PI" 
     ? (promotionActive ? 30000 - (30000 * promotionActive.pourcentage_reduction / 100) : 30000)
     : null;
 
@@ -362,13 +362,13 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
           <Label htmlFor="type_paiement">Type de Paiement *</Label>
           <Select
             onValueChange={(value) => setValue("type_paiement", value)}
-            defaultValue={paiement?.type_paiement || "DA"}
+            defaultValue={paiement?.type_paiement || "PI"}
           >
             <SelectTrigger>
               <SelectValue placeholder="Type de paiement" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DA">Dépôt Initial (DI)</SelectItem>
+              <SelectItem value="PI">Paiement initial (PI)</SelectItem>
               <SelectItem value="CONTRIBUTION">Contribution Annuelle</SelectItem>
             </SelectContent>
           </Select>
@@ -377,16 +377,16 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
         {/* SOUSCRIPTEUR (PLANTEUR) */}
         {typePaiement && (
           <div>
-            <Label htmlFor="souscripteur_id">Planteur *</Label>
+            <Label htmlFor="client_id">Planteur *</Label>
             <Select
-              onValueChange={(value) => setValue("souscripteur_id", value)}
-              defaultValue={paiement?.souscripteur_id}
+              onValueChange={(value) => setValue("client_id", value)}
+              defaultValue={paiement?.client_id}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un planteur" />
               </SelectTrigger>
               <SelectContent>
-                {souscripteurs.map((s) => (
+                {clients.map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     {s.id_unique} - {s.nom_complet}
                   </SelectItem>
@@ -397,7 +397,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
         )}
 
         {/* PLANTATION (seulement pour CONTRIBUTION) */}
-        {typePaiement === "CONTRIBUTION" && souscripteurId && (
+        {typePaiement === "CONTRIBUTION" && clientId && (
           <div>
             <Label htmlFor="plantation_id">Plantation *</Label>
             <Select
@@ -418,8 +418,8 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
           </div>
         )}
 
-        {/* CARTE CALCUL DA */}
-        {montantCalculeDA && typePaiement === "DA" && (
+        {/* CARTE CALCUL PI */}
+        {montantCalculePI && typePaiement === "PI" && (
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
@@ -459,8 +459,8 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
           </Card>
         )}
 
-        {/* MONTANT (DA uniquement - lecture seule) */}
-        {typePaiement === "DA" && souscripteurId && (
+        {/* MONTANT (PI uniquement - lecture seule) */}
+        {typePaiement === "PI" && clientId && (
           <div>
             <Label htmlFor="montant_theorique">Montant Dépôt Initial (F CFA) *</Label>
             <Input
@@ -470,7 +470,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
               className="bg-muted font-bold text-lg"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Le DI complet est obligatoire (pas de paiement partiel)
+              Le PI complet est obligatoire (pas de paiement partiel)
             </p>
           </div>
         )}
