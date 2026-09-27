@@ -25,7 +25,7 @@ interface Etape1Props {
   updateFormData: (data: any) => void;
 }
 
-export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) => {
+export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
   const [districts, setDistricts] = useState<any[]>([]);
   const [regions, setRegions] = useState<any[]>([]);
   const [departements, setDepartements] = useState<any[]>([]);
@@ -182,7 +182,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
       {/* Type de souscripteur */}
       <Card className="border-primary/30">
         <CardHeader>
-          <CardTitle>Type de Souscripteur</CardTitle>
+          <CardTitle>Type de Client</CardTitle>
           <CardDescription>Choisissez le profil du souscripteur</CardDescription>
         </CardHeader>
         <CardContent>
@@ -251,7 +251,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
 
       <Card>
         <CardHeader>
-          <CardTitle>Identité du Souscripteur</CardTitle>
+          <CardTitle>Identité du Client</CardTitle>
           <CardDescription>Informations personnelles obligatoires</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
