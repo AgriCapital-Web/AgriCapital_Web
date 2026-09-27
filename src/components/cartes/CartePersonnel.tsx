@@ -11,26 +11,26 @@ import { CARTE_BUCKET } from "@/lib/photoCarte";
 import { roleLabel } from "@/lib/roles";
 
 /**
- * Carte professionnelle AgriCapital — reproduction fidèle des maquettes
- * officielles recto / verso.
+ * Nouvelle carte professionnelle AgriCapital.
  *
- * Toute la mise en page est exprimée en pixels sur une grille fixe de
- * 480 × 678 px, calée sur le ratio de la maquette officielle fournie. Les unités mm/pt et les
- * troncatures CSS (truncate, line-clamp) sont volontairement évitées : elles
- * sont mal converties par html2canvas et provoquaient chevauchements et textes
- * coupés à l'export / impression. Les valeurs trop longues sont raccourcies en
- * JavaScript, ce qui donne un rendu identique à l'écran, au téléchargement et
- * à l'impression.
+ * Direction artistique :
+ * - format portrait au ratio d'une carte bancaire : 54 × 85,6 mm ;
+ * - grille fixe 540 × 856 px pour éviter les décalages html2canvas ;
+ * - recto volontairement épuré, sans QR code ;
+ * - verso dédié à la vérification avec un QR nettement plus grand ;
+ * - palette strictement issue de la charte AgriCapital : vert, orange, blanc et gris ;
+ * - aucune information ne dépend d'un positionnement absolu pour son contenu.
  */
-
-const W = 480;
-const H = 678;
+const W = 540;
+const H = 856;
 
 const VERT = "#0B4A2E";
 const VERT_CLAIR = "#137A45";
 const ORANGE = "#E97A11";
 const GRIS = "#3B3B3B";
-const GRIS_LIGNE = "#C9C9C9";
+const GRIS_MOYEN = "#737373";
+const GRIS_CLAIR = "#E8E8E8";
+const BLANC = "#FFFFFF";
 
 export interface CarteData {
   id?: string;
@@ -72,7 +72,6 @@ export const contratLabel = (v?: string | null) => CONTRATS.find((c) => c.v === 
 export const statutAgentLabel = (v?: string | null) =>
   STATUTS_AGENT.find((s) => s.v === v)?.l || "EMPLOYÉ";
 
-/** Mission courte générée automatiquement selon le rôle / poste de l'agent. */
 const MISSIONS_PAR_ROLE: Record<string, string> = {
   super_admin: "Direction générale",
   admin: "Administration plateforme",
@@ -90,7 +89,6 @@ const MISSIONS_PAR_ROLE: Record<string, string> = {
   assistant_administratif: "Appui administratif",
 };
 
-/** Raccourcit proprement une valeur trop longue pour sa zone. */
 const coupe = (valeur: string, max: number) =>
   valeur.length <= max ? valeur : `${valeur.slice(0, Math.max(1, max - 1)).trimEnd()}…`;
 
@@ -102,7 +100,6 @@ export const missionAuto = (carte: CarteData) =>
 
 const fdate = (d?: string | null) => (d ? format(new Date(d), "dd/MM/yyyy", { locale: fr }) : "—");
 
-/** Validité : indéterminée en CDI, sinon jusqu'à la date de fin de contrat. */
 export const validiteTexte = (carte: CarteData) => {
   if (carte.type_contrat === "cdi") return "Indéterminée";
   const debut = carte.date_delivrance ? `Du ${fdate(carte.date_delivrance)} ` : "";
@@ -112,7 +109,7 @@ export const validiteTexte = (carte: CarteData) => {
 export const verificationUrl = (code: string) =>
   `https://app.agricapital.ci/verify/${code}`;
 
-const initiales = (nom: string) =>
+const initials = (nom: string) =>
   nom
     .split(" ")
     .filter(Boolean)
@@ -120,103 +117,53 @@ const initiales = (nom: string) =>
     .map((n) => n[0]?.toUpperCase())
     .join("");
 
-/** Courbes officielles, maintenues hors des zones de contenu. */
-const DecorHaut = () => (
+const Decor = () => (
   <>
-    <svg
-      width={104}
-      height={168}
-      viewBox="0 0 104 168"
-      style={{ position: "absolute", left: 0, top: 0 }}
+    <div
       aria-hidden
-    >
-      <path d="M0 0H104C55 22 22 72 0 146Z" fill={VERT} />
-    </svg>
-    <svg
-      width={118}
-      height={108}
-      viewBox="0 0 118 108"
-      style={{ position: "absolute", right: 0, top: 74 }}
-      aria-hidden
-    >
-      <path d="M118 0V66C88 86 53 98 0 106C52 82 92 48 118 0Z" fill={ORANGE} />
-    </svg>
-  </>
-);
-
-const DecorBas = () => (
-  <svg
-    width={W}
-    height={78}
-    viewBox="0 0 480 78"
-    preserveAspectRatio="none"
-    style={{ position: "absolute", left: 0, bottom: 0 }}
-    aria-hidden
-  >
-    <path d="M0 22C150 68 340 70 480 12V78H0Z" fill="#E7E7E7" />
-    <path d="M0 34C148 74 338 74 480 20V78H0Z" fill={ORANGE} />
-    <path d="M0 47C158 80 350 78 480 33V78H0Z" fill={VERT} />
-  </svg>
-);
-
-type IconeCarte = "mission" | "pays" | "validite" | "identifiant";
-
-/** Pictogrammes officiels de la maquette (cible, localisation, calendrier, badge). */
-const PICTOS: Record<IconeCarte, string> = {
-  mission:
-    "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3.2A6.8 6.8 0 1 1 5.2 12 6.8 6.8 0 0 1 12 5.2Zm0 3.4A3.4 3.4 0 1 0 12 15.4 3.4 3.4 0 0 0 12 8.6Zm0 2a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Z",
-  pays: "M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.6A2.6 2.6 0 1 1 12 6.4a2.6 2.6 0 0 1 0 5.2Z",
-  validite:
-    "M7 2h2v2h6V2h2v2h2a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2V2Zm13 8H4v10h16V10ZM6 12h4v3H6v-3Z",
-  identifiant:
-    "M3 4h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm2 3v10h6V7H5Zm3 1.6a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2ZM5.9 15.6c.3-1.2 1.1-1.9 2.1-1.9s1.8.7 2.1 1.9H5.9ZM13 8h6v1.6h-6V8Zm0 3.2h6v1.6h-6v-1.6Zm0 3.2h4v1.6h-4v-1.6Z",
-};
-
-const Ligne = ({ label, valeur, icone }: { label: string; valeur: string; icone: IconeCarte }) => (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      height: 34,
-      borderBottom: `1px solid ${GRIS_LIGNE}`,
-    }}
-  >
-    <span
       style={{
-        width: 26,
-        height: 26,
-        borderRadius: 13,
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 10,
         backgroundColor: VERT,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
       }}
-    >
-      <svg viewBox="0 0 24 24" width={15} height={15} fill="#FFFFFF" aria-hidden>
-        <path d={PICTOS[icone]} />
-      </svg>
-    </span>
-    <span style={{ width: 3, height: 20, backgroundColor: ORANGE, margin: "0 7px", flexShrink: 0 }} />
-    <span
+    />
+    <div
+      aria-hidden
       style={{
-        color: VERT,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 0.2,
-        textTransform: "uppercase",
-        lineHeight: "12px",
-        width: 96,
-        flexShrink: 0,
+        position: "absolute",
+        top: 10,
+        left: 0,
+        width: 92,
+        height: 4,
+        backgroundColor: ORANGE,
       }}
-    >
-      {label}
-    </span>
-    <span style={{ color: GRIS, fontSize: 10, lineHeight: "12px", margin: "0 5px", flexShrink: 0 }}>:</span>
-    <span style={{ color: GRIS, fontSize: 10.5, lineHeight: "12px", whiteSpace: "nowrap", overflow: "hidden" }}>
-      {valeur}
-    </span>
-  </div>
+    />
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        right: 0,
+        bottom: 0,
+        width: 150,
+        height: 6,
+        backgroundColor: ORANGE,
+      }}
+    />
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        right: 0,
+        bottom: 6,
+        width: 92,
+        height: 5,
+        backgroundColor: VERT,
+      }}
+    />
+  </>
 );
 
 const CardShell = ({ children }: { children: React.ReactNode }) => (
@@ -227,29 +174,104 @@ const CardShell = ({ children }: { children: React.ReactNode }) => (
       height: H,
       flexShrink: 0,
       overflow: "hidden",
-      borderRadius: 18,
-      backgroundColor: "#FFFFFF",
-      border: `3px solid ${VERT}`,
+      borderRadius: 24,
+      backgroundColor: BLANC,
+      border: "1px solid #D8D8D8",
       color: GRIS,
       fontFamily: "'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif",
       boxSizing: "border-box",
     }}
   >
-    <div style={{ position: "relative", width: W, height: H }}>
-      {children}
-    </div>
+    {children}
   </div>
 );
 
-const QR = ({ code, taille }: { code: string; taille: number }) => (
+const PhotoPlaceholder = ({ nom }: { nom: string }) => (
+  <div
+    aria-label="Emplacement photo"
+    style={{
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F3F4F2",
+      color: VERT,
+      gap: 12,
+    }}
+  >
+    <div
+      style={{
+        width: 76,
+        height: 76,
+        borderRadius: "50%",
+        backgroundColor: "#DCE6DF",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 25,
+        fontWeight: 800,
+      }}
+    >
+      {initials(nom) || "AC"}
+    </div>
+    <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>
+      Photo
+    </span>
+  </div>
+);
+
+const InfoRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => (
   <div
     style={{
-      width: taille,
-      height: taille,
-      padding: 5,
-      backgroundColor: "#FFFFFF",
-      border: "1px solid #CFCFCF",
-      borderRadius: 6,
+      display: "grid",
+      gridTemplateColumns: "150px 1fr",
+      alignItems: "center",
+      minHeight: 42,
+      borderBottom: `1px solid ${GRIS_CLAIR}`,
+    }}
+  >
+    <span
+      style={{
+        color: VERT,
+        fontSize: 10,
+        fontWeight: 800,
+        textTransform: "uppercase",
+        letterSpacing: 0.45,
+      }}
+    >
+      {label}
+    </span>
+    <span
+      style={{
+        color: GRIS,
+        fontSize: 11.5,
+        fontWeight: 600,
+        lineHeight: "15px",
+        overflow: "hidden",
+      }}
+    >
+      {value}
+    </span>
+  </div>
+);
+
+const QR = ({ code, size }: { code: string; size: number }) => (
+  <div
+    style={{
+      width: size + 18,
+      height: size + 18,
+      padding: 9,
+      backgroundColor: BLANC,
+      border: `1px solid ${GRIS_CLAIR}`,
+      borderRadius: 12,
       boxSizing: "border-box",
       flexShrink: 0,
     }}
@@ -258,375 +280,437 @@ const QR = ({ code, taille }: { code: string; taille: number }) => (
       value={verificationUrl(code)}
       size={1024}
       level="H"
-      includeMargin={false}
+      includeMargin={true}
       style={{ width: "100%", height: "100%", display: "block", imageRendering: "pixelated" }}
     />
   </div>
 );
 
-/** Recto — grille fixe conforme à la maquette officielle. */
-export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ carte }, ref) => {
-  const photo = useSignedUrl(carte.photo_bucket || CARTE_BUCKET, carte.photo_url);
-  const fonction = coupe(carte.poste || roleLabel(carte.role_code) || "—", 52);
-  return (
-    <div ref={ref}>
-      <CardShell>
-        <DecorHaut />
-        <div style={{ position: "relative", zIndex: 10, padding: "22px 26px 0" }}>
-          <img
-            src={logo}
-            alt="AgriCapital — Investir la terre. Cultiver l'avenir."
-            style={{ display: "block", margin: "0 auto", height: 72, width: 210, objectFit: "contain" }}
-          />
-
-          <div style={{ display: "flex", gap: 22, marginTop: 56 }}>
-            <div
-              style={{
-                width: 136,
-                height: 180,
-                flexShrink: 0,
-                overflow: "hidden",
-                borderRadius: 10,
-                border: `2px solid ${VERT}`,
-                backgroundColor: "#E7E7E7",
-              }}
-            >
-              {photo ? (
-                <img
-                  src={photo}
-                  alt={carte.nom_complet}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              ) : (
-                <div
-                  aria-label="Emplacement photo"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    position: "relative",
-                    overflow: "hidden",
-                    backgroundColor: "#F2F2F2",
-                  }}
-                >
-                  <div style={{
-                    position: "absolute",
-                    top: 26,
-                    left: "50%",
-                    width: 58,
-                    height: 58,
-                    transform: "translateX(-50%)",
-                    borderRadius: "50%",
-                    backgroundColor: "#8A8A8A",
-                  }} />
-                  <div style={{
-                    position: "absolute",
-                    left: "50%",
-                    bottom: -8,
-                    width: 138,
-                    height: 112,
-                    transform: "translateX(-50%)",
-                    borderRadius: "70px 70px 0 0",
-                    backgroundColor: "#777777",
-                  }} />
-                  <div style={{
-                    position: "absolute",
-                    left: "50%",
-                    bottom: 42,
-                    width: 34,
-                    height: 42,
-                    transform: "translateX(-50%)",
-                    backgroundColor: "#EEEEEE",
-                    clipPath: "polygon(0 0, 100% 0, 72% 100%, 28% 100%)",
-                  }} />
-                  <div style={{
-                    position: "absolute",
-                    left: "50%",
-                    bottom: 0,
-                    width: 20,
-                    height: 72,
-                    transform: "translateX(-50%) rotate(0deg)",
-                    backgroundColor: "#4F4F4F",
-                    clipPath: "polygon(50% 0, 100% 22%, 72% 100%, 28% 100%, 0 22%)",
-                  }} />
-                </div>
-              )}
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
-              <p
-                style={{
-                  margin: 0,
-                  color: VERT,
-                  fontSize: carte.nom_complet.length > 24 ? 15 : 18,
-                  fontWeight: 800,
-                  lineHeight: "19px",
-                  textTransform: "uppercase",
-                  height: 40,
-                  overflow: "hidden",
-                }}
-              >
-                {coupe(carte.nom_complet, 44)}
-              </p>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 5, margin: "8px 0 10px" }}>
-                <span style={{ height: 1, flex: 1, backgroundColor: GRIS_LIGNE }} />
-                <img src={symbole} alt="" style={{ height: 14, objectFit: "contain" }} />
-                <span style={{ height: 1, flex: 1, backgroundColor: GRIS_LIGNE }} />
-              </div>
-
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, textTransform: "uppercase", lineHeight: "15px" }}>
-                Fonction
-              </p>
-              <p style={{ margin: "4px 0 0", fontSize: 11, lineHeight: "14px", height: 28, overflow: "hidden" }}>
-                {fonction}
-              </p>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
-                <span
-                  style={{
-                    backgroundColor: VERT,
-                    color: "#FFFFFF",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    padding: "4px 9px",
-                    borderRadius: 5,
-                    lineHeight: "12px",
-                  }}
-                >
-                  Statut
-                </span>
-                <span style={{ width: 1, height: 16, backgroundColor: GRIS_LIGNE }} />
-                <span
-                  style={{
-                    color: VERT_CLAIR,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    lineHeight: "13px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {statutAgentLabel(carte.statut_agent)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 18 }}>
-            <Ligne label="Mission" valeur={coupe(missionAuto(carte), 34)} icone="mission" />
-            <Ligne label="Zone d’intervention" valeur={coupe(carte.zone_intervention || carte.departement || "Côte d’Ivoire", 28)} icone="pays" />
-            <Ligne label="Période de validité" valeur={coupe(validiteTexte(carte), 34)} icone="validite" />
-            <Ligne label="Identifiant officiel" valeur={coupe(carte.matricule, 34)} icone="identifiant" />
-          </div>
-
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 12, marginTop: 20 }}>
-            <QR code={carte.code_verification} taille={84} />
-
-            <div style={{ width: 118, flexShrink: 0 }}>
-              <p
-                style={{
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  color: VERT,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  lineHeight: "12px",
-                }}
-              >
-                <svg viewBox="0 0 24 24" width={13} height={13} fill={VERT} aria-hidden>
-                  <path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5l-8-3Zm-1 12.4-3-3 1.4-1.4L11 11.6l3.6-3.6L16 9.4l-5 5Z" />
-                </svg>
-                Vérification
-              </p>
-              <p style={{ margin: "5px 0 0", fontSize: 8.5, lineHeight: "11px", color: GRIS }}>
-                Scannez ce QR code pour vérifier l'authenticité et la validité de ce badge.
-              </p>
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-              <div style={{ position: "relative", height: 62 }}>
-                <img
-                  src={signature}
-                  alt="Signature de la direction"
-                  style={{
-                    position: "absolute",
-                    right: 22,
-                    bottom: 4,
-                    height: 44,
-                    width: 112,
-                    objectFit: "contain",
-                    zIndex: 10,
-                  }}
-                />
-                <img
-                  src={cachet}
-                  alt="Cachet AgriCapital"
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    bottom: -10,
-                    height: 74,
-                    width: 74,
-                    objectFit: "contain",
-                    zIndex: 12,
-                  }}
-                />
-              </div>
-              <span style={{ display: "block", height: 1, width: "100%", backgroundColor: "#8E8E8E" }} />
-              <p style={{ margin: "5px 0 0", color: VERT, fontSize: 9, fontWeight: 700, textTransform: "uppercase", lineHeight: "11px" }}>
-                Signature direction
-              </p>
-            </div>
-          </div>
-        </div>
-        <DecorBas />
-      </CardShell>
-    </div>
-  );
-});
-CarteRecto.displayName = "CarteRecto";
+const ContactIcon = ({ path }: { path: string }) => (
+  <span
+    style={{
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: VERT,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    }}
+  >
+    <svg viewBox="0 0 24 24" width={11} height={11} fill={BLANC} aria-hidden>
+      <path d={path} />
+    </svg>
+  </span>
+);
 
 const CONTACTS = (carte: CarteData) => [
   {
     d: "M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2 4.6 1v3.4A2 2 0 0 1 18 21.6 18 18 0 0 1 2.4 6 2 2 0 0 1 4.4 4h3.4l1 4.6-2.2 2.2Z",
     t: carte.telephone || "+225 07 50 56 60 87",
   },
-  { d: "M2 5h20v14H2V5Zm10 8L3.5 6.6 12 12l8.5-5.4L12 13Z", t: "contact@agricapital.ci" },
+  {
+    d: "M2 5h20v14H2V5Zm10 8L3.5 6.6 12 12l8.5-5.4L12 13Z",
+    t: "contact@agricapital.ci",
+  },
   {
     d: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2c1.6 2 2.4 4 2.4 6s-.8 4-2.4 6c-1.6-2-2.4-4-2.4-6s.8-4 2.4-6ZM4.3 9h3.3a16 16 0 0 0 0 6H4.3a8 8 0 0 1 0-6Zm12.1 0h3.3a8 8 0 0 1 0 6h-3.3a16 16 0 0 0 0-6Z",
     t: "www.agricapital.ci",
   },
-  {
-    d: "M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z",
-    t: "Daloa-Gonaté, Côte d'Ivoire",
-  },
 ];
 
-/** Verso — grille fixe conforme à la maquette officielle. */
-export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ carte }, ref) => (
-  <div ref={ref}>
-    <CardShell>
-      <DecorBas />
-      <div style={{ position: "relative", zIndex: 10, padding: "20px 28px 0" }}>
-        <img
-          src={logo}
-          alt="AgriCapital — Investir la terre. Cultiver l'avenir."
-          style={{ display: "block", margin: "0 auto", height: 62, width: 236, objectFit: "contain" }}
-        />
-        <span style={{ display: "block", margin: "8px auto 0", height: 2, width: 52, backgroundColor: VERT }} />
+export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ carte }, ref) => {
+  const photo = useSignedUrl(carte.photo_bucket || CARTE_BUCKET, carte.photo_url);
+  const fonction = carte.poste || roleLabel(carte.role_code) || "—";
+  const nom = carte.nom_complet || "Nom du titulaire";
 
-        <p style={{ margin: "14px 0 0", textAlign: "center", fontSize: 10, lineHeight: "14px", color: GRIS }}>
-          Cette carte est une pièce d'identification professionnelle délivrée par AgriCapital SARL.
-          Elle atteste de l'appartenance ou de la collaboration de son titulaire avec l'entreprise
-          dans le cadre de ses activités professionnelles.
-        </p>
+  return (
+    <div ref={ref}>
+      <CardShell>
+        <Decor />
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            height: "100%",
+            boxSizing: "border-box",
+            padding: "38px 42px 32px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 74 }}>
+            <img
+              src={logo}
+              alt="AgriCapital — Investir la terre. Cultiver l'avenir."
+              style={{ display: "block", width: 230, height: 72, objectFit: "contain" }}
+            />
+          </div>
 
-        <div style={{ marginTop: 16, border: `2px solid ${VERT}`, borderRadius: 12, padding: "12px 12px" }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <svg viewBox="0 0 24 24" width={34} height={34} fill={VERT} aria-hidden style={{ flexShrink: 0 }}>
-              <path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5l-8-3Zm0 7a2 2 0 0 1 2 2v1h-4v-1a2 2 0 0 1 2-2Zm-3 4h6v4H9v-4Z" />
-            </svg>
-            <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ marginTop: 22, textAlign: "center" }}>
+            <span
+              style={{
+                display: "inline-block",
+                color: VERT,
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: 1.8,
+                textTransform: "uppercase",
+              }}
+            >
+              Carte professionnelle
+            </span>
+          </div>
+
+          <div
+            style={{
+              width: 188,
+              height: 238,
+              margin: "22px auto 0",
+              borderRadius: 16,
+              overflow: "hidden",
+              border: `3px solid ${VERT}`,
+              backgroundColor: "#F3F4F2",
+              boxSizing: "border-box",
+              flexShrink: 0,
+            }}
+          >
+            {photo ? (
+              <img
+                src={photo}
+                alt={nom}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <PhotoPlaceholder nom={nom} />
+            )}
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 20, minHeight: 73 }}>
+            <p
+              style={{
+                margin: 0,
+                color: VERT,
+                fontSize: nom.length > 28 ? 22 : 25,
+                fontWeight: 800,
+                lineHeight: "28px",
+                textTransform: "uppercase",
+                overflow: "hidden",
+              }}
+            >
+              {coupe(nom, 42)}
+            </p>
+            <p
+              style={{
+                margin: "7px 0 0",
+                color: GRIS_MOYEN,
+                fontSize: 12,
+                fontWeight: 700,
+                lineHeight: "16px",
+                textTransform: "uppercase",
+                minHeight: 16,
+              }}
+            >
+              {coupe(fonction, 44)}
+            </p>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 11, minHeight: 30 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: 112,
+                height: 30,
+                padding: "0 15px",
+                boxSizing: "border-box",
+                borderRadius: 15,
+                backgroundColor: VERT,
+                color: BLANC,
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: 0.7,
+                textTransform: "uppercase",
+              }}
+            >
+              {statutAgentLabel(carte.statut_agent)}
+            </span>
+          </div>
+
+          <div style={{ marginTop: 19 }}>
+            <InfoRow label="Identifiant" value={coupe(carte.matricule, 30)} />
+            <InfoRow
+              label="Zone d'intervention"
+              value={coupe(carte.zone_intervention || carte.departement || "Côte d'Ivoire", 34)}
+            />
+            <InfoRow label="Validité" value={coupe(validiteTexte(carte), 34)} />
+          </div>
+
+          <div
+            style={{
+              marginTop: "auto",
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "space-between",
+              gap: 18,
+              minHeight: 64,
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
               <p
                 style={{
                   margin: 0,
                   color: VERT,
-                  fontSize: 10.5,
-                  fontWeight: 700,
+                  fontSize: 9,
+                  fontWeight: 800,
+                  letterSpacing: 0.8,
                   textTransform: "uppercase",
-                  lineHeight: "13px",
-                  whiteSpace: "nowrap",
                 }}
               >
-                Carte personnelle – non transférable
+                AgriCapital SARL
               </p>
-              <span style={{ display: "block", height: 2, width: "100%", backgroundColor: ORANGE, margin: "7px 0" }} />
-              <p style={{ margin: 0, fontSize: 9.5, lineHeight: "13px", color: GRIS }}>
-                Toute perte, détérioration ou utilisation frauduleuse doit être signalée à AgriCapital SARL.
-                Cette carte doit être restituée à l'entreprise à la fin de la collaboration ou sur demande.
+              <p style={{ margin: "5px 0 0", color: GRIS_MOYEN, fontSize: 8.5, lineHeight: "12px" }}>
+                Carte personnelle — non transférable
               </p>
+            </div>
+            <div style={{ position: "relative", width: 112, height: 60, flexShrink: 0 }}>
+              <img
+                src={signature}
+                alt="Signature de la direction"
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 0,
+                  width: 102,
+                  height: 42,
+                  objectFit: "contain",
+                }}
+              />
+              <img
+                src={cachet}
+                alt="Cachet AgriCapital"
+                style={{
+                  position: "absolute",
+                  right: -6,
+                  bottom: -3,
+                  width: 58,
+                  height: 58,
+                  objectFit: "contain",
+                }}
+              />
+              <span
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 12,
+                  bottom: 0,
+                  height: 1,
+                  backgroundColor: "#A5A5A5",
+                }}
+              />
             </div>
           </div>
         </div>
+      </CardShell>
+    </div>
+  );
+});
+CarteRecto.displayName = "CarteRecto";
 
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 16 }}>
-          <QR code={carte.code_verification} taille={68} />
-          <div style={{ flex: 1, minWidth: 0 }}>
+export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ carte }, ref) => {
+  const verification = verificationUrl(carte.code_verification);
+
+  return (
+    <div ref={ref}>
+      <CardShell>
+        <Decor />
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            height: "100%",
+            boxSizing: "border-box",
+            padding: "40px 42px 34px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "center", minHeight: 68 }}>
+            <img
+              src={logo}
+              alt="AgriCapital — Investir la terre. Cultiver l'avenir."
+              style={{ display: "block", width: 224, height: 66, objectFit: "contain" }}
+            />
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 18 }}>
             <p
               style={{
                 margin: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
                 color: VERT,
-                fontSize: 10.5,
-                fontWeight: 700,
+                fontSize: 15,
+                fontWeight: 800,
+                letterSpacing: 1.3,
                 textTransform: "uppercase",
-                lineHeight: "13px",
               }}
             >
-              <svg viewBox="0 0 24 24" width={15} height={15} fill={VERT} aria-hidden style={{ flexShrink: 0 }}>
-                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 14.4-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9.4l-7 7Z" />
-              </svg>
-              Vérification du badge
+              Vérification d'authenticité
             </p>
-            <p style={{ margin: "6px 0 0", fontSize: 9.5, lineHeight: "13px", color: GRIS }}>
-              Scannez ce QR code pour vérifier l'authenticité et la validité de ce badge sur app.agricapital.ci
+            <span
+              style={{
+                display: "block",
+                width: 54,
+                height: 3,
+                margin: "10px auto 0",
+                backgroundColor: ORANGE,
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              marginTop: 22,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <QR code={carte.code_verification} size={228} />
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 15 }}>
+            <p
+              style={{
+                margin: 0,
+                color: GRIS,
+                fontSize: 11.5,
+                fontWeight: 600,
+                lineHeight: "16px",
+              }}
+            >
+              Scannez ce code avec votre téléphone pour vérifier l'authenticité et la validité de cette carte.
+            </p>
+            <div
+              style={{
+                marginTop: 12,
+                padding: "11px 14px",
+                borderRadius: 9,
+                backgroundColor: "#F4F6F3",
+                border: `1px solid ${GRIS_CLAIR}`,
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  color: VERT,
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  letterSpacing: 0.2,
+                  lineHeight: "17px",
+                }}
+              >
+                app.agricapital.ci/verify
+              </p>
+              <p style={{ margin: "4px 0 0", color: GRIS_MOYEN, fontSize: 9, lineHeight: "12px" }}>
+                Adresse officielle de vérification
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 18,
+              padding: "13px 15px",
+              borderLeft: `4px solid ${ORANGE}`,
+              backgroundColor: "#FAFAFA",
+              borderTop: `1px solid ${GRIS_CLAIR}`,
+              borderRight: `1px solid ${GRIS_CLAIR}`,
+              borderBottom: `1px solid ${GRIS_CLAIR}`,
+              borderRadius: "0 8px 8px 0",
+            }}
+          >
+            <p style={{ margin: 0, color: VERT, fontSize: 9.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Contrôle de la carte
+            </p>
+            <p style={{ margin: "5px 0 0", color: GRIS, fontSize: 9, lineHeight: "13px" }}>
+              La page officielle affiche l'identité du titulaire, son statut et les informations de validité enregistrées par AgriCapital.
             </p>
           </div>
-        </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "14px 0 12px" }}>
-          <span style={{ height: 1, flex: 1, backgroundColor: GRIS_LIGNE }} />
-          <img src={symbole} alt="" style={{ height: 16, objectFit: "contain" }} />
-          <span style={{ height: 1, flex: 1, backgroundColor: GRIS_LIGNE }} />
-        </div>
+          <div style={{ marginTop: "auto" }}>
+            <div
+              style={{
+                height: 1,
+                width: "100%",
+                backgroundColor: GRIS_CLAIR,
+                marginBottom: 14,
+              }}
+            />
 
-        <div style={{ display: "flex", gap: 12 }}>
-          <div style={{ width: 168, flexShrink: 0 }}>
-            <p style={{ margin: 0, color: VERT, fontSize: 11, fontWeight: 800, textTransform: "uppercase", lineHeight: "13px" }}>
-              AgriCapital SARL
-            </p>
-            <p style={{ margin: "6px 0 0", fontSize: 8.5, lineHeight: "12px", color: GRIS }}>
-              Société à Responsabilité Limitée
-              <br />
-              RCCM : CI-DAL-01-2025-B12-00035
-              <br />
-              Daloa-Gonaté, Côte d'Ivoire
-            </p>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {CONTACTS(carte).map((c) => (
-              <div key={c.t} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span
+            <div style={{ display: "flex", gap: 18 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p
                   style={{
-                    width: 17,
-                    height: 17,
-                    borderRadius: 9,
-                    backgroundColor: VERT,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
+                    margin: 0,
+                    color: VERT,
+                    fontSize: 12,
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.4,
                   }}
                 >
-                  <svg viewBox="0 0 24 24" width={10} height={10} fill="#FFFFFF" aria-hidden>
-                    <path d={c.d} />
-                  </svg>
-                </span>
-                <span style={{ fontSize: 8.5, lineHeight: "11px", color: GRIS, whiteSpace: "nowrap", overflow: "hidden" }}>
-                  {coupe(c.t, 30)}
-                </span>
+                  AgriCapital SARL
+                </p>
+                <p style={{ margin: "6px 0 0", color: GRIS_MOYEN, fontSize: 8.5, lineHeight: "12px" }}>
+                  Société à Responsabilité Limitée
+                  <br />
+                  RCCM : CI-DAL-01-2025-B12-00035
+                  <br />
+                  Daloa-Gonaté, Côte d'Ivoire
+                </p>
               </div>
-            ))}
+
+              <div style={{ width: 205, flexShrink: 0 }}>
+                {CONTACTS(carte).map((contact) => (
+                  <div
+                    key={contact.t}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 7,
+                      minHeight: 25,
+                    }}
+                  >
+                    <ContactIcon path={contact.d} />
+                    <span
+                      style={{
+                        color: GRIS,
+                        fontSize: 8.5,
+                        lineHeight: "12px",
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {contact.t}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ textAlign: "center", marginTop: 16 }}>
+              <span style={{ color: GRIS_MOYEN, fontSize: 8, lineHeight: "11px" }}>
+                Carte personnelle — non transférable · Toute perte ou utilisation frauduleuse doit être signalée à AgriCapital.
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    </CardShell>
-  </div>
-));
+      </CardShell>
+    </div>
+  );
+});
 CarteVerso.displayName = "CarteVerso";
+
+export default CarteRecto;
