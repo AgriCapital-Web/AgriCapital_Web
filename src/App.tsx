@@ -30,7 +30,6 @@ import Documents from "./pages/Documents";
 import Leads from "./pages/Leads";
 import SyncQueue from "./pages/SyncQueue";
 import PublicLead from "./pages/PublicLead";
-import AgriPlan from "./pages/AgriPlan";
 import DevCarteApercu from "./pages/__DevCarteApercu";
 import VerificationCarte from "./pages/VerificationCarte";
 
@@ -86,8 +85,6 @@ const DomainRouter = () => {
       <Route path="/client/:id" element={<ClientDetail />} />
       <Route path="/client/:id/historique" element={<HistoriqueComplet />} />
       <Route path="/plantations" element={<Plantations />} />
-      <Route path="/agriplan" element={<AgriPlan />} />
-      <Route path="/agriplant" element={<Navigate to="/agriplan" replace />} />
       <Route path="/proprietaires-terres" element={<ProprietairesTerres />} />
       <Route path="/parcelles" element={<Parcelles />} />
       <Route path="/documents" element={<Documents />} />
