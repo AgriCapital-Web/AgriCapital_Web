@@ -54,7 +54,6 @@ const PlanteurForm = ({ planteur, onSuccess, onCancel }: PlanteurFormProps) => {
 
     try {
       let photo_profil_url = planteur?.photo_profil_url;
-      let fichier_piece_url = planteur?.fichier_piece_url;
 
       // Upload photo de profil
       if (photoFile) {
