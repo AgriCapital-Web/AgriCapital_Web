@@ -351,7 +351,7 @@ const NouvelleSouscription = () => {
         <div>
           <h1 className="text-3xl font-bold">Nouveau parcours client</h1>
           <p className="text-muted-foreground">
-            Contrat client V1 — Sauvegarde automatique
+            Parcours contractuel — sauvegarde automatique
           </p>
           <SyncStatusBadge state={syncState} className="mt-2" />
         </div>
@@ -394,7 +394,7 @@ const NouvelleSouscription = () => {
               size="lg"
               className="bg-primary"
               onClick={soumettreFormulaire}
-              disabled={saving || !formData.contrat_lu}
+              disabled={saving || !formData.contrats_lus}
             >
               {saving ? "Envoi en cours..." : "✓ ENREGISTRER LE PARCOURS"}
             </Button>
