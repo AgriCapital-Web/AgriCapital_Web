@@ -41,7 +41,7 @@ serve(async (req) => {
     const body = await req.json();
     const {
       username, password, email, nom_complet, telephone, role_souhaite,
-      poste_souhaite, district_id, region_id, departement_geo_id, departement, justification,
+      poste_souhaite, district_id, region_id, departement_geo_id, departement, justification, photo_url,
     } = body ?? {};
 
     if (!username || !password || !email || !nom_complet || !telephone || !role_souhaite || !photo_url) {
@@ -108,13 +108,26 @@ serve(async (req) => {
     const extension = pendingPhoto.split(".").pop()?.toLowerCase() || "webp";
     const safeExtension = ["jpg", "jpeg", "png", "webp"].includes(extension) ? extension : "webp";
     const finalPhotoPath = "profiles/" + userId + "/photo-" + crypto.randomUUID() + "." + safeExtension;
-    const { error: photoMoveError } = await admin.storage
+    const { data: pendingPhotoData, error: photoDownloadError } = await admin.storage
       .from("account-request-photos")
-      .move(pendingPhoto, finalPhotoPath, { destinationBucket: "photos-profils" });
-    if (photoMoveError) {
+      .download(pendingPhoto);
+    if (photoDownloadError || !pendingPhotoData) {
+      await admin.auth.admin.deleteUser(userId).catch(() => {});
+      return json({ error: "La photo n'a pas pu être récupérée.", step: "read_photo" }, 400);
+    }
+    const photoBytes = new Uint8Array(await pendingPhotoData.arrayBuffer());
+    const { error: photoUploadError } = await admin.storage
+      .from("photos-profils")
+      .upload(finalPhotoPath, photoBytes, {
+        contentType: pendingPhotoData.type || "image/webp",
+        cacheControl: "3600",
+        upsert: false,
+      });
+    if (photoUploadError) {
       await admin.auth.admin.deleteUser(userId).catch(() => {});
       return json({ error: "La photo n'a pas pu être enregistrée.", step: "save_photo" }, 400);
     }
+    await admin.storage.from("account-request-photos").remove([pendingPhoto]).catch(() => {});
 
 
     // Envoi du lien de vérification d'adresse email
