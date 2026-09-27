@@ -212,7 +212,7 @@ const NouvelleAcquisition = () => {
       const superficie = Number(formData.superficie_prevue || 0);
       const paiementInitialMontant = modePaiement === "comptant"
         ? Number(selectedOffer.montant_cash_par_ha || selectedOffer.montant_total_par_ha || 0) * superficie
-        : Number(selectedOffer.montant_pi_par_ha || selectedOffer.montant_pi_par_ha || 0) * superficie;
+        : Number(selectedOffer.montant_pi_par_ha || 0) * superficie;
       
       const { data: client, error: errorSous, offline } = await offlineInsert("clients", {
           offre_id: formData.offre_id,
