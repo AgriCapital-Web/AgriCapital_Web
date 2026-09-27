@@ -99,5 +99,7 @@
   },
   "engines": {
     "node": "22.x"
-  }
+  },
+  "author": "Inocent KOFFI",
+  "description": "AgriCapital — application de gestion agricole — Développeur : Inocent KOFFI"
 }
