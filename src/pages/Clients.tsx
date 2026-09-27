@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, FileText, Eye, CheckCircle, Clock, MoreVertical, Edit, Archive, Ban, Trash2, RotateCcw, LayoutGrid, List } from "lucide-react";
+import { Search, FileText, Eye, CheckCircle, Clock, MoreVertical, Edit, Archive, Ban, Trash2, RotateCcw, LayoutGrid, List, UserRound } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -186,12 +186,20 @@ const Clients = () => {
                 {clients.length} client(s) enregistré(s)
               </p>
             </div>
-            <Link to="/nouvelle-acquisition">
-              <Button className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
-                <FileText className="mr-2 h-4 w-4" />
-                Nouveau parcours client
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Link to="/beneficiaire-particulier">
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <UserRound className="mr-2 h-4 w-4" />
+                  Bénéficiaire particulier
+                </Button>
+              </Link>
+              <Link to="/nouvelle-acquisition">
+                <Button className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Nouveau parcours client
+                </Button>
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
