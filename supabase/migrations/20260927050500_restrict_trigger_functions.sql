@@ -1,0 +1,1 @@
+-- Trigger-only functions must not be callable by signed-in clients through the Data API.
