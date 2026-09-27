@@ -8,7 +8,14 @@ import { Button } from "@/components/ui/button";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
 
 // Validation helpers
-const validatePhone = (phone: string) => /^\d{10}$/.test(phone);
+const validatePhone = (phone: string) => /^\d{6,15}$/.test(phone.replace(/\D/g, ""));
+const COUNTRY_CODES = [
+  { code: "+225", label: "Côte d’Ivoire" }, { code: "+33", label: "France" }, { code: "+1", label: "USA / Canada" },
+  { code: "+32", label: "Belgique" }, { code: "+41", label: "Suisse" }, { code: "+44", label: "Royaume-Uni" },
+  { code: "+49", label: "Allemagne" }, { code: "+221", label: "Sénégal" }, { code: "+226", label: "Burkina Faso" },
+  { code: "+223", label: "Mali" }, { code: "+224", label: "Guinée" }, { code: "+237", label: "Cameroun" },
+  { code: "+228", label: "Togo" }, { code: "+229", label: "Bénin" }, { code: "+212", label: "Maroc" },
+];
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validateText = (text: string, minLength: number, maxLength: number) => 
   text && text.length >= minLength && text.length <= maxLength;
@@ -25,6 +32,8 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
   const [sousPrefectures, setSousPrefectures] = useState<any[]>([]);
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [phoneCountry, setPhoneCountry] = useState(formData.telephone_indicatif || "+225");
+  const [whatsappCountry, setWhatsappCountry] = useState(formData.whatsapp_indicatif || "+225");
 
   const handleFileChange = (field: string, file: File | null, preview: string) => {
     updateFormData({
@@ -63,6 +72,13 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
     }
     
     setValidationErrors(errors);
+  };
+
+  const handlePhoneChange = (field: "telephone" | "whatsapp", value: string, country: string) => {
+    const local = value.replace(/\D/g, "").replace(/^0+/, "");
+    const formatted = local ? country + local : "";
+    updateFormData({ [field]: formatted, [field + "_indicatif"]: country, [field + "_local"]: local });
+    validateField(field, local);
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -504,31 +520,26 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="telephone">Téléphone *</Label>
-              <Input
-                id="telephone"
-                type="tel"
-                value={formData.telephone}
-                onChange={(e) => handleInputChange('telephone', e.target.value)}
-                placeholder="0XXXXXXXXX"
-                required
-              />
-              {validationErrors.telephone && <p className="text-sm text-destructive mt-1">{validationErrors.telephone}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp *</Label>
-              <Input
-                id="whatsapp"
-                type="tel"
-                value={formData.whatsapp}
-                onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                placeholder="0XXXXXXXXX"
-                required
-              />
-              {validationErrors.whatsapp && <p className="text-sm text-destructive mt-1">{validationErrors.whatsapp}</p>}
-            </div>
+            {(["telephone","whatsapp"] as const).map((field) => {
+              const isPhone = field === "telephone";
+              const country = isPhone ? phoneCountry : whatsappCountry;
+              const setCountry = isPhone ? setPhoneCountry : setWhatsappCountry;
+              const local = formData[field + "_local"] || String(formData[field] || "").replace(/^\+\d{1,4}/, "");
+              return (
+                <div className="space-y-2" key={field}>
+                  <Label htmlFor={field}>{isPhone ? "Téléphone *" : "WhatsApp *"}</Label>
+                  <div className="flex gap-2">
+                    <Select value={country} onValueChange={(v) => { setCountry(v); handlePhoneChange(field, local, v); }}>
+                      <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>{COUNTRY_CODES.map(c => <SelectItem key={c.code} value={c.code}>{c.code} · {c.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Input id={field} type="tel" value={local} onChange={(e) => handlePhoneChange(field, e.target.value, country)} placeholder="Numéro local" required />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Enregistré au format international : {country}{local || "…"}</p>
+                  {validationErrors[field] && <p className="text-sm text-destructive mt-1">{validationErrors[field]}</p>}
+                </div>
+              );
+            })}
           </div>
 
           <div className="space-y-2">
