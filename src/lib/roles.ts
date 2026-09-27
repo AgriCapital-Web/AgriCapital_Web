@@ -1,7 +1,7 @@
 /**
  * SOURCE DE VÉRITÉ UNIQUE — Rôles officiels AgriCapital CRM
  *
- * Les 11 rôles officiels ci-dessous sont les SEULS rôles valides du système.
+ * Les 12 rôles officiels ci-dessous sont les SEULS rôles valides du système.
  * Ils sont utilisés partout : utilisateurs, rôles, permissions, formulaires,
  * demandes de compte, filtres, menus, règles d'accès et portail.
  *
