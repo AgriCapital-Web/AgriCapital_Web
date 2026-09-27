@@ -263,981 +263,6 @@ export type Database = {
         }
         Relationships: []
       }
-      agriplan_clients: {
-        Row: {
-          archived_at: string | null
-          archived_by: string | null
-          contact_nom: string | null
-          contact_telephone: string | null
-          contrat_url: string | null
-          created_at: string
-          created_by: string | null
-          email: string | null
-          id: string
-          lead_id: string | null
-          localite: string | null
-          motif_statut: string | null
-          nom_complet: string
-          notes: string | null
-          numero_client: string | null
-          numero_piece: string | null
-          piece_identite_url: string | null
-          portail_actif: boolean
-          region_id: string | null
-          sous_prefecture_id: string | null
-          statut: string
-          statut_dossier: string
-          suspended_at: string | null
-          suspended_by: string | null
-          telephone: string
-          type_piece: string | null
-          updated_at: string
-          user_id: string | null
-          whatsapp: string | null
-        }
-        Insert: {
-          archived_at?: string | null
-          archived_by?: string | null
-          contact_nom?: string | null
-          contact_telephone?: string | null
-          contrat_url?: string | null
-          created_at?: string
-          created_by?: string | null
-          email?: string | null
-          id?: string
-          lead_id?: string | null
-          localite?: string | null
-          motif_statut?: string | null
-          nom_complet: string
-          notes?: string | null
-          numero_client?: string | null
-          numero_piece?: string | null
-          piece_identite_url?: string | null
-          portail_actif?: boolean
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string
-          statut_dossier?: string
-          suspended_at?: string | null
-          suspended_by?: string | null
-          telephone: string
-          type_piece?: string | null
-          updated_at?: string
-          user_id?: string | null
-          whatsapp?: string | null
-        }
-        Update: {
-          archived_at?: string | null
-          archived_by?: string | null
-          contact_nom?: string | null
-          contact_telephone?: string | null
-          contrat_url?: string | null
-          created_at?: string
-          created_by?: string | null
-          email?: string | null
-          id?: string
-          lead_id?: string | null
-          localite?: string | null
-          motif_statut?: string | null
-          nom_complet?: string
-          notes?: string | null
-          numero_client?: string | null
-          numero_piece?: string | null
-          piece_identite_url?: string | null
-          portail_actif?: boolean
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string
-          statut_dossier?: string
-          suspended_at?: string | null
-          suspended_by?: string | null
-          telephone?: string
-          type_piece?: string | null
-          updated_at?: string
-          user_id?: string | null
-          whatsapp?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_clients_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_leads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_clients_region_id_fkey"
-            columns: ["region_id"]
-            isOneToOne: false
-            referencedRelation: "regions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_clients_sous_prefecture_id_fkey"
-            columns: ["sous_prefecture_id"]
-            isOneToOne: false
-            referencedRelation: "sous_prefectures"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_documents: {
-        Row: {
-          client_id: string
-          created_at: string
-          fichier_url: string
-          id: string
-          nom: string
-          plantation_id: string | null
-          type_document: string
-          uploaded_by: string | null
-          visible_client: boolean
-          visite_id: string | null
-        }
-        Insert: {
-          client_id: string
-          created_at?: string
-          fichier_url: string
-          id?: string
-          nom: string
-          plantation_id?: string | null
-          type_document: string
-          uploaded_by?: string | null
-          visible_client?: boolean
-          visite_id?: string | null
-        }
-        Update: {
-          client_id?: string
-          created_at?: string
-          fichier_url?: string
-          id?: string
-          nom?: string
-          plantation_id?: string | null
-          type_document?: string
-          uploaded_by?: string | null
-          visible_client?: boolean
-          visite_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_documents_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_documents_plantation_id_fkey"
-            columns: ["plantation_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_plantations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_documents_visite_id_fkey"
-            columns: ["visite_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_visites"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_echeances: {
-        Row: {
-          client_id: string
-          created_at: string
-          date_echeance: string | null
-          declencheur: string | null
-          id: string
-          libelle: string
-          montant: number
-          montant_paye: number
-          numero_echeance: number
-          statut: string
-          type: string
-          updated_at: string
-          vente_id: string
-        }
-        Insert: {
-          client_id: string
-          created_at?: string
-          date_echeance?: string | null
-          declencheur?: string | null
-          id?: string
-          libelle: string
-          montant?: number
-          montant_paye?: number
-          numero_echeance: number
-          statut?: string
-          type?: string
-          updated_at?: string
-          vente_id: string
-        }
-        Update: {
-          client_id?: string
-          created_at?: string
-          date_echeance?: string | null
-          declencheur?: string | null
-          id?: string
-          libelle?: string
-          montant?: number
-          montant_paye?: number
-          numero_echeance?: number
-          statut?: string
-          type?: string
-          updated_at?: string
-          vente_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_echeances_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_echeances_vente_id_fkey"
-            columns: ["vente_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_ventes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_evenements: {
-        Row: {
-          acteur_id: string | null
-          action: string
-          ancienne_valeur: string | null
-          client_id: string | null
-          created_at: string
-          details: string | null
-          entity_id: string | null
-          entity_type: string
-          id: string
-          lead_id: string | null
-          nouvelle_valeur: string | null
-          visible_client: boolean
-        }
-        Insert: {
-          acteur_id?: string | null
-          action: string
-          ancienne_valeur?: string | null
-          client_id?: string | null
-          created_at?: string
-          details?: string | null
-          entity_id?: string | null
-          entity_type: string
-          id?: string
-          lead_id?: string | null
-          nouvelle_valeur?: string | null
-          visible_client?: boolean
-        }
-        Update: {
-          acteur_id?: string | null
-          action?: string
-          ancienne_valeur?: string | null
-          client_id?: string | null
-          created_at?: string
-          details?: string | null
-          entity_id?: string | null
-          entity_type?: string
-          id?: string
-          lead_id?: string | null
-          nouvelle_valeur?: string | null
-          visible_client?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_evenements_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_evenements_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_leads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_lead_relances: {
-        Row: {
-          canal: string
-          commentaire: string | null
-          commercial_id: string | null
-          created_at: string
-          date_relance: string
-          id: string
-          lead_id: string
-          prochaine_relance: string | null
-          resultat: string
-          updated_at: string
-        }
-        Insert: {
-          canal?: string
-          commentaire?: string | null
-          commercial_id?: string | null
-          created_at?: string
-          date_relance?: string
-          id?: string
-          lead_id: string
-          prochaine_relance?: string | null
-          resultat?: string
-          updated_at?: string
-        }
-        Update: {
-          canal?: string
-          commentaire?: string | null
-          commercial_id?: string | null
-          created_at?: string
-          date_relance?: string
-          id?: string
-          lead_id?: string
-          prochaine_relance?: string | null
-          resultat?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_lead_relances_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_leads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_leads: {
-        Row: {
-          assigned_to: string | null
-          commentaire: string | null
-          converti_at: string | null
-          converti_client_id: string | null
-          created_at: string
-          created_by: string | null
-          derniere_relance_at: string | null
-          id: string
-          localisation: string | null
-          localite: string | null
-          nb_relances: number
-          nom_complet: string
-          prochaine_relance_at: string | null
-          region_id: string | null
-          sous_prefecture_id: string | null
-          statut: string
-          telephone: string
-          updated_at: string
-          whatsapp: string | null
-        }
-        Insert: {
-          assigned_to?: string | null
-          commentaire?: string | null
-          converti_at?: string | null
-          converti_client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          derniere_relance_at?: string | null
-          id?: string
-          localisation?: string | null
-          localite?: string | null
-          nb_relances?: number
-          nom_complet: string
-          prochaine_relance_at?: string | null
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string
-          telephone: string
-          updated_at?: string
-          whatsapp?: string | null
-        }
-        Update: {
-          assigned_to?: string | null
-          commentaire?: string | null
-          converti_at?: string | null
-          converti_client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          derniere_relance_at?: string | null
-          id?: string
-          localisation?: string | null
-          localite?: string | null
-          nb_relances?: number
-          nom_complet?: string
-          prochaine_relance_at?: string | null
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string
-          telephone?: string
-          updated_at?: string
-          whatsapp?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_leads_client_fk"
-            columns: ["converti_client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_leads_region_id_fkey"
-            columns: ["region_id"]
-            isOneToOne: false
-            referencedRelation: "regions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_leads_sous_prefecture_id_fkey"
-            columns: ["sous_prefecture_id"]
-            isOneToOne: false
-            referencedRelation: "sous_prefectures"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_messages: {
-        Row: {
-          auteur_nom: string | null
-          auteur_type: string
-          auteur_user_id: string | null
-          client_id: string
-          created_at: string
-          id: string
-          lu: boolean
-          message: string
-          plantation_id: string | null
-        }
-        Insert: {
-          auteur_nom?: string | null
-          auteur_type?: string
-          auteur_user_id?: string | null
-          client_id: string
-          created_at?: string
-          id?: string
-          lu?: boolean
-          message: string
-          plantation_id?: string | null
-        }
-        Update: {
-          auteur_nom?: string | null
-          auteur_type?: string
-          auteur_user_id?: string | null
-          client_id?: string
-          created_at?: string
-          id?: string
-          lu?: boolean
-          message?: string
-          plantation_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_messages_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_messages_plantation_id_fkey"
-            columns: ["plantation_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_plantations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_offre: {
-        Row: {
-          actif: boolean
-          code: string
-          created_at: string
-          description: string | null
-          duree_mois: number
-          id: string
-          montant_accompagnement_periode: number
-          montant_mise_en_place: number
-          nb_periodes_accompagnement: number
-          nom: string
-          periodicite_accompagnement: string
-          prix_total: number
-          tranches: Json
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          actif?: boolean
-          code?: string
-          created_at?: string
-          description?: string | null
-          duree_mois?: number
-          id?: string
-          montant_accompagnement_periode?: number
-          montant_mise_en_place?: number
-          nb_periodes_accompagnement?: number
-          nom?: string
-          periodicite_accompagnement?: string
-          prix_total?: number
-          tranches?: Json
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          actif?: boolean
-          code?: string
-          created_at?: string
-          description?: string | null
-          duree_mois?: number
-          id?: string
-          montant_accompagnement_periode?: number
-          montant_mise_en_place?: number
-          nb_periodes_accompagnement?: number
-          nom?: string
-          periodicite_accompagnement?: string
-          prix_total?: number
-          tranches?: Json
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      agriplan_plantations: {
-        Row: {
-          client_id: string
-          created_at: string
-          created_by: string | null
-          date_plantation: string | null
-          derniere_visite: string | null
-          id: string
-          informations_techniques: Json
-          latitude: number | null
-          localite: string | null
-          longitude: number | null
-          nom: string | null
-          nombre_plants: number | null
-          notes: string | null
-          numero: number
-          prochaine_visite: string | null
-          region_id: string | null
-          sous_prefecture_id: string | null
-          statut: string
-          superficie_ha: number | null
-          updated_at: string
-          variete: string | null
-          vente_id: string | null
-        }
-        Insert: {
-          client_id: string
-          created_at?: string
-          created_by?: string | null
-          date_plantation?: string | null
-          derniere_visite?: string | null
-          id?: string
-          informations_techniques?: Json
-          latitude?: number | null
-          localite?: string | null
-          longitude?: number | null
-          nom?: string | null
-          nombre_plants?: number | null
-          notes?: string | null
-          numero?: number
-          prochaine_visite?: string | null
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string
-          superficie_ha?: number | null
-          updated_at?: string
-          variete?: string | null
-          vente_id?: string | null
-        }
-        Update: {
-          client_id?: string
-          created_at?: string
-          created_by?: string | null
-          date_plantation?: string | null
-          derniere_visite?: string | null
-          id?: string
-          informations_techniques?: Json
-          latitude?: number | null
-          localite?: string | null
-          longitude?: number | null
-          nom?: string | null
-          nombre_plants?: number | null
-          notes?: string | null
-          numero?: number
-          prochaine_visite?: string | null
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string
-          superficie_ha?: number | null
-          updated_at?: string
-          variete?: string | null
-          vente_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_plantations_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_plantations_region_id_fkey"
-            columns: ["region_id"]
-            isOneToOne: false
-            referencedRelation: "regions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_plantations_sous_prefecture_id_fkey"
-            columns: ["sous_prefecture_id"]
-            isOneToOne: false
-            referencedRelation: "sous_prefectures"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_plantations_vente_id_fkey"
-            columns: ["vente_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_ventes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_ventes: {
-        Row: {
-          champ_localite: string | null
-          champ_region_id: string | null
-          champ_sous_prefecture_id: string | null
-          client_id: string
-          contrat_url: string | null
-          created_at: string
-          created_by: string | null
-          date_vente: string
-          id: string
-          montant_accompagnement: number
-          montant_mise_en_place: number
-          montant_total: number
-          notes: string | null
-          offre_id: string | null
-          reference: string | null
-          solde: number
-          statut: string
-          superficie_ha: number
-          total_paye: number
-          updated_at: string
-        }
-        Insert: {
-          champ_localite?: string | null
-          champ_region_id?: string | null
-          champ_sous_prefecture_id?: string | null
-          client_id: string
-          contrat_url?: string | null
-          created_at?: string
-          created_by?: string | null
-          date_vente?: string
-          id?: string
-          montant_accompagnement?: number
-          montant_mise_en_place?: number
-          montant_total?: number
-          notes?: string | null
-          offre_id?: string | null
-          reference?: string | null
-          solde?: number
-          statut?: string
-          superficie_ha?: number
-          total_paye?: number
-          updated_at?: string
-        }
-        Update: {
-          champ_localite?: string | null
-          champ_region_id?: string | null
-          champ_sous_prefecture_id?: string | null
-          client_id?: string
-          contrat_url?: string | null
-          created_at?: string
-          created_by?: string | null
-          date_vente?: string
-          id?: string
-          montant_accompagnement?: number
-          montant_mise_en_place?: number
-          montant_total?: number
-          notes?: string | null
-          offre_id?: string | null
-          reference?: string | null
-          solde?: number
-          statut?: string
-          superficie_ha?: number
-          total_paye?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_ventes_champ_region_id_fkey"
-            columns: ["champ_region_id"]
-            isOneToOne: false
-            referencedRelation: "regions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_ventes_champ_sous_prefecture_id_fkey"
-            columns: ["champ_sous_prefecture_id"]
-            isOneToOne: false
-            referencedRelation: "sous_prefectures"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_ventes_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_ventes_offre_id_fkey"
-            columns: ["offre_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_offre"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplan_visites: {
-        Row: {
-          agent_technique_id: string | null
-          agent_technique_nom: string | null
-          client_id: string
-          created_at: string
-          created_by: string | null
-          date_prevue: string | null
-          date_prochaine_intervention: string | null
-          date_visite: string | null
-          etat_plantation: string | null
-          id: string
-          intrants: string | null
-          numero_visite: number | null
-          observations: string | null
-          photos: Json
-          pieces_jointes: Json
-          plantation_id: string
-          prochaine_intervention: string | null
-          publie: boolean
-          quantites: string | null
-          rapport_url: string | null
-          recommandations: string | null
-          statut: string
-          travaux_realises: string | null
-          type_visite: string
-          updated_at: string
-          videos: Json
-        }
-        Insert: {
-          agent_technique_id?: string | null
-          agent_technique_nom?: string | null
-          client_id: string
-          created_at?: string
-          created_by?: string | null
-          date_prevue?: string | null
-          date_prochaine_intervention?: string | null
-          date_visite?: string | null
-          etat_plantation?: string | null
-          id?: string
-          intrants?: string | null
-          numero_visite?: number | null
-          observations?: string | null
-          photos?: Json
-          pieces_jointes?: Json
-          plantation_id: string
-          prochaine_intervention?: string | null
-          publie?: boolean
-          quantites?: string | null
-          rapport_url?: string | null
-          recommandations?: string | null
-          statut?: string
-          travaux_realises?: string | null
-          type_visite?: string
-          updated_at?: string
-          videos?: Json
-        }
-        Update: {
-          agent_technique_id?: string | null
-          agent_technique_nom?: string | null
-          client_id?: string
-          created_at?: string
-          created_by?: string | null
-          date_prevue?: string | null
-          date_prochaine_intervention?: string | null
-          date_visite?: string | null
-          etat_plantation?: string | null
-          id?: string
-          intrants?: string | null
-          numero_visite?: number | null
-          observations?: string | null
-          photos?: Json
-          pieces_jointes?: Json
-          plantation_id?: string
-          prochaine_intervention?: string | null
-          publie?: boolean
-          quantites?: string | null
-          rapport_url?: string | null
-          recommandations?: string | null
-          statut?: string
-          travaux_realises?: string | null
-          type_visite?: string
-          updated_at?: string
-          videos?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplan_visites_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplan_visites_plantation_id_fkey"
-            columns: ["plantation_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_plantations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplant_suivi_historique: {
-        Row: {
-          acteur_id: string | null
-          action: string
-          ancienne_valeur: string | null
-          champ: string | null
-          commentaire: string | null
-          created_at: string
-          id: string
-          nouvelle_valeur: string | null
-          suivi_id: string
-        }
-        Insert: {
-          acteur_id?: string | null
-          action: string
-          ancienne_valeur?: string | null
-          champ?: string | null
-          commentaire?: string | null
-          created_at?: string
-          id?: string
-          nouvelle_valeur?: string | null
-          suivi_id: string
-        }
-        Update: {
-          acteur_id?: string | null
-          action?: string
-          ancienne_valeur?: string | null
-          champ?: string | null
-          commentaire?: string | null
-          created_at?: string
-          id?: string
-          nouvelle_valeur?: string | null
-          suivi_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplant_suivi_historique_suivi_id_fkey"
-            columns: ["suivi_id"]
-            isOneToOne: false
-            referencedRelation: "agriplant_suivis"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agriplant_suivis: {
-        Row: {
-          actions_recommandees: string | null
-          client_id: string | null
-          created_at: string
-          created_by: string | null
-          date_visite: string
-          documents: Json
-          id: string
-          meteo: string | null
-          note_sante: number | null
-          observations: string | null
-          photos: Json
-          plantation_id: string
-          prochaine_visite: string | null
-          responsable_id: string | null
-          statut: string
-          titre: string
-          type_suivi: string
-          updated_at: string
-        }
-        Insert: {
-          actions_recommandees?: string | null
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          date_visite?: string
-          documents?: Json
-          id?: string
-          meteo?: string | null
-          note_sante?: number | null
-          observations?: string | null
-          photos?: Json
-          plantation_id: string
-          prochaine_visite?: string | null
-          responsable_id?: string | null
-          statut?: string
-          titre: string
-          type_suivi?: string
-          updated_at?: string
-        }
-        Update: {
-          actions_recommandees?: string | null
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          date_visite?: string
-          documents?: Json
-          id?: string
-          meteo?: string | null
-          note_sante?: number | null
-          observations?: string | null
-          photos?: Json
-          plantation_id?: string
-          prochaine_visite?: string | null
-          responsable_id?: string | null
-          statut?: string
-          titre?: string
-          type_suivi?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agriplant_suivis_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agriplant_suivis_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "v_client_synthese"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "agriplant_suivis_plantation_id_fkey"
-            columns: ["plantation_id"]
-            isOneToOne: false
-            referencedRelation: "plantations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       app_roles: {
         Row: {
           actif: boolean
@@ -1472,7 +497,6 @@ export type Database = {
           contrat_fin_at: string | null
           created_at: string | null
           created_by: string | null
-          da_paye_at: string | null
           date_delivrance_piece: string | null
           date_naissance: string | null
           departement_id: string | null
@@ -1515,6 +539,7 @@ export type Database = {
           parcours_code: string | null
           phase_actuelle: string
           photo_profil_url: string | null
+          pi_paye_at: string | null
           prenoms: string | null
           prochaine_echeance: string | null
           promotion_id: string | null
@@ -1548,7 +573,6 @@ export type Database = {
           contrat_fin_at?: string | null
           created_at?: string | null
           created_by?: string | null
-          da_paye_at?: string | null
           date_delivrance_piece?: string | null
           date_naissance?: string | null
           departement_id?: string | null
@@ -1591,6 +615,7 @@ export type Database = {
           parcours_code?: string | null
           phase_actuelle?: string
           photo_profil_url?: string | null
+          pi_paye_at?: string | null
           prenoms?: string | null
           prochaine_echeance?: string | null
           promotion_id?: string | null
@@ -1624,7 +649,6 @@ export type Database = {
           contrat_fin_at?: string | null
           created_at?: string | null
           created_by?: string | null
-          da_paye_at?: string | null
           date_delivrance_piece?: string | null
           date_naissance?: string | null
           departement_id?: string | null
@@ -1667,6 +691,7 @@ export type Database = {
           parcours_code?: string | null
           phase_actuelle?: string
           photo_profil_url?: string | null
+          pi_paye_at?: string | null
           prenoms?: string | null
           prochaine_echeance?: string | null
           promotion_id?: string | null
@@ -3388,13 +2413,15 @@ export type Database = {
           gestion_type: string
           id: string
           montant_cash_par_ha: number
-          montant_da_par_ha: number
           montant_depot_initial_par_ha: number
+          montant_pi_par_ha: number
           montant_total_par_ha: number
           necessite_cotitulaire: boolean
           necessite_foncier_client: boolean
           nom: string
           ordre: number | null
+          paiement_apres_trouaison_par_ha: number | null
+          paiement_signature_par_ha: number | null
           parcours_code: string | null
           pourcentage_revenus_reverses: number
           redevance_production_par_ha_an: number
@@ -3421,13 +2448,15 @@ export type Database = {
           gestion_type?: string
           id?: string
           montant_cash_par_ha?: number
-          montant_da_par_ha?: number
           montant_depot_initial_par_ha?: number
+          montant_pi_par_ha?: number
           montant_total_par_ha?: number
           necessite_cotitulaire?: boolean
           necessite_foncier_client?: boolean
           nom: string
           ordre?: number | null
+          paiement_apres_trouaison_par_ha?: number | null
+          paiement_signature_par_ha?: number | null
           parcours_code?: string | null
           pourcentage_revenus_reverses?: number
           redevance_production_par_ha_an?: number
@@ -3454,13 +2483,15 @@ export type Database = {
           gestion_type?: string
           id?: string
           montant_cash_par_ha?: number
-          montant_da_par_ha?: number
           montant_depot_initial_par_ha?: number
+          montant_pi_par_ha?: number
           montant_total_par_ha?: number
           necessite_cotitulaire?: boolean
           necessite_foncier_client?: boolean
           nom?: string
           ordre?: number | null
+          paiement_apres_trouaison_par_ha?: number | null
+          paiement_signature_par_ha?: number | null
           parcours_code?: string | null
           pourcentage_revenus_reverses?: number
           redevance_production_par_ha_an?: number
@@ -3502,9 +2533,6 @@ export type Database = {
       }
       paiements: {
         Row: {
-          agriplan_client_id: string | null
-          agriplan_echeance_id: string | null
-          agriplan_vente_id: string | null
           annee: number | null
           cancelled_at: string | null
           client_id: string | null
@@ -3548,9 +2576,6 @@ export type Database = {
           valide_par: string | null
         }
         Insert: {
-          agriplan_client_id?: string | null
-          agriplan_echeance_id?: string | null
-          agriplan_vente_id?: string | null
           annee?: number | null
           cancelled_at?: string | null
           client_id?: string | null
@@ -3594,9 +2619,6 @@ export type Database = {
           valide_par?: string | null
         }
         Update: {
-          agriplan_client_id?: string | null
-          agriplan_echeance_id?: string | null
-          agriplan_vente_id?: string | null
           annee?: number | null
           cancelled_at?: string | null
           client_id?: string | null
@@ -3640,27 +2662,6 @@ export type Database = {
           valide_par?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "paiements_agriplan_client_id_fkey"
-            columns: ["agriplan_client_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "paiements_agriplan_echeance_id_fkey"
-            columns: ["agriplan_echeance_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_echeances"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "paiements_agriplan_vente_id_fkey"
-            columns: ["agriplan_vente_id"]
-            isOneToOne: false
-            referencedRelation: "agriplan_ventes"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "paiements_client_id_fkey"
             columns: ["client_id"]
@@ -3913,8 +2914,8 @@ export type Database = {
           localite: string | null
           longitude: number | null
           montant_contribution_mensuelle: number | null
-          montant_da: number | null
-          montant_da_paye: number | null
+          montant_pi: number | null
+          montant_pi_paye: number | null
           nom: string | null
           nom_plantation: string | null
           nombre_plants: number | null
@@ -3964,8 +2965,8 @@ export type Database = {
           localite?: string | null
           longitude?: number | null
           montant_contribution_mensuelle?: number | null
-          montant_da?: number | null
-          montant_da_paye?: number | null
+          montant_pi?: number | null
+          montant_pi_paye?: number | null
           nom?: string | null
           nom_plantation?: string | null
           nombre_plants?: number | null
@@ -4015,8 +3016,8 @@ export type Database = {
           localite?: string | null
           longitude?: number | null
           montant_contribution_mensuelle?: number | null
-          montant_da?: number | null
-          montant_da_paye?: number | null
+          montant_pi?: number | null
+          montant_pi_paye?: number | null
           nom?: string | null
           nom_plantation?: string | null
           nombre_plants?: number | null
@@ -5316,12 +4317,6 @@ export type Database = {
       }
     }
     Functions: {
-      agriplan_client_owner: { Args: { _client_id: string }; Returns: boolean }
-      agriplan_mon_client_id: { Args: never; Returns: string }
-      agriplan_recompute_vente: {
-        Args: { _vente_id: string }
-        Returns: undefined
-      }
       annuaire_staff: {
         Args: never
         Returns: {
