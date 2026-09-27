@@ -231,7 +231,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                              <span className="text-xs text-muted-foreground">/ha · {offre.duree_paiement_mois} mois</span>
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            PI: {formatMontant(offre.montant_depot_initial_par_ha)}F/ha · Cash: {formatMontant(offre.montant_cash_par_ha)}F/ha
+                            PI: {formatMontant(offre.montant_depot_initial_par_ha)}F/ha {["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(offre.code || "").toLowerCase()) ? `· Comptant: ${formatMontant(offre.montant_cash_par_ha)}F/ha` : ""}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {offre.gestion_type === 'deleguee' ? 'Gestion déléguée · 70% revenus' : 'Gestion propre · 100% revenus'}
