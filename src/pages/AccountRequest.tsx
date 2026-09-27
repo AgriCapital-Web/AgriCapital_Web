@@ -296,7 +296,8 @@ const AccountRequest = () => {
                   {photoPreview ? <img src={photoPreview} alt="Aperçu de la photo" className="h-full w-full object-cover" /> : <ImageIcon className="h-10 w-10 text-muted-foreground" />}
                 </div>
                 <div className="min-w-0 space-y-3">
-                  <Button type="button" variant="default" onClick={() => void openCamera()} disabled={photoUploading} className="min-h-11"><Camera className="mr-2 h-4 w-4" />Prendre avec la caméra</Button>\n                  <label className="inline-flex cursor-pointer">
+                  <Button type="button" variant="default" onClick={() => void openCamera()} disabled={photoUploading} className="min-h-11"><Camera className="mr-2 h-4 w-4" />Prendre avec la caméra</Button>
+                  <label className="inline-flex cursor-pointer">
                     <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => void handlePhoto(e.target.files?.[0])} />
                     <span className="inline-flex min-h-11 items-center rounded-md border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"><ImageIcon className="mr-2 h-4 w-4" />Choisir dans les fichiers</span>
                   </label>
