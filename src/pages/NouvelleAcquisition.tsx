@@ -8,7 +8,7 @@ import { Etape1Client } from "@/components/forms/acquisition/Etape1Client";
 import { Etape2Cotitulaire } from "@/components/forms/acquisition/Etape2Cotitulaire";
 import { Etape0Offre } from "@/components/forms/acquisition/Etape0Offre";
 import { Etape3Foncier } from "@/components/forms/acquisition/Etape3Foncier";
-import { ANNEXES_SOUSCRIPTION, Etape5Documents } from "@/components/forms/acquisition/Etape5Documents";
+import { ANNEXES_ACQUISITION, Etape5Documents } from "@/components/forms/acquisition/Etape5Documents";
 import { Etape6Confirmation } from "@/components/forms/acquisition/Etape6Confirmation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,7 @@ import { offlineInsert } from "@/lib/offlineWrite";
 import { SyncStatusBadge, type SyncState } from "@/components/offline/SyncStatusBadge";
 import { getSafeErrorMessage } from "@/lib/safeError";
 
-const NouvelleSouscription = () => {
+const NouvelleAcquisition = () => {
   const [etapeActuelle, setEtapeActuelle] = useState(0);
   const [formData, setFormData] = useState<any>({});
   const [brouillonId, setBrouillonId] = useState<string | null>(null);
@@ -256,7 +256,7 @@ const NouvelleSouscription = () => {
       if (!client) throw new Error("Client non créé");
       setSyncState(offline ? "queued" : "syncing");
 
-      const requiredMissing = ANNEXES_SOUSCRIPTION.find((a) => a.condition(formData) && formData[`${a.field}_status`] === "joint" && !formData[`${a.field}_file`]);
+      const requiredMissing = ANNEXES_ACQUISITION.find((a) => a.condition(formData) && formData[`${a.field}_status`] === "joint" && !formData[`${a.field}_file`]);
       if (requiredMissing) throw new Error(`${requiredMissing.label}: fichier obligatoire lorsque “Joint” est coché`);
 
       const documentsPayload: any[] = [];
@@ -265,7 +265,7 @@ const NouvelleSouscription = () => {
         if (!uploaded) throw new Error("Upload impossible du contrat signé");
         documentsPayload.push({ client_id: client.id, type_document: "contrat_acquisition_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
       }
-      for (const annexe of ANNEXES_SOUSCRIPTION.filter((a) => a.condition(formData))) {
+      for (const annexe of ANNEXES_ACQUISITION.filter((a) => a.condition(formData))) {
         const file = formData[`${annexe.field}_file`];
         if (!file) continue;
         const uploaded = await uploadFile("documents", file, `${user.id}/acquisitions/${client.id}/annexes`);
@@ -388,4 +388,4 @@ const NouvelleSouscription = () => {
   );
 };
 
-export default NouvelleSouscription;
+export default NouvelleAcquisition;
