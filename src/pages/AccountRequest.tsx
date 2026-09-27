@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import logoGreen from "@/assets/logo-green.png";
-import { User, Mail, Phone, Briefcase, MapPin, FileText, KeyRound, AtSign, Camera, Loader2, CheckCircle2, Image as ImageIcon } from "lucide-react";
+import { User, Mail, Phone, Briefcase, MapPin, FileText, KeyRound, AtSign, Camera, Loader2, CheckCircle2, Image as ImageIcon, X } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 
 const ROLES = [
@@ -76,6 +76,9 @@ const AccountRequest = () => {
   const [photoPreview, setPhotoPreview] = useState("");
   const [photoPath, setPhotoPath] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const cameraVideoRef = useRef<HTMLVideoElement | null>(null);
   const [errorDetail, setErrorDetail] = useState<any>(null);
   const [regions, setRegions] = useState<any[]>([]);
   const [departements, setDepartements] = useState<any[]>([]);
@@ -111,6 +114,52 @@ const AccountRequest = () => {
       setFormData((prev) => ({ ...prev, departement: "" }));
     })();
   }, [formData.region]);
+
+  const stopCamera = () => {
+    cameraStream?.getTracks().forEach((track) => track.stop());
+    setCameraStream(null);
+    setCameraOpen(false);
+  };
+
+  const openCamera = async () => {
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error("La caméra n'est pas disponible dans ce navigateur.");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+      setCameraStream(stream);
+      setCameraOpen(true);
+      requestAnimationFrame(() => {
+        if (cameraVideoRef.current) {
+          cameraVideoRef.current.srcObject = stream;
+          void cameraVideoRef.current.play();
+        }
+      });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Caméra indisponible", description: getSafeErrorMessage(error) || "Autorisez l'accès à la caméra puis réessayez." });
+    }
+  };
+
+  const captureCameraPhoto = () => {
+    const video = cameraVideoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      toast({ variant: "destructive", title: "Caméra en préparation", description: "Attendez que l'image apparaisse puis réessayez." });
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    const maxW = 1200;
+    const scale = Math.min(1, maxW / video.videoWidth);
+    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+    canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      stopCamera();
+      void handlePhoto(new File([blob], "photo-camera.jpg", { type: "image/jpeg" }));
+    }, "image/jpeg", 0.9);
+  };
+
+  useEffect(() => () => {
+    cameraStream?.getTracks().forEach((track) => track.stop());
+  }, [cameraStream]);
 
   const deletePendingPhoto = async (pathToDelete: string) => {
     if (!pathToDelete) return;
@@ -247,9 +296,9 @@ const AccountRequest = () => {
                   {photoPreview ? <img src={photoPreview} alt="Aperçu de la photo" className="h-full w-full object-cover" /> : <ImageIcon className="h-10 w-10 text-muted-foreground" />}
                 </div>
                 <div className="min-w-0 space-y-3">
-                  <label className="inline-flex cursor-pointer">
-                    <input type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="sr-only" onChange={(e) => void handlePhoto(e.target.files?.[0])} />
-                    <span className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"><Camera className="mr-2 h-4 w-4" />Choisir une photo</span>
+                  <Button type="button" variant="default" onClick={() => void openCamera()} disabled={photoUploading} className="min-h-11"><Camera className="mr-2 h-4 w-4" />Prendre avec la caméra</Button>\n                  <label className="inline-flex cursor-pointer">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => void handlePhoto(e.target.files?.[0])} />
+                    <span className="inline-flex min-h-11 items-center rounded-md border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"><ImageIcon className="mr-2 h-4 w-4" />Choisir dans les fichiers</span>
                   </label>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     {photoUploading ? <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Enregistrement...</span> : photoPath ? <span className="inline-flex items-center gap-1 text-primary"><CheckCircle2 className="h-4 w-4" />Photo enregistrée</span> : <span className="text-muted-foreground">JPG, PNG ou WebP · 10 Mo maximum avant compression</span>}
