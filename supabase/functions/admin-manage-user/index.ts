@@ -5,6 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+const VALID_ROLES = new Set(["super_admin","responsable_operations","directeur_tc","responsable_commercial","comptable","commercial","service_client","assistant_administratif","chef_equipe_commercial","chef_equipe_technique","chef_equipe_service_client","associe_actionnaire"]);
 const json = (p: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(p), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status });
 
@@ -24,7 +25,8 @@ serve(async (req) => {
     const { data: caller } = await admin.auth.getUser(token);
     if (!caller?.user) return json({ error: "Session invalide", step }, 401);
     const { data: isAdmin } = await admin.rpc("is_admin", { _user_id: caller.user.id });
-    if (!isAdmin) return json({ error: "Accès réservé aux super administrateurs", step }, 403);
+    const { data: isSuperAdmin } = await admin.rpc("has_role", { _user_id: caller.user.id, _role: "super_admin" });
+    if (!isAdmin) return json({ error: "Accès réservé aux administrateurs", step }, 403);
 
     step = "parse_body";
     const { action, user_id, password, username, roles } = await req.json();
@@ -32,8 +34,8 @@ serve(async (req) => {
 
     if (action === "set_password") {
       step = "set_password";
-      if (!password || String(password).length < 8) {
-        return json({ error: "Mot de passe : 8 caractères minimum", step }, 400);
+      if (!password || String(password).length < 12 || String(password).length > 128) {
+        return json({ error: "Mot de passe : 12 à 128 caractères", step }, 400);
       }
       const { error } = await admin.auth.admin.updateUserById(user_id, { password: String(password) });
       if (error) return json({ error: error.message, step }, 400);
@@ -56,8 +58,16 @@ serve(async (req) => {
 
     if (action === "set_roles") {
       step = "set_roles";
-      const list: string[] = Array.isArray(roles) ? roles.filter(Boolean) : [];
+      const list: string[] = Array.isArray(roles) ? [...new Set(roles.filter(Boolean))] : [];
       if (list.length === 0) return json({ error: "Au moins un rôle est requis", step }, 400);
+      const invalid = list.filter((r) => !VALID_ROLES.has(r));
+      if (invalid.length) return json({ error: `Rôle(s) invalide(s): ${invalid.join(", ")}`, step }, 400);
+      if (list.includes("super_admin") && !isSuperAdmin) {
+        return json({ error: "Seul le super administrateur peut attribuer le rôle super_admin", step }, 403);
+      }
+      if (user_id === caller.user.id && !list.includes("super_admin")) {
+        return json({ error: "Vous ne pouvez pas retirer votre propre rôle administrateur", step }, 403);
+      }
       step = "delete_old_roles";
       const { error: delErr } = await admin.from("user_roles").delete().eq("user_id", user_id);
       if (delErr) return json({ error: delErr.message, step }, 400);
@@ -74,6 +84,8 @@ serve(async (req) => {
 
     if (action === "delete_user") {
       step = "delete_user";
+      const { data: targetSuperAdmin } = await admin.rpc("has_role", { _user_id: user_id, _role: "super_admin" });
+      if (targetSuperAdmin && !isSuperAdmin) return json({ error: "Seul le super administrateur peut supprimer un autre super administrateur", step }, 403);
       if (user_id === caller.user.id) {
         return json({ error: "Impossible de supprimer votre propre compte", step }, 400);
       }
