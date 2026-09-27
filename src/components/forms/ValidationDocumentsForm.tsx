@@ -28,7 +28,7 @@ const ValidationDocumentsForm = ({ documents, onSuccess }: ValidationDocumentsFo
 
     try {
       const { error } = await (supabase as any)
-        .from("documents_souscription")
+        .from("documents_acquisition")
         .update({
           statut,
           date_validation: new Date().toISOString(),
