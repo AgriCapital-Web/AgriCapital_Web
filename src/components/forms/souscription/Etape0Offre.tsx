@@ -96,7 +96,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Props) => {
   const calculations = useMemo(() => {
     if (!selected || !formData.superficie_prevue) return null;
     const ha = Number(formData.superficie_prevue);
-    const pi = Number(selected.montant_depot_initial_par_ha || selected.montant_da_par_ha || 0);
+    const pi = Number(selected.montant_pi_par_ha || selected.montant_pi_par_ha || 0);
     const total = Number(selected.montant_total_par_ha || 0) * ha;
     const promoCible = promotionActive?.cible || null;
     const pct = Number(promotionActive?.pourcentage_reduction || 0);
@@ -153,7 +153,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Props) => {
                         {active && <Check className="h-5 w-5 shrink-0 text-primary" />}
                       </div>
                       <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                        <div><span className="text-muted-foreground">Paiement initial / ha</span><p className="font-bold">{formatFCFA(Number(o.montant_depot_initial_par_ha || 0))} F</p></div>
+                        <div><span className="text-muted-foreground">Paiement initial / ha</span><p className="font-bold">{formatFCFA(Number(o.montant_pi_par_ha || 0))} F</p></div>
                         <div><span className="text-muted-foreground">Total / ha</span><p className="font-bold text-primary">{formatFCFA(Number(o.montant_total_par_ha || 0))} F</p></div>
                       </div>
                     </Label>
