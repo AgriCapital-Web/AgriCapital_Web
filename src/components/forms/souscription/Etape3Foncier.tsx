@@ -29,11 +29,15 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
   const typeFoncier: "EXT" | "OWN" = isPalmInvest ? "EXT" : "OWN";
 
   useEffect(() => {
+    updateFormData({ type_souscripteur_foncier: typeFoncier });
+  }, [typeFoncier]);
+
+  useEffect(() => {
     const load = async () => {
       setLoading(true);
       const { data } = await (supabase as any)
         .from("conventions_foncieres")
-        .select("id, reference, code_sp, code_dom, code_parc, statut, surface_totale_ha, date_signature")
+        .select("id, reference, code_sp, code_dom, code_parc, statut, surface_totale_ha, date_signature, proprietaire:proprietaires_terres(id, nom_complet)")
         .eq("statut", "active")
         .order("date_signature", { ascending: false })
         .limit(100);
@@ -86,7 +90,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
             >
               <div className="font-semibold">EXT — Client externe</div>
               <p className="text-xs text-muted-foreground mt-1">
-                AgriCapital fournit la terre via une convention Planter-Partager. Sélection d'un lot Hxx.
+                AgriCapital sécurise le foncier via une convention avec le propriétaire. Sélection d’un lot disponible.
               </p>
             </button>
           </div>}
@@ -96,7 +100,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
       {typeFoncier === "EXT" && isPalmInvest && (
         <Card>
           <CardHeader>
-            <CardTitle>Convention Planter-Partager & Lot Hxx</CardTitle>
+            <CardTitle>Convention foncière & lot</CardTitle>
             <CardDescription>
               Référence : AC-PP-SPxxx-DOMxxx-PARCxxx-Hxx
             </CardDescription>
@@ -115,7 +119,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
                 <SelectContent>
                   {conventions.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.reference} — {c.surface_totale_ha} ha
+                      {c.reference} — {c.surface_totale_ha} ha {c.proprietaire?.nom_complet ? `— ${c.proprietaire.nom_complet}` : ""}
                     </SelectItem>
                   ))}
                   {conventions.length === 0 && !loading && (
