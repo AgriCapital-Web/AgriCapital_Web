@@ -240,19 +240,19 @@ const NouvelleSouscription = () => {
         (formData.contrat_acquisition_requis !== false && !formData.contrat_acquisition_file) ||
         (formData.contrat_accompagnement_requis !== false && !formData.contrat_accompagnement_file);
       if (contractMissing) throw new Error("Les contrats requis (acquisition client et/ou accompagnement agricole) doivent être joints.");
-      const requiredMissing = ANNEXES_SOUSCRIPTION.find((a) => a.condition(formData) && formData[\`\${a.field}_status\`] === "joint" && !formData[\`\${a.field}_file\`]);
+      const requiredMissing = ANNEXES_SOUSCRIPTION.find((a) => a.condition(formData) && formData[`${a.field}_status`] === "joint" && !formData[`${a.field}_file`]);
       if (requiredMissing) throw new Error(`${requiredMissing.label}: fichier obligatoire lorsque “Joint” est coché`);
 
       const documentsPayload: any[] = [];
       const contractRows: any[] = [];
       if (formData.contrat_acquisition_file) {
-        const uploaded = await uploadFile("documents", formData.contrat_acquisition_file, \`\${user.id}/souscriptions/\${souscripteur.id}/contrats\`);
+        const uploaded = await uploadFile("documents", formData.contrat_acquisition_file, `${user.id}/souscriptions/${souscripteur.id}/contrats`);
         if (!uploaded) throw new Error("Upload impossible du contrat d'acquisition client");
         contractRows.push({ souscripteur_id: souscripteur.id, type_contrat: "acquisition_client", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_acquisition || null, observations: "Contrat signé fourni lors du parcours client" });
         documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_acquisition_client_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
       }
       if (formData.contrat_accompagnement_file) {
-        const uploaded = await uploadFile("documents", formData.contrat_accompagnement_file, \`\${user.id}/souscriptions/\${souscripteur.id}/contrats\`);
+        const uploaded = await uploadFile("documents", formData.contrat_accompagnement_file, `${user.id}/souscriptions/${souscripteur.id}/contrats`);
         if (!uploaded) throw new Error("Upload impossible du contrat d'accompagnement agricole");
         contractRows.push({ souscripteur_id: souscripteur.id, type_contrat: "accompagnement_agricole", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_accompagnement || null, observations: "Contrat signé fourni lors du parcours client" });
         documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_accompagnement_agricole_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
