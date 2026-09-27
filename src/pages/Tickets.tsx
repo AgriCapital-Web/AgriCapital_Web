@@ -12,12 +12,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { AlertCircle, Plus, Eye } from "lucide-react";
 import TicketForm from "@/components/forms/TicketForm";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import { useAuth } from "@/hooks/useAuth";
+import { hasPermission } from "@/lib/roles";
 
 const Tickets = () => {
   const [tickets, setTickets] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const { toast } = useToast();
+  const { userRoles } = useAuth();
+  const canCreate = hasPermission(userRoles, "tickets.create");
+  const canUpdate = hasPermission(userRoles, "tickets.update");
 
   const fetchTickets = async () => {
     const { data, error } = await (supabase as any)
@@ -73,12 +78,14 @@ const Tickets = () => {
               <h1 className="text-3xl font-bold">Tickets Techniques</h1>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setSelectedTicket(null)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouveau Ticket
-                </Button>
-              </DialogTrigger>
+              {canCreate && (
+                <DialogTrigger asChild>
+                  <Button onClick={() => setSelectedTicket(null)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nouveau Ticket
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
