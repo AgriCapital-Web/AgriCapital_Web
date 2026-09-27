@@ -54,26 +54,9 @@ export const OFFICIAL_ROLES: RoleDefinition[] = [
 
 export const OFFICIAL_ROLE_CODES: string[] = OFFICIAL_ROLES.map((r) => r.code);
 
-/** Anciens rôles → rôle officiel correspondant (utilisé par la migration SQL et l'affichage) */
-export const LEGACY_ROLE_MAP: Record<string, AppRole> = {
-  superviseur_tc: ROLES.RESPONSABLE_COMMERCIAL,
-  responsable_zone: ROLES.RESPONSABLE_COMMERCIAL,
-  responsable_technique_agronomique: ROLES.RESPONSABLE_OPERATIONS,
-  operations: ROLES.RESPONSABLE_OPERATIONS,
-  chef_equipe: ROLES.CHEF_EQUIPE_COMMERCIAL,
-  technicien: ROLES.CHEF_EQUIPE_TECHNIQUE,
-  agent_service_client: ROLES.SERVICE_CLIENT,
-  assistant: ROLES.ASSISTANT_ADMIN,
-  assistante: ROLES.ASSISTANT_ADMIN,
-  secretaire: ROLES.ASSISTANT_ADMIN,
-  raf: ROLES.COMPTABLE,
-};
-
-/** Normalise un code de rôle (legacy → officiel) */
 export function normalizeRole(role?: string | null): string {
   if (!role) return '';
-  if (OFFICIAL_ROLE_CODES.includes(role)) return role;
-  return LEGACY_ROLE_MAP[role] || role;
+  return OFFICIAL_ROLE_CODES.includes(role) ? role : '';
 }
 
 export function normalizeRoles(roles: string[] = []): string[] {
