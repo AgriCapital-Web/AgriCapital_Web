@@ -7,7 +7,7 @@ const DB_NAME = 'agricapital_offline';
 const DB_VERSION = 7;
 
 export const STORES = {
-  SOUSCRIPTEURS: 'souscripteurs',
+  CLIENTS: 'clients',
   PLANTATIONS: 'plantations',
   PAIEMENTS: 'paiements',
   OFFRES: 'offres',
@@ -224,12 +224,12 @@ export async function getLastSyncTime(table: string): Promise<string | null> {
 }
 
 // Cache helpers
-export async function cacheSouscripteurs(items: any[]): Promise<void> {
-  await putItems(STORES.SOUSCRIPTEURS, items);
-  await setLastSyncTime(STORES.SOUSCRIPTEURS);
+export async function cacheClients(items: any[]): Promise<void> {
+  await putItems(STORES.CLIENTS, items);
+  await setLastSyncTime(STORES.CLIENTS);
 }
 
-export const getCachedSouscripteurs = () => getAllItems(STORES.SOUSCRIPTEURS);
+export const getCachedClients = () => getAllItems(STORES.CLIENTS);
 
 export async function cachePlantations(items: any[]): Promise<void> {
   await putItems(STORES.PLANTATIONS, items);
