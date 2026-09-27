@@ -32,7 +32,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   useEffect(() => {
     (async () => {
       const { data, error } = await (supabase as any).from("clients")
-        .select("*, offre:offres(id,code,nom,famille_offre,formule_code,montant_depot_initial_par_ha,montant_total_par_ha)")
+        .select("*, offre:offres(id,code,nom,famille_offre,formule_code,montant_paiement_initial_par_ha,montant_total_par_ha)")
         .order("created_at", { ascending: false });
       if (error) toast({ variant:"destructive", title:"Erreur", description:getSafeErrorMessage(error) });
       else setSouscripteurs(data || []);
@@ -44,20 +44,20 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
     setSelected(s);
     if (!s) return;
     setValue("parcours", s.famille_offre || s.offre?.famille_offre || null);
-    const initial = Math.round(Number(s.total_hectares || 0) * Number(s.offre?.montant_depot_initial_par_ha || 0));
+    const initial = Math.round(Number(s.total_hectares || 0) * Number(s.offre?.montant_paiement_initial_par_ha || 0));
     if (typePaiement === "paiement_initial") {
       setValue("montant_theorique", initial);
       setValue("montant_paye", initial);
       setValue("est_paiement_initial", true);
-      setValue("est_depot_initial", true);
+      setValue("est_paiement_initial", true);
     } else {
       setValue("est_paiement_initial", false);
-      setValue("est_depot_initial", false);
+      setValue("est_paiement_initial", false);
     }
   }, [souscripteurId, clients, typePaiement, setValue]);
 
   const paiementInitial = useMemo(() => selected
-    ? Math.round(Number(selected.total_hectares || 0) * Number(selected.offre?.montant_depot_initial_par_ha || 0))
+    ? Math.round(Number(selected.total_hectares || 0) * Number(selected.offre?.montant_paiement_initial_par_ha || 0))
     : 0, [selected]);
 
   const handleFileUpload = async (file: File) => {
@@ -96,7 +96,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
       const paiementData = {
         ...data, ...parsed,
         type_paiement: initial ? "paiement_initial" : "echeance",
-        est_paiement_initial: initial, est_depot_initial: initial,
+        est_paiement_initial: initial, est_paiement_initial: initial,
         montant: parsed.montant_paye ?? montantTheorique,
         montant_theorique: montantTheorique,
         fichier_preuve_url: fileUrl || data.fichier_preuve_url || null,
