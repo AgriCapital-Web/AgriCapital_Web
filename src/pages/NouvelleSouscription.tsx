@@ -4,7 +4,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Etape1Client } from "@/components/forms/souscription/Etape1Client";
+import { Etape1Souscripteur } from "@/components/forms/souscription/Etape1Souscripteur";
 import { Etape2Cotitulaire } from "@/components/forms/souscription/Etape2Cotitulaire";
 import { Etape0Offre } from "@/components/forms/souscription/Etape0Offre";
 import { Etape3Foncier } from "@/components/forms/souscription/Etape3Foncier";
@@ -32,7 +32,7 @@ const NouvelleSouscription = () => {
   // La conversion en plantation se fait depuis la page Plantations.
   const etapes = useMemo(() => {
     return [
-      { num: 1, titre: "Client", component: Etape1Client },
+      { num: 1, titre: "Client", component: Etape1Souscripteur },
       { num: 2, titre: "Co-titulaire", component: Etape2Cotitulaire },
       { num: 3, titre: "Offre", component: Etape0Offre },
       { num: 4, titre: "Foncier", component: Etape3Foncier },
