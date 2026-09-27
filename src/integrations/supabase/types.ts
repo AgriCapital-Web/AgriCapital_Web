@@ -108,6 +108,74 @@ export type Database = {
           },
         ]
       }
+      acquisition_lots: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          date_attribution: string | null
+          id: string
+          lot_id: string
+          notes: string | null
+          surface_ha: number | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          date_attribution?: string | null
+          id?: string
+          lot_id: string
+          notes?: string | null
+          surface_ha?: number | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          date_attribution?: string | null
+          id?: string
+          lot_id?: string
+          notes?: string | null
+          surface_ha?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "souscription_lots_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots_hectares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      acquisitions_brouillon: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          donnees: Json | null
+          etape_actuelle: number | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          donnees?: Json | null
+          etape_actuelle?: number | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          donnees?: Json | null
+          etape_actuelle?: number | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       activity_notes: {
         Row: {
           action: string
@@ -941,6 +1009,8 @@ export type Database = {
       }
       agriplan_visites: {
         Row: {
+          agent_technique_id: string | null
+          agent_technique_nom: string | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -961,14 +1031,14 @@ export type Database = {
           rapport_url: string | null
           recommandations: string | null
           statut: string
-          technicien_id: string | null
-          technicien_nom: string | null
           travaux_realises: string | null
           type_visite: string
           updated_at: string
           videos: Json
         }
         Insert: {
+          agent_technique_id?: string | null
+          agent_technique_nom?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -989,14 +1059,14 @@ export type Database = {
           rapport_url?: string | null
           recommandations?: string | null
           statut?: string
-          technicien_id?: string | null
-          technicien_nom?: string | null
           travaux_realises?: string | null
           type_visite?: string
           updated_at?: string
           videos?: Json
         }
         Update: {
+          agent_technique_id?: string | null
+          agent_technique_nom?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -1017,8 +1087,6 @@ export type Database = {
           rapport_url?: string | null
           recommandations?: string | null
           statut?: string
-          technicien_id?: string | null
-          technicien_nom?: string | null
           travaux_realises?: string | null
           type_visite?: string
           updated_at?: string
@@ -1088,6 +1156,7 @@ export type Database = {
       agriplant_suivis: {
         Row: {
           actions_recommandees: string | null
+          client_id: string | null
           created_at: string
           created_by: string | null
           date_visite: string
@@ -1100,7 +1169,6 @@ export type Database = {
           plantation_id: string
           prochaine_visite: string | null
           responsable_id: string | null
-          souscripteur_id: string | null
           statut: string
           titre: string
           type_suivi: string
@@ -1108,6 +1176,7 @@ export type Database = {
         }
         Insert: {
           actions_recommandees?: string | null
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           date_visite?: string
@@ -1120,7 +1189,6 @@ export type Database = {
           plantation_id: string
           prochaine_visite?: string | null
           responsable_id?: string | null
-          souscripteur_id?: string | null
           statut?: string
           titre: string
           type_suivi?: string
@@ -1128,6 +1196,7 @@ export type Database = {
         }
         Update: {
           actions_recommandees?: string | null
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           date_visite?: string
@@ -1140,7 +1209,6 @@ export type Database = {
           plantation_id?: string
           prochaine_visite?: string | null
           responsable_id?: string | null
-          souscripteur_id?: string | null
           statut?: string
           titre?: string
           type_suivi?: string
@@ -1156,17 +1224,17 @@ export type Database = {
           },
           {
             foreignKeyName: "agriplant_suivis_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "agriplant_suivis_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -1285,51 +1353,52 @@ export type Database = {
       }
       client_account_provision_outbox: {
         Row: {
+          client_id: string
           created_at: string
           derniere_erreur: string | null
           id: string
           processed_at: string | null
-          souscripteur_id: string
           statut: string
           tentatives: number
         }
         Insert: {
+          client_id: string
           created_at?: string
           derniere_erreur?: string | null
           id?: string
           processed_at?: string | null
-          souscripteur_id: string
           statut?: string
           tentatives?: number
         }
         Update: {
+          client_id?: string
           created_at?: string
           derniere_erreur?: string | null
           id?: string
           processed_at?: string | null
-          souscripteur_id?: string
           statut?: string
           tentatives?: number
         }
         Relationships: [
           {
             foreignKeyName: "client_account_provision_outbox_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "client_account_provision_outbox_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
       client_contracts: {
         Row: {
+          client_id: string
           created_at: string
           date_signature: string | null
           fichier_url: string | null
@@ -1337,7 +1406,6 @@ export type Database = {
           metadata: Json
           observations: string | null
           reference: string | null
-          souscripteur_id: string
           statut: string
           type_contrat: string
           updated_at: string
@@ -1345,6 +1413,7 @@ export type Database = {
           valide_par: string | null
         }
         Insert: {
+          client_id: string
           created_at?: string
           date_signature?: string | null
           fichier_url?: string | null
@@ -1352,7 +1421,6 @@ export type Database = {
           metadata?: Json
           observations?: string | null
           reference?: string | null
-          souscripteur_id: string
           statut?: string
           type_contrat: string
           updated_at?: string
@@ -1360,6 +1428,7 @@ export type Database = {
           valide_par?: string | null
         }
         Update: {
+          client_id?: string
           created_at?: string
           date_signature?: string | null
           fichier_url?: string | null
@@ -1367,7 +1436,6 @@ export type Database = {
           metadata?: Json
           observations?: string | null
           reference?: string | null
-          souscripteur_id?: string
           statut?: string
           type_contrat?: string
           updated_at?: string
@@ -1377,23 +1445,319 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_contracts_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "client_contracts_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          annee_contrat: number | null
+          banque_operateur: string | null
+          civilite: string | null
+          code_sp_contrat: string | null
+          compte_actif: boolean
+          contrat_accompagnement_statut: string
+          contrat_acquisition_statut: string
+          contrat_debut_at: string | null
+          contrat_fin_at: string | null
+          created_at: string | null
+          created_by: string | null
+          da_paye_at: string | null
+          date_delivrance_piece: string | null
+          date_naissance: string | null
+          departement_id: string | null
+          district_id: string | null
+          documents_valides_at: string | null
+          domicile: string | null
+          domicile_residence: string | null
+          email: string | null
+          famille_offre: string | null
+          fichier_piece_recto_url: string | null
+          fichier_piece_url: string | null
+          fichier_piece_verso_url: string | null
+          formule_code: string | null
+          formule_nom: string | null
+          id: string
+          id_unique: string | null
+          jours_contrat_total: number
+          jours_payes: number
+          jours_retard: number
+          lieu_naissance: string | null
+          localite: string | null
+          mensualite_montant: number | null
+          mode_paiement: string
+          montant_promo_applique: number
+          montant_total_contrat: number
+          nationalite: string | null
+          nom: string | null
+          nom_complet: string | null
+          nom_famille: string | null
+          nom_titulaire_compte: string | null
+          nombre_plantations: number | null
+          numero_compte: string | null
+          numero_contrat: string | null
+          numero_ordre_global: number | null
+          numero_piece: string | null
+          offre_id: string | null
+          paiement_initial_montant: number
+          paiement_initial_paye_at: string | null
+          parcelle_id: string | null
+          parcours_code: string | null
+          phase_actuelle: string
+          photo_profil_url: string | null
+          prenoms: string | null
+          prochaine_echeance: string | null
+          promotion_id: string | null
+          region_id: string | null
+          sous_prefecture_id: string | null
+          statut: string | null
+          statut_global: string | null
+          statut_marital: string | null
+          taux_journalier_ha: number
+          telephone: string
+          total_hectares: number | null
+          type_client: string | null
+          type_client_foncier: string | null
+          type_compte: string | null
+          type_piece: string | null
+          updated_at: string | null
+          updated_by: string | null
+          user_id: string | null
+          village_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          annee_contrat?: number | null
+          banque_operateur?: string | null
+          civilite?: string | null
+          code_sp_contrat?: string | null
+          compte_actif?: boolean
+          contrat_accompagnement_statut?: string
+          contrat_acquisition_statut?: string
+          contrat_debut_at?: string | null
+          contrat_fin_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          da_paye_at?: string | null
+          date_delivrance_piece?: string | null
+          date_naissance?: string | null
+          departement_id?: string | null
+          district_id?: string | null
+          documents_valides_at?: string | null
+          domicile?: string | null
+          domicile_residence?: string | null
+          email?: string | null
+          famille_offre?: string | null
+          fichier_piece_recto_url?: string | null
+          fichier_piece_url?: string | null
+          fichier_piece_verso_url?: string | null
+          formule_code?: string | null
+          formule_nom?: string | null
+          id?: string
+          id_unique?: string | null
+          jours_contrat_total?: number
+          jours_payes?: number
+          jours_retard?: number
+          lieu_naissance?: string | null
+          localite?: string | null
+          mensualite_montant?: number | null
+          mode_paiement?: string
+          montant_promo_applique?: number
+          montant_total_contrat?: number
+          nationalite?: string | null
+          nom?: string | null
+          nom_complet?: string | null
+          nom_famille?: string | null
+          nom_titulaire_compte?: string | null
+          nombre_plantations?: number | null
+          numero_compte?: string | null
+          numero_contrat?: string | null
+          numero_ordre_global?: number | null
+          numero_piece?: string | null
+          offre_id?: string | null
+          paiement_initial_montant?: number
+          paiement_initial_paye_at?: string | null
+          parcelle_id?: string | null
+          parcours_code?: string | null
+          phase_actuelle?: string
+          photo_profil_url?: string | null
+          prenoms?: string | null
+          prochaine_echeance?: string | null
+          promotion_id?: string | null
+          region_id?: string | null
+          sous_prefecture_id?: string | null
+          statut?: string | null
+          statut_global?: string | null
+          statut_marital?: string | null
+          taux_journalier_ha?: number
+          telephone: string
+          total_hectares?: number | null
+          type_client?: string | null
+          type_client_foncier?: string | null
+          type_compte?: string | null
+          type_piece?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          village_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          annee_contrat?: number | null
+          banque_operateur?: string | null
+          civilite?: string | null
+          code_sp_contrat?: string | null
+          compte_actif?: boolean
+          contrat_accompagnement_statut?: string
+          contrat_acquisition_statut?: string
+          contrat_debut_at?: string | null
+          contrat_fin_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          da_paye_at?: string | null
+          date_delivrance_piece?: string | null
+          date_naissance?: string | null
+          departement_id?: string | null
+          district_id?: string | null
+          documents_valides_at?: string | null
+          domicile?: string | null
+          domicile_residence?: string | null
+          email?: string | null
+          famille_offre?: string | null
+          fichier_piece_recto_url?: string | null
+          fichier_piece_url?: string | null
+          fichier_piece_verso_url?: string | null
+          formule_code?: string | null
+          formule_nom?: string | null
+          id?: string
+          id_unique?: string | null
+          jours_contrat_total?: number
+          jours_payes?: number
+          jours_retard?: number
+          lieu_naissance?: string | null
+          localite?: string | null
+          mensualite_montant?: number | null
+          mode_paiement?: string
+          montant_promo_applique?: number
+          montant_total_contrat?: number
+          nationalite?: string | null
+          nom?: string | null
+          nom_complet?: string | null
+          nom_famille?: string | null
+          nom_titulaire_compte?: string | null
+          nombre_plantations?: number | null
+          numero_compte?: string | null
+          numero_contrat?: string | null
+          numero_ordre_global?: number | null
+          numero_piece?: string | null
+          offre_id?: string | null
+          paiement_initial_montant?: number
+          paiement_initial_paye_at?: string | null
+          parcelle_id?: string | null
+          parcours_code?: string | null
+          phase_actuelle?: string
+          photo_profil_url?: string | null
+          prenoms?: string | null
+          prochaine_echeance?: string | null
+          promotion_id?: string | null
+          region_id?: string | null
+          sous_prefecture_id?: string | null
+          statut?: string | null
+          statut_global?: string | null
+          statut_marital?: string | null
+          taux_journalier_ha?: number
+          telephone?: string
+          total_hectares?: number | null
+          type_client?: string | null
+          type_client_foncier?: string | null
+          type_compte?: string | null
+          type_piece?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          village_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "souscripteurs_departement_id_fkey"
+            columns: ["departement_id"]
+            isOneToOne: false
+            referencedRelation: "departements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "offres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "v_prix_effectif_offres"
+            referencedColumns: ["offre_id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_parcelle_id_fkey"
+            columns: ["parcelle_id"]
+            isOneToOne: false
+            referencedRelation: "parcelles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_sous_prefecture_id_fkey"
+            columns: ["sous_prefecture_id"]
+            isOneToOne: false
+            referencedRelation: "sous_prefectures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
           },
         ]
       }
       commissions: {
         Row: {
           annee_contrat: number | null
+          client_id: string | null
           created_at: string | null
           date_calcul: string | null
           date_validation: string | null
@@ -1404,7 +1768,6 @@ export type Database = {
           periode: string | null
           plantation_id: string | null
           profile_id: string | null
-          souscripteur_id: string | null
           statut: string | null
           taux_applique: number | null
           taux_commission: number | null
@@ -1413,6 +1776,7 @@ export type Database = {
         }
         Insert: {
           annee_contrat?: number | null
+          client_id?: string | null
           created_at?: string | null
           date_calcul?: string | null
           date_validation?: string | null
@@ -1423,7 +1787,6 @@ export type Database = {
           periode?: string | null
           plantation_id?: string | null
           profile_id?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           taux_applique?: number | null
           taux_commission?: number | null
@@ -1432,6 +1795,7 @@ export type Database = {
         }
         Update: {
           annee_contrat?: number | null
+          client_id?: string | null
           created_at?: string | null
           date_calcul?: string | null
           date_validation?: string | null
@@ -1442,7 +1806,6 @@ export type Database = {
           periode?: string | null
           plantation_id?: string | null
           profile_id?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           taux_applique?: number | null
           taux_commission?: number | null
@@ -1779,6 +2142,63 @@ export type Database = {
         }
         Relationships: []
       }
+      documents_acquisition: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          fichier_url: string
+          id: string
+          observations: string | null
+          statut: string | null
+          type_document: string
+          updated_at: string | null
+          uploaded_by: string | null
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          fichier_url: string
+          id?: string
+          observations?: string | null
+          statut?: string | null
+          type_document: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          fichier_url?: string
+          id?: string
+          observations?: string | null
+          statut?: string | null
+          type_document?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_souscription_souscripteur_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_souscription_souscripteur_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       documents_convention: {
         Row: {
           created_at: string | null
@@ -1839,63 +2259,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "proprietaires_terres"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      documents_souscription: {
-        Row: {
-          created_at: string | null
-          fichier_url: string
-          id: string
-          observations: string | null
-          souscripteur_id: string | null
-          statut: string | null
-          type_document: string
-          updated_at: string | null
-          uploaded_by: string | null
-          validated_at: string | null
-          validated_by: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          fichier_url: string
-          id?: string
-          observations?: string | null
-          souscripteur_id?: string | null
-          statut?: string | null
-          type_document: string
-          updated_at?: string | null
-          uploaded_by?: string | null
-          validated_at?: string | null
-          validated_by?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          fichier_url?: string
-          id?: string
-          observations?: string | null
-          souscripteur_id?: string | null
-          statut?: string | null
-          type_document?: string
-          updated_at?: string | null
-          uploaded_by?: string | null
-          validated_at?: string | null
-          validated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "documents_souscription_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
-            isOneToOne: false
-            referencedRelation: "souscripteurs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "documents_souscription_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
-            isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
           },
         ]
       }
@@ -2043,51 +2406,51 @@ export type Database = {
       historique_actions: {
         Row: {
           action: string
+          client_id: string | null
           created_at: string
           details: Json | null
           entity_id: string | null
           entity_type: string | null
           id: string
-          souscripteur_id: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           action: string
+          client_id?: string | null
           created_at?: string
           details?: Json | null
           entity_id?: string | null
           entity_type?: string | null
           id?: string
-          souscripteur_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           action?: string
+          client_id?: string | null
           created_at?: string
           details?: Json | null
           entity_id?: string | null
           entity_type?: string | null
           id?: string
-          souscripteur_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "historique_actions_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "historique_actions_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "historique_actions_user_id_fkey"
@@ -2142,6 +2505,7 @@ export type Database = {
       }
       interventions_techniques: {
         Row: {
+          agent_technique_id: string | null
           cout: number | null
           created_at: string
           date_intervention: string
@@ -2150,11 +2514,11 @@ export type Database = {
           plantation_id: string | null
           recommandations: string | null
           statut: string
-          technicien_id: string | null
           type_intervention: string
           updated_at: string
         }
         Insert: {
+          agent_technique_id?: string | null
           cout?: number | null
           created_at?: string
           date_intervention?: string
@@ -2163,11 +2527,11 @@ export type Database = {
           plantation_id?: string | null
           recommandations?: string | null
           statut?: string
-          technicien_id?: string | null
           type_intervention?: string
           updated_at?: string
         }
         Update: {
+          agent_technique_id?: string | null
           cout?: number | null
           created_at?: string
           date_intervention?: string
@@ -2176,7 +2540,6 @@ export type Database = {
           plantation_id?: string | null
           recommandations?: string | null
           statut?: string
-          technicien_id?: string | null
           type_intervention?: string
           updated_at?: string
         }
@@ -2190,7 +2553,7 @@ export type Database = {
           },
           {
             foreignKeyName: "interventions_techniques_technicien_id_fkey"
-            columns: ["technicien_id"]
+            columns: ["agent_technique_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2336,6 +2699,7 @@ export type Database = {
       leads: {
         Row: {
           assigned_to: string | null
+          client_id: string | null
           commentaire: string | null
           converti_at: string | null
           created_at: string
@@ -2355,7 +2719,6 @@ export type Database = {
           prochaine_relance_at: string | null
           region_residence: string
           source: string
-          souscripteur_id: string | null
           statut: string
           superficie_a_valoriser_ha: number | null
           superficie_disponible_ha: number | null
@@ -2366,6 +2729,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          client_id?: string | null
           commentaire?: string | null
           converti_at?: string | null
           created_at?: string
@@ -2385,7 +2749,6 @@ export type Database = {
           prochaine_relance_at?: string | null
           region_residence: string
           source?: string
-          souscripteur_id?: string | null
           statut?: string
           superficie_a_valoriser_ha?: number | null
           superficie_disponible_ha?: number | null
@@ -2396,6 +2759,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          client_id?: string | null
           commentaire?: string | null
           converti_at?: string | null
           created_at?: string
@@ -2415,7 +2779,6 @@ export type Database = {
           prochaine_relance_at?: string | null
           region_residence?: string
           source?: string
-          souscripteur_id?: string | null
           statut?: string
           superficie_a_valoriser_ha?: number | null
           superficie_disponible_ha?: number | null
@@ -2427,17 +2790,17 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "leads_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "leads_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -2446,6 +2809,7 @@ export type Database = {
           centroid_lat: number | null
           centroid_lng: number | null
           certifie_geometre: boolean | null
+          client_id: string | null
           convention_id: string | null
           created_at: string | null
           created_by: string | null
@@ -2459,7 +2823,6 @@ export type Database = {
           parcelle_id: string | null
           polygone_gps: Json | null
           reference: string | null
-          souscripteur_id: string | null
           statut: string | null
           surface_ha: number | null
           updated_at: string | null
@@ -2468,6 +2831,7 @@ export type Database = {
           centroid_lat?: number | null
           centroid_lng?: number | null
           certifie_geometre?: boolean | null
+          client_id?: string | null
           convention_id?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -2481,7 +2845,6 @@ export type Database = {
           parcelle_id?: string | null
           polygone_gps?: Json | null
           reference?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           surface_ha?: number | null
           updated_at?: string | null
@@ -2490,6 +2853,7 @@ export type Database = {
           centroid_lat?: number | null
           centroid_lng?: number | null
           certifie_geometre?: boolean | null
+          client_id?: string | null
           convention_id?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -2503,7 +2867,6 @@ export type Database = {
           parcelle_id?: string | null
           polygone_gps?: Json | null
           reference?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           surface_ha?: number | null
           updated_at?: string | null
@@ -2525,17 +2888,17 @@ export type Database = {
           },
           {
             foreignKeyName: "lots_hectares_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "lots_hectares_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -3144,6 +3507,7 @@ export type Database = {
           agriplan_vente_id: string | null
           annee: number | null
           cancelled_at: string | null
+          client_id: string | null
           created_at: string | null
           created_by: string | null
           date_echeance: string | null
@@ -3177,7 +3541,6 @@ export type Database = {
           refund_reason: string | null
           refund_requested_at: string | null
           refunded_at: string | null
-          souscripteur_id: string | null
           statut: string | null
           type_paiement: string | null
           type_preuve: string | null
@@ -3190,6 +3553,7 @@ export type Database = {
           agriplan_vente_id?: string | null
           annee?: number | null
           cancelled_at?: string | null
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           date_echeance?: string | null
@@ -3223,7 +3587,6 @@ export type Database = {
           refund_reason?: string | null
           refund_requested_at?: string | null
           refunded_at?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           type_paiement?: string | null
           type_preuve?: string | null
@@ -3236,6 +3599,7 @@ export type Database = {
           agriplan_vente_id?: string | null
           annee?: number | null
           cancelled_at?: string | null
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           date_echeance?: string | null
@@ -3269,7 +3633,6 @@ export type Database = {
           refund_reason?: string | null
           refund_requested_at?: string | null
           refunded_at?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           type_paiement?: string | null
           type_preuve?: string | null
@@ -3307,17 +3670,17 @@ export type Database = {
           },
           {
             foreignKeyName: "paiements_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "paiements_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -3529,6 +3892,7 @@ export type Database = {
           altitude: number | null
           chef_village_nom: string | null
           chef_village_telephone: string | null
+          client_id: string | null
           created_at: string | null
           created_by: string | null
           date_activation: string | null
@@ -3561,7 +3925,6 @@ export type Database = {
           prochaine_visite: string | null
           region_id: string | null
           sous_prefecture_id: string | null
-          souscripteur_id: string | null
           statut: string | null
           statut_global: string | null
           superficie_activee: number | null
@@ -3580,6 +3943,7 @@ export type Database = {
           altitude?: number | null
           chef_village_nom?: string | null
           chef_village_telephone?: string | null
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           date_activation?: string | null
@@ -3612,7 +3976,6 @@ export type Database = {
           prochaine_visite?: string | null
           region_id?: string | null
           sous_prefecture_id?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           statut_global?: string | null
           superficie_activee?: number | null
@@ -3631,6 +3994,7 @@ export type Database = {
           altitude?: number | null
           chef_village_nom?: string | null
           chef_village_telephone?: string | null
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           date_activation?: string | null
@@ -3663,7 +4027,6 @@ export type Database = {
           prochaine_visite?: string | null
           region_id?: string | null
           sous_prefecture_id?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           statut_global?: string | null
           superficie_activee?: number | null
@@ -3713,17 +4076,17 @@ export type Database = {
           },
           {
             foreignKeyName: "plantations_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "plantations_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -3732,34 +4095,34 @@ export type Database = {
           auteur_nom: string | null
           auteur_type: string
           auteur_user_id: string | null
+          client_id: string
           created_at: string
           id: string
           lu: boolean
           message: string
           plantation_id: string | null
-          souscripteur_id: string
         }
         Insert: {
           auteur_nom?: string | null
           auteur_type?: string
           auteur_user_id?: string | null
+          client_id: string
           created_at?: string
           id?: string
           lu?: boolean
           message: string
           plantation_id?: string | null
-          souscripteur_id: string
         }
         Update: {
           auteur_nom?: string | null
           auteur_type?: string
           auteur_user_id?: string | null
+          client_id?: string
           created_at?: string
           id?: string
           lu?: boolean
           message?: string
           plantation_id?: string | null
-          souscripteur_id?: string
         }
         Relationships: [
           {
@@ -3771,17 +4134,17 @@ export type Database = {
           },
           {
             foreignKeyName: "portail_messages_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "portail_messages_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -4300,6 +4663,8 @@ export type Database = {
       }
       rapports_visites_techniques: {
         Row: {
+          agent_technique_id: string | null
+          client_id: string | null
           client_visible: boolean
           created_at: string
           created_by: string | null
@@ -4308,13 +4673,13 @@ export type Database = {
           observations: string | null
           plantation_id: string
           recommandations: string | null
-          souscripteur_id: string | null
           statut: string
-          technicien_id: string | null
           type_visite: string
           updated_at: string
         }
         Insert: {
+          agent_technique_id?: string | null
+          client_id?: string | null
           client_visible?: boolean
           created_at?: string
           created_by?: string | null
@@ -4323,13 +4688,13 @@ export type Database = {
           observations?: string | null
           plantation_id: string
           recommandations?: string | null
-          souscripteur_id?: string | null
           statut?: string
-          technicien_id?: string | null
           type_visite?: string
           updated_at?: string
         }
         Update: {
+          agent_technique_id?: string | null
+          client_id?: string | null
           client_visible?: boolean
           created_at?: string
           created_by?: string | null
@@ -4338,9 +4703,7 @@ export type Database = {
           observations?: string | null
           plantation_id?: string
           recommandations?: string | null
-          souscripteur_id?: string | null
           statut?: string
-          technicien_id?: string | null
           type_visite?: string
           updated_at?: string
         }
@@ -4361,21 +4724,21 @@ export type Database = {
           },
           {
             foreignKeyName: "rapports_visites_techniques_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "rapports_visites_techniques_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "rapports_visites_techniques_technicien_id_fkey"
-            columns: ["technicien_id"]
+            columns: ["agent_technique_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -4449,6 +4812,7 @@ export type Database = {
       }
       remboursements: {
         Row: {
+          client_id: string | null
           created_at: string | null
           date_traitement: string | null
           id: string
@@ -4457,11 +4821,11 @@ export type Database = {
           motif: string | null
           numero_compte: string | null
           paiement_id: string | null
-          souscripteur_id: string | null
           statut: string | null
           traite_par: string | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           date_traitement?: string | null
           id?: string
@@ -4470,11 +4834,11 @@ export type Database = {
           motif?: string | null
           numero_compte?: string | null
           paiement_id?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           traite_par?: string | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           date_traitement?: string | null
           id?: string
@@ -4483,7 +4847,6 @@ export type Database = {
           motif?: string | null
           numero_compte?: string | null
           paiement_id?: string | null
-          souscripteur_id?: string | null
           statut?: string | null
           traite_par?: string | null
         }
@@ -4497,17 +4860,17 @@ export type Database = {
           },
           {
             foreignKeyName: "remboursements_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "remboursements_souscripteur_id_fkey"
-            columns: ["souscripteur_id"]
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -4623,369 +4986,6 @@ export type Database = {
           },
         ]
       }
-      souscripteurs: {
-        Row: {
-          annee_contrat: number | null
-          banque_operateur: string | null
-          civilite: string | null
-          code_sp_contrat: string | null
-          compte_actif: boolean
-          contrat_accompagnement_statut: string
-          contrat_acquisition_statut: string
-          contrat_debut_at: string | null
-          contrat_fin_at: string | null
-          created_at: string | null
-          created_by: string | null
-          da_paye_at: string | null
-          date_delivrance_piece: string | null
-          date_naissance: string | null
-          departement_id: string | null
-          district_id: string | null
-          documents_valides_at: string | null
-          domicile: string | null
-          domicile_residence: string | null
-          email: string | null
-          famille_offre: string | null
-          fichier_piece_recto_url: string | null
-          fichier_piece_url: string | null
-          fichier_piece_verso_url: string | null
-          formule_code: string | null
-          formule_nom: string | null
-          id: string
-          id_unique: string | null
-          jours_contrat_total: number
-          jours_payes: number
-          jours_retard: number
-          lieu_naissance: string | null
-          localite: string | null
-          mensualite_montant: number | null
-          montant_promo_applique: number
-          montant_total_contrat: number
-          mode_paiement: string
-          nationalite: string | null
-          nom: string | null
-          nom_complet: string | null
-          nom_famille: string | null
-          nom_titulaire_compte: string | null
-          nombre_plantations: number | null
-          numero_compte: string | null
-          numero_contrat: string | null
-          numero_ordre_global: number | null
-          numero_piece: string | null
-          offre_id: string | null
-          paiement_initial_montant: number
-          paiement_initial_paye_at: string | null
-          parcelle_id: string | null
-          parcours_code: string | null
-          phase_actuelle: string
-          photo_profil_url: string | null
-          prenoms: string | null
-          prochaine_echeance: string | null
-          promotion_id: string | null
-          region_id: string | null
-          sous_prefecture_id: string | null
-          statut: string | null
-          statut_global: string | null
-          statut_marital: string | null
-          taux_journalier_ha: number
-          telephone: string
-          total_hectares: number | null
-          type_compte: string | null
-          type_piece: string | null
-          type_souscripteur: string | null
-          type_souscripteur_foncier: string | null
-          updated_at: string | null
-          updated_by: string | null
-          user_id: string | null
-          village_id: string | null
-          whatsapp: string | null
-        }
-        Insert: {
-          annee_contrat?: number | null
-          banque_operateur?: string | null
-          civilite?: string | null
-          code_sp_contrat?: string | null
-          compte_actif?: boolean
-          contrat_accompagnement_statut?: string
-          contrat_acquisition_statut?: string
-          contrat_debut_at?: string | null
-          contrat_fin_at?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          da_paye_at?: string | null
-          date_delivrance_piece?: string | null
-          date_naissance?: string | null
-          departement_id?: string | null
-          district_id?: string | null
-          documents_valides_at?: string | null
-          domicile?: string | null
-          domicile_residence?: string | null
-          email?: string | null
-          famille_offre?: string | null
-          fichier_piece_recto_url?: string | null
-          fichier_piece_url?: string | null
-          fichier_piece_verso_url?: string | null
-          formule_code?: string | null
-          formule_nom?: string | null
-          id?: string
-          id_unique?: string | null
-          jours_contrat_total?: number
-          jours_payes?: number
-          jours_retard?: number
-          lieu_naissance?: string | null
-          localite?: string | null
-          mensualite_montant?: number | null
-          montant_promo_applique?: number
-          montant_total_contrat?: number
-          mode_paiement?: string
-          nationalite?: string | null
-          nom?: string | null
-          nom_complet?: string | null
-          nom_famille?: string | null
-          nom_titulaire_compte?: string | null
-          nombre_plantations?: number | null
-          numero_compte?: string | null
-          numero_contrat?: string | null
-          numero_ordre_global?: number | null
-          numero_piece?: string | null
-          offre_id?: string | null
-          paiement_initial_montant?: number
-          paiement_initial_paye_at?: string | null
-          parcelle_id?: string | null
-          parcours_code?: string | null
-          phase_actuelle?: string
-          photo_profil_url?: string | null
-          prenoms?: string | null
-          prochaine_echeance?: string | null
-          promotion_id?: string | null
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string | null
-          statut_global?: string | null
-          statut_marital?: string | null
-          taux_journalier_ha?: number
-          telephone: string
-          total_hectares?: number | null
-          type_compte?: string | null
-          type_piece?: string | null
-          type_souscripteur?: string | null
-          type_souscripteur_foncier?: string | null
-          updated_at?: string | null
-          updated_by?: string | null
-          user_id?: string | null
-          village_id?: string | null
-          whatsapp?: string | null
-        }
-        Update: {
-          annee_contrat?: number | null
-          banque_operateur?: string | null
-          civilite?: string | null
-          code_sp_contrat?: string | null
-          compte_actif?: boolean
-          contrat_accompagnement_statut?: string
-          contrat_acquisition_statut?: string
-          contrat_debut_at?: string | null
-          contrat_fin_at?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          da_paye_at?: string | null
-          date_delivrance_piece?: string | null
-          date_naissance?: string | null
-          departement_id?: string | null
-          district_id?: string | null
-          documents_valides_at?: string | null
-          domicile?: string | null
-          domicile_residence?: string | null
-          email?: string | null
-          famille_offre?: string | null
-          fichier_piece_recto_url?: string | null
-          fichier_piece_url?: string | null
-          fichier_piece_verso_url?: string | null
-          formule_code?: string | null
-          formule_nom?: string | null
-          id?: string
-          id_unique?: string | null
-          jours_contrat_total?: number
-          jours_payes?: number
-          jours_retard?: number
-          lieu_naissance?: string | null
-          localite?: string | null
-          mensualite_montant?: number | null
-          montant_promo_applique?: number
-          montant_total_contrat?: number
-          mode_paiement?: string
-          nationalite?: string | null
-          nom?: string | null
-          nom_complet?: string | null
-          nom_famille?: string | null
-          nom_titulaire_compte?: string | null
-          nombre_plantations?: number | null
-          numero_compte?: string | null
-          numero_contrat?: string | null
-          numero_ordre_global?: number | null
-          numero_piece?: string | null
-          offre_id?: string | null
-          paiement_initial_montant?: number
-          paiement_initial_paye_at?: string | null
-          parcelle_id?: string | null
-          parcours_code?: string | null
-          phase_actuelle?: string
-          photo_profil_url?: string | null
-          prenoms?: string | null
-          prochaine_echeance?: string | null
-          promotion_id?: string | null
-          region_id?: string | null
-          sous_prefecture_id?: string | null
-          statut?: string | null
-          statut_global?: string | null
-          statut_marital?: string | null
-          taux_journalier_ha?: number
-          telephone?: string
-          total_hectares?: number | null
-          type_compte?: string | null
-          type_piece?: string | null
-          type_souscripteur?: string | null
-          type_souscripteur_foncier?: string | null
-          updated_at?: string | null
-          updated_by?: string | null
-          user_id?: string | null
-          village_id?: string | null
-          whatsapp?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "souscripteurs_departement_id_fkey"
-            columns: ["departement_id"]
-            isOneToOne: false
-            referencedRelation: "departements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_district_id_fkey"
-            columns: ["district_id"]
-            isOneToOne: false
-            referencedRelation: "districts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
-            columns: ["offre_id"]
-            isOneToOne: false
-            referencedRelation: "offres"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
-            columns: ["offre_id"]
-            isOneToOne: false
-            referencedRelation: "v_prix_effectif_offres"
-            referencedColumns: ["offre_id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_parcelle_id_fkey"
-            columns: ["parcelle_id"]
-            isOneToOne: false
-            referencedRelation: "parcelles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_promotion_id_fkey"
-            columns: ["promotion_id"]
-            isOneToOne: false
-            referencedRelation: "promotions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_region_id_fkey"
-            columns: ["region_id"]
-            isOneToOne: false
-            referencedRelation: "regions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_sous_prefecture_id_fkey"
-            columns: ["sous_prefecture_id"]
-            isOneToOne: false
-            referencedRelation: "sous_prefectures"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_village_id_fkey"
-            columns: ["village_id"]
-            isOneToOne: false
-            referencedRelation: "villages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      souscription_lots: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          date_attribution: string | null
-          id: string
-          lot_id: string
-          notes: string | null
-          souscripteur_id: string
-          surface_ha: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          date_attribution?: string | null
-          id?: string
-          lot_id: string
-          notes?: string | null
-          souscripteur_id: string
-          surface_ha?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          date_attribution?: string | null
-          id?: string
-          lot_id?: string
-          notes?: string | null
-          souscripteur_id?: string
-          surface_ha?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "souscription_lots_lot_id_fkey"
-            columns: ["lot_id"]
-            isOneToOne: false
-            referencedRelation: "lots_hectares"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      souscriptions_brouillon: {
-        Row: {
-          created_at: string | null
-          created_by: string
-          donnees: Json | null
-          etape_actuelle: number | null
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by: string
-          donnees?: Json | null
-          etape_actuelle?: number | null
-          id?: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string
-          donnees?: Json | null
-          etape_actuelle?: number | null
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       tickets_techniques: {
         Row: {
           assigne_a: string | null
@@ -5052,91 +5052,91 @@ export type Database = {
       }
       transferts_paiements: {
         Row: {
+          client_dest_id: string | null
+          client_source_id: string | null
           created_at: string | null
           effectue_par: string | null
           id: string
           montant: number
           motif: string | null
-          souscripteur_dest_id: string | null
-          souscripteur_source_id: string | null
           statut: string | null
         }
         Insert: {
+          client_dest_id?: string | null
+          client_source_id?: string | null
           created_at?: string | null
           effectue_par?: string | null
           id?: string
           montant: number
           motif?: string | null
-          souscripteur_dest_id?: string | null
-          souscripteur_source_id?: string | null
           statut?: string | null
         }
         Update: {
+          client_dest_id?: string | null
+          client_source_id?: string | null
           created_at?: string | null
           effectue_par?: string | null
           id?: string
           montant?: number
           motif?: string | null
-          souscripteur_dest_id?: string | null
-          souscripteur_source_id?: string | null
           statut?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "transferts_dest_id_fkey"
-            columns: ["souscripteur_dest_id"]
+            columns: ["client_dest_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "transferts_dest_id_fkey"
-            columns: ["souscripteur_dest_id"]
+            columns: ["client_dest_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "transferts_paiements_souscripteur_dest_id_fkey"
-            columns: ["souscripteur_dest_id"]
+            columns: ["client_dest_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "transferts_paiements_souscripteur_dest_id_fkey"
-            columns: ["souscripteur_dest_id"]
+            columns: ["client_dest_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "transferts_paiements_souscripteur_source_id_fkey"
-            columns: ["souscripteur_source_id"]
+            columns: ["client_source_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "transferts_paiements_souscripteur_source_id_fkey"
-            columns: ["souscripteur_source_id"]
+            columns: ["client_source_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "transferts_source_id_fkey"
-            columns: ["souscripteur_source_id"]
+            columns: ["client_source_id"]
             isOneToOne: false
-            referencedRelation: "souscripteurs"
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "transferts_source_id_fkey"
-            columns: ["souscripteur_source_id"]
+            columns: ["client_source_id"]
             isOneToOne: false
-            referencedRelation: "v_souscripteur_synthese"
-            referencedColumns: ["souscripteur_id"]
+            referencedRelation: "v_client_synthese"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -5242,6 +5242,48 @@ export type Database = {
         }
         Relationships: []
       }
+      v_client_synthese: {
+        Row: {
+          client_id: string | null
+          compte_actif: boolean | null
+          contrat_debut_at: string | null
+          contrat_fin_at: string | null
+          duree_paiement_mois: number | null
+          gestion_type: string | null
+          id_unique: string | null
+          jours_retard: number | null
+          mois_payes: number | null
+          mois_restants: number | null
+          montant_total_contrat: number | null
+          nom_complet: string | null
+          offre_id: string | null
+          offre_nom: string | null
+          phase_actuelle: string | null
+          pourcentage_avancement: number | null
+          pourcentage_revenus_reverses: number | null
+          prochaine_echeance: string | null
+          reste_a_payer: number | null
+          taux_journalier_ha: number | null
+          total_hectares: number | null
+          total_paye: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "souscripteurs_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "offres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "souscripteurs_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "v_prix_effectif_offres"
+            referencedColumns: ["offre_id"]
+          },
+        ]
+      }
       v_prix_effectif_offres: {
         Row: {
           code: string | null
@@ -5271,48 +5313,6 @@ export type Database = {
           total_effectif?: never
         }
         Relationships: []
-      }
-      v_souscripteur_synthese: {
-        Row: {
-          compte_actif: boolean | null
-          contrat_debut_at: string | null
-          contrat_fin_at: string | null
-          duree_paiement_mois: number | null
-          gestion_type: string | null
-          id_unique: string | null
-          jours_retard: number | null
-          mois_payes: number | null
-          mois_restants: number | null
-          montant_total_contrat: number | null
-          nom_complet: string | null
-          offre_id: string | null
-          offre_nom: string | null
-          phase_actuelle: string | null
-          pourcentage_avancement: number | null
-          pourcentage_revenus_reverses: number | null
-          prochaine_echeance: string | null
-          reste_a_payer: number | null
-          souscripteur_id: string | null
-          taux_journalier_ha: number | null
-          total_hectares: number | null
-          total_paye: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
-            columns: ["offre_id"]
-            isOneToOne: false
-            referencedRelation: "offres"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "souscripteurs_offre_id_fkey"
-            columns: ["offre_id"]
-            isOneToOne: false
-            referencedRelation: "v_prix_effectif_offres"
-            referencedColumns: ["offre_id"]
-          },
-        ]
       }
     }
     Functions: {
@@ -5351,13 +5351,10 @@ export type Database = {
         Args: { p_paiement_id: string }
         Returns: undefined
       }
-      create_depot_initial: {
-        Args: { _souscripteur_id: string }
-        Returns: string
-      }
+      create_depot_initial: { Args: { _client_id: string }; Returns: string }
       current_profile_id: { Args: never; Returns: string }
       ensure_client_contracts: {
-        Args: { _souscripteur_id: string }
+        Args: { _client_id: string }
         Returns: undefined
       }
       finalize_portal_payment: {
@@ -5370,14 +5367,11 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_client_id: { Args: never; Returns: string }
       generate_parcelle_id: { Args: never; Returns: string }
       generate_plantation_id: { Args: never; Returns: string }
       generate_proprietaire_id: { Args: never; Returns: string }
-      generate_souscripteur_id: { Args: never; Returns: string }
-      get_subscriber_effective_di: {
-        Args: { _souscripteur_id: string }
-        Returns: number
-      }
+      get_client_effective_di: { Args: { _client_id: string }; Returns: number }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_demo: { Args: { _user_id: string }; Returns: boolean }
@@ -5439,7 +5433,7 @@ export type Database = {
         Returns: undefined
       }
       recompute_contrat_totaux: {
-        Args: { _souscripteur_id: string }
+        Args: { _client_id: string }
         Returns: undefined
       }
       recompute_pending_di: { Args: never; Returns: undefined }
@@ -5448,12 +5442,12 @@ export type Database = {
         Returns: undefined
       }
       refresh_client_account_activation: {
-        Args: { _souscripteur_id: string }
+        Args: { _client_id: string }
         Returns: undefined
       }
       resolve_username_email: { Args: { _username: string }; Returns: string }
       simuler_paiement_fractionne: {
-        Args: { _montant: number; _souscripteur_id: string }
+        Args: { _client_id: string; _montant: number }
         Returns: {
           jours_couverts: number
           periode_debut: string
