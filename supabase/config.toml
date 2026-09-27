@@ -32,15 +32,6 @@ verify_jwt = false
 [functions.kkiapay-webhook]
 verify_jwt = false
 
-[functions.wave-notification]
-verify_jwt = false
-
-[functions.wave-verification]
-verify_jwt = false
-
-[functions.wave-reconciliation]
-verify_jwt = false
-
 [functions.submit-account-request]
 verify_jwt = false
 
