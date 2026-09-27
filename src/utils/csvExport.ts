@@ -5,7 +5,7 @@
 
 type ColumnDef = { key: string; label: string; format?: (val: any) => string };
 
-const SOUSCRIPTEUR_COLUMNS: ColumnDef[] = [
+const CLIENT_COLUMNS: ColumnDef[] = [
   { key: 'id_unique', label: 'ID' },
   { key: 'civilite', label: 'Civilité' },
   { key: 'nom_complet', label: 'Nom complet' },
@@ -104,10 +104,10 @@ function downloadCSV(content: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export type ExportType = 'souscripteurs' | 'plantations' | 'paiements';
+export type ExportType = 'clients' | 'plantations' | 'paiements';
 
 const EXPORT_CONFIG: Record<ExportType, { columns: ColumnDef[]; label: string }> = {
-  souscripteurs: { columns: SOUSCRIPTEUR_COLUMNS, label: 'Souscripteurs' },
+  clients: { columns: CLIENT_COLUMNS, label: 'Clients' },
   plantations: { columns: PLANTATION_COLUMNS, label: 'Plantations' },
   paiements: { columns: PAIEMENT_COLUMNS, label: 'Paiements' },
 };
@@ -124,17 +124,17 @@ export async function exportToCSV(type: ExportType, data: any[]): Promise<{ succ
 }
 
 export async function exportAllOfflineData() {
-  const { getCachedSouscripteurs, getCachedPlantations, getCachedItems, STORES } = await import('@/lib/offlineDb');
+  const { getCachedClients, getCachedPlantations, getCachedItems, STORES } = await import('@/lib/offlineDb');
   
   const results: Record<string, { success: boolean; count: number }> = {};
   
-  const [souscripteurs, plantations, paiements] = await Promise.all([
-    getCachedSouscripteurs(),
+  const [clients, plantations, paiements] = await Promise.all([
+    getCachedClients(),
     getCachedPlantations(),
     getCachedItems(STORES.PAIEMENTS),
   ]);
 
-  if (souscripteurs.length) results.souscripteurs = await exportToCSV('souscripteurs', souscripteurs);
+  if (clients.length) results.clients = await exportToCSV('clients', clients);
   if (plantations.length) results.plantations = await exportToCSV('plantations', plantations);
   if (paiements.length) results.paiements = await exportToCSV('paiements', paiements);
 
