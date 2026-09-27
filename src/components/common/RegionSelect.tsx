@@ -13,7 +13,7 @@ const REGIONS_FALLBACK = [
 ];
 
 export function useRegions() {
-  const [regions, setRegions] = useState<string[]>(REGIONS_FALLBACK);
+  const [regions, setRegions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function useRegions() {
           .select("nom")
           .eq("est_active", true)
           .order("nom", { ascending: true });
-        if (data && data.length > 0) setRegions(data.map((r: any) => r.nom));
+        setRegions((data || []).map((r: any) => r.nom));
       } catch {
         /* repli statique */
       } finally {
