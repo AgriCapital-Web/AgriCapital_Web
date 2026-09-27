@@ -47,16 +47,15 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
   const { data: promotionActive } = usePromotionActive();
   
   // Determine type_offre filter based on type_souscripteur
-  const typeOffre = formData.type_souscripteur === "avec_terre" ? "avec_terre" : "sans_terre";
+  const typeOffre = undefined;
   
   const { data: offres, isLoading } = useQuery({
-    queryKey: ['offres-souscription', typeOffre],
+    queryKey: ['offres-souscription'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('offres')
         .select('*')
         .eq('actif', true)
-        .eq('type_offre', typeOffre)
         .order('ordre', { ascending: true });
       
       if (error) throw error;
@@ -157,7 +156,14 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
         <CardContent>
           <RadioGroup
             value={formData.offre_id}
-            onValueChange={(value) => updateFormData({ offre_id: value })}
+            onValueChange={(value) => {
+              const selected = offres?.find((o: any) => o.id === value);
+              updateFormData({
+                offre_id: value,
+                type_souscripteur: selected?.type_offre === "sans_terre" ? "sans_terre" : "avec_terre",
+                ...(selected?.type_offre === "sans_terre" ? {} : { parcelle_id: null }),
+              });
+            }}
             className="grid grid-cols-1 md:grid-cols-3 gap-4"
           >
             {offres?.map((offre: any) => {
@@ -200,7 +206,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                         <div className="space-y-1">
                           <div className="flex items-baseline gap-1">
                             <span className="text-lg font-bold">{formatMontant(offre.montant_total_par_ha)}F</span>
-                             <span className="text-xs text-muted-foreground">/ha (total 35 mois)</span>
+                             <span className="text-xs text-muted-foreground">/ha · {offre.duree_paiement_mois} mois</span>
                           </div>
                           <div className="text-xs text-muted-foreground">
                             PI: {formatMontant(offre.montant_depot_initial_par_ha)}F/ha · Cash: {formatMontant(offre.montant_cash_par_ha)}F/ha
@@ -260,7 +266,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
               </div>
               {calculs.tranches.length > 0 && (
                 <div className="border-t pt-2 space-y-1 text-sm">
-                   <div className="font-medium mb-1">Échéances mensuelles (35 mois) :</div>
+                   <div className="font-medium mb-1">Échéancier de paiement :</div>
                   {calculs.tranches.map((t: any, i: number) => (
                     <div key={i} className="flex justify-between text-xs text-muted-foreground">
                       <span>An {t.annee} — {t.mois} mois</span>
@@ -270,7 +276,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between">
-                 <span className="font-semibold">Total contrat (35 mois){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
+                 <span className="font-semibold">Total contrat ({offre.duree_paiement_mois} mois){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
                 <span className="text-lg font-bold text-primary">{formatMontant(calculs.totalFinal)} F</span>
               </div>
               {calculs.promotionAppliquee && (
