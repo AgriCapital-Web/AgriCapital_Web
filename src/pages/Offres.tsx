@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, Crown, TrendingUp, Leaf, Sprout, Plus, Pencil, Loader2, Trash2, Gift, Percent, CheckCircle, XCircle, Edit } from "lucide-react";
+import { Check, Crown, TrendingUp, Leaf, Plus, Pencil, Loader2, Trash2, Gift, Percent, CheckCircle, XCircle, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -24,10 +24,16 @@ type Offre = Tables<'offres'>;
 type Promotion = Tables<'promotions'>;
 
 const getIcone = (code: string) => {
-  if (code.startsWith('palm-invest')) return TrendingUp;
-  if (code.startsWith('terra-palm')) return Leaf;
-  if (code.startsWith('palm-terroir')) return Sprout;
-  return Crown;
+  switch (code) {
+    case 'palm-invest-plus':
+      return Crown;
+    case 'palm-invest':
+      return TrendingUp;
+    case 'terra-palm':
+      return Leaf;
+    default:
+      return Crown;
+  }
 };
 
 const getCouleur = (code: string, couleur?: string | null) => {
@@ -39,12 +45,12 @@ const getCouleur = (code: string, couleur?: string | null) => {
     };
   }
   switch (code) {
-    case 'PALMINVEST':
+    case 'palm-invest-plus':
+      return { text: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/30' };
+    case 'palm-invest':
       return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
-    case 'TERRAPALM':
+    case 'terra-palm':
       return { text: 'text-emerald-700', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' };
-    case 'PALMTERROIR':
-      return { text: 'text-orange-600', bg: 'bg-orange-500/10', border: 'border-orange-500/30' };
     default:
       return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
   }
@@ -78,7 +84,6 @@ const Offres = () => {
       const { data, error } = await supabase
         .from('offres')
         .select('*')
-        .in('code', ['palm-invest','palm-invest-plus','terra-palm','terra-palm-plus','palm-terroir-essentielle','palm-terroir-flexible'])
         .order('ordre', { ascending: true });
       
       if (error) throw error;
@@ -222,23 +227,33 @@ const Offres = () => {
     return new Intl.NumberFormat('fr-FR').format(montant);
   };
 
+  const getTranches = (offre: any) => {
+    const raw = Array.isArray(offre?.tranches_paiement) ? offre.tranches_paiement : [];
+    if (raw.length) return raw;
+    const duree = Number(offre?.duree_paiement_mois) || 0;
+    const mensuel = Number(offre?.contribution_mensuelle_par_ha) || 0;
+    return mensuel > 0 && duree > 0 ? [{ annee: 1, mois_debut: 1, mois_fin: duree, mois: duree, mensualite_par_ha: mensuel, total_periode_par_ha: mensuel * duree }] : [];
+  };
+
   const handleSaveOffre = () => {
     if (!editOffre) return;
-    const di = Number(editOffre.montant_da_par_ha) || 0;
-    const mensuel = Number(editOffre.contribution_mensuelle_par_ha) || 0;
-    const duree = Number((editOffre as any).duree_paiement_mois) || 34;
-    const total = di + mensuel * duree;
-    const tranches = mensuel > 0
-      ? [{ annee: 1, mois: duree, mensualite_par_ha: mensuel }]
-      : (editOffre as any).tranches_paiement;
+    const di = Math.max(0, Number(editOffre.montant_pi_par_ha) || 0);
+    const tranches = getTranches(editOffre).map((t: any, index: number) => {
+      const mois = Math.max(0, Number(t.mois) || ((Number(t.mois_fin) || 0) - (Number(t.mois_debut) || 0) + 1));
+      const mensuel = Math.max(0, Number(t.mensualite_par_ha) || 0);
+      return { ...t, annee: Number(t.annee) || index + 1, mois, mensualite_par_ha: mensuel, total_periode_par_ha: mensuel * mois };
+    });
+    const duree = tranches.reduce((sum: number, t: any) => sum + Number(t.mois || 0), 0);
+    const total = di + tranches.reduce((sum: number, t: any) => sum + Number(t.total_periode_par_ha || 0), 0);
+    const lastMonthly = Number(tranches[tranches.length - 1]?.mensualite_par_ha || 0);
     updateOffreMutation.mutate({
       id: editOffre.id,
       updates: {
         nom: editOffre.nom,
         description: editOffre.description,
-        montant_da_par_ha: di,
-        montant_depot_initial_par_ha: di,
-        contribution_mensuelle_par_ha: mensuel,
+        montant_pi_par_ha: di,
+        montant_pi_par_ha: di,
+        contribution_mensuelle_par_ha: lastMonthly,
         montant_total_par_ha: total,
         duree_paiement_mois: duree,
         tranches_paiement: tranches as any,
@@ -318,7 +333,7 @@ const Offres = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Offres & Promotions</h2>
-          <p className="text-muted-foreground">PalmInvest, TerraPalm et PalmTerroir — 6 formules officielles</p>
+          <p className="text-muted-foreground">Gérez les offres clients et les promotions</p>
         </div>
       </div>
 
@@ -359,8 +374,8 @@ const Offres = () => {
               const couleurs = getCouleur(offre.code, offre.couleur);
               const avantagesList = parseAvantages(offre.avantages);
               const montantPromo = activePromo 
-                ? calculateReducedAmount(offre.montant_da_par_ha, activePromo.pourcentage_reduction)
-                : offre.montant_da_par_ha;
+                ? calculateReducedAmount(offre.montant_pi_par_ha, activePromo.pourcentage_reduction)
+                : offre.montant_pi_par_ha;
               
               return (
                 <Card 
@@ -394,7 +409,7 @@ const Offres = () => {
                         {activePromo ? (
                           <>
                             <span className="text-lg text-muted-foreground line-through">
-                              {formatMontant(offre.montant_da_par_ha)}F
+                              {formatMontant(offre.montant_pi_par_ha)}F
                             </span>
                             <span className="text-2xl font-bold text-green-600">
                               {formatMontant(montantPromo)}F
@@ -404,7 +419,7 @@ const Offres = () => {
                         ) : (
                           <>
                             <span className="text-2xl font-bold text-primary">
-                              {formatMontant(offre.montant_da_par_ha)}F
+                              {formatMontant(offre.montant_pi_par_ha)}F
                             </span>
                             <span className="text-sm">/ha</span>
                           </>
@@ -434,7 +449,7 @@ const Offres = () => {
                                 {promoActive && pe && pe.depot_initial_effectif !== pe.depot_initial_base && (
                                   <span className="line-through text-muted-foreground">{formatMontant(pe.depot_initial_base)}F</span>
                                 )}
-                                <span className="font-bold">{formatMontant(pe?.depot_initial_effectif ?? offre.montant_depot_initial_par_ha)}F</span>
+                                <span className="font-bold">{formatMontant(pe?.depot_initial_effectif ?? offre.montant_pi_par_ha)}F</span>
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-2">
@@ -524,19 +539,49 @@ const Offres = () => {
                                   <Input 
                                     id="montant_da"
                                     type="number"
-                                    value={editOffre.montant_da_par_ha}
-                                    onChange={(e) => setEditOffre({...editOffre, montant_da_par_ha: Number(e.target.value)})}
+                                    value={editOffre.montant_pi_par_ha ?? ""}
+                                    onChange={(e) => setEditOffre({...editOffre, montant_pi_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
                                   />
                                 </div>
                                 <div>
-                                  <Label htmlFor="contribution">Redevance/ha/mois (F)</Label>
+                                  <Label htmlFor="contribution">Échéancier mensuel / ha (F)</Label>
                                   <Input 
                                     id="contribution"
                                     type="number"
-                                    value={editOffre.contribution_mensuelle_par_ha}
-                                    onChange={(e) => setEditOffre({...editOffre, contribution_mensuelle_par_ha: Number(e.target.value)})}
+                                    value={editOffre.contribution_mensuelle_par_ha ?? ""}
+                                    onChange={(e) => {
+                                      const value = e.target.value === "" ? 0 : Number(e.target.value);
+                                      const current = getTranches(editOffre);
+                                      const next = current.length ? current.map((t:any,i:number)=>i===current.length-1?{...t,mensualite_par_ha:value}:t) : [{annee:1,mois:1,mensualite_par_ha:value}];
+                                      setEditOffre({...editOffre, contribution_mensuelle_par_ha:value, tranches_paiement:next});
+                                    }}
                                   />
                                 </div>
+                              </div>
+                              <div className="space-y-3 rounded-lg border p-3">
+                                <div>
+                                  <div className="text-sm font-semibold">Échéancier par période</div>
+                                  <p className="text-xs text-muted-foreground">Le PI reste séparé. Les mensualités sont configurées par An 1, An 2 et An 3.</p>
+                                </div>
+                                {getTranches(editOffre).filter((t:any)=>t.type !== "paiement_initial").map((t:any,index:number)=>(
+                                  <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <div>
+                                      <Label>An {index+1} — nombre de mois</Label>
+                                      <Input type="number" min="0" value={t.mois ?? ""} onChange={(e)=>{
+                                        const next=getTranches(editOffre).map((x:any,i:number)=>i===index?{...x,mois:e.target.value===""?"":Number(e.target.value)}:x);
+                                        setEditOffre({...editOffre,tranches_paiement:next});
+                                      }}/>
+                                    </div>
+                                    <div>
+                                      <Label>Mensualité / ha (F)</Label>
+                                      <Input type="number" min="0" value={t.mensualite_par_ha ?? ""} onChange={(e)=>{
+                                        const next=getTranches(editOffre).map((x:any,i:number)=>i===index?{...x,mensualite_par_ha:e.target.value===""?"":Number(e.target.value)}:x);
+                                        setEditOffre({...editOffre,tranches_paiement:next});
+                                      }}/>
+                                    </div>
+                                    <div className="flex items-end pb-2 text-xs text-muted-foreground">{formatMontant((Number(t.mois)||0)*(Number(t.mensualite_par_ha)||0))} F / période</div>
+                                  </div>
+                                ))}
                               </div>
                               <Button 
                                 onClick={handleSaveOffre} 
