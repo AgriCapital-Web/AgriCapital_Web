@@ -54,7 +54,7 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
     ["archive", "Archiver"],
     ["delete", "Supprimer"],
   ]),
-  ...build("clients", "Clients / Souscripteurs", [
+  ...build("clients", "Clients", [
     ["view", "Consulter"],
     ["create", "Créer"],
     ["update", "Modifier"],
