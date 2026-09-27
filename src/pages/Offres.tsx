@@ -228,15 +228,25 @@ const Offres = () => {
     return new Intl.NumberFormat('fr-FR').format(montant);
   };
 
+  const getTranches = (offre: any) => {
+    const raw = Array.isArray(offre?.tranches_paiement) ? offre.tranches_paiement : [];
+    if (raw.length) return raw;
+    const duree = Number(offre?.duree_paiement_mois) || 0;
+    const mensuel = Number(offre?.contribution_mensuelle_par_ha) || 0;
+    return mensuel > 0 && duree > 0 ? [{ annee: 1, mois_debut: 1, mois_fin: duree, mois: duree, mensualite_par_ha: mensuel, total_periode_par_ha: mensuel * duree }] : [];
+  };
+
   const handleSaveOffre = () => {
     if (!editOffre) return;
-    const di = Number(editOffre.montant_da_par_ha) || 0;
-    const mensuel = Number(editOffre.contribution_mensuelle_par_ha) || 0;
-    const duree = Number((editOffre as any).duree_paiement_mois) || 34;
-    const total = di + mensuel * duree;
-    const tranches = mensuel > 0
-      ? [{ annee: 1, mois: duree, mensualite_par_ha: mensuel }]
-      : (editOffre as any).tranches_paiement;
+    const di = Math.max(0, Number(editOffre.montant_da_par_ha) || 0);
+    const tranches = getTranches(editOffre).map((t: any, index: number) => {
+      const mois = Math.max(0, Number(t.mois) || ((Number(t.mois_fin) || 0) - (Number(t.mois_debut) || 0) + 1));
+      const mensuel = Math.max(0, Number(t.mensualite_par_ha) || 0);
+      return { ...t, annee: Number(t.annee) || index + 1, mois, mensualite_par_ha: mensuel, total_periode_par_ha: mensuel * mois };
+    });
+    const duree = tranches.reduce((sum: number, t: any) => sum + Number(t.mois || 0), 0);
+    const total = di + tranches.reduce((sum: number, t: any) => sum + Number(t.total_periode_par_ha || 0), 0);
+    const lastMonthly = Number(tranches[tranches.length - 1]?.mensualite_par_ha || 0);
     updateOffreMutation.mutate({
       id: editOffre.id,
       updates: {
@@ -244,7 +254,7 @@ const Offres = () => {
         description: editOffre.description,
         montant_da_par_ha: di,
         montant_depot_initial_par_ha: di,
-        contribution_mensuelle_par_ha: mensuel,
+        contribution_mensuelle_par_ha: lastMonthly,
         montant_total_par_ha: total,
         duree_paiement_mois: duree,
         tranches_paiement: tranches as any,
@@ -543,7 +553,7 @@ const Offres = () => {
                                   />
                                 </div>
                                 <div>
-                                  <Label htmlFor="contribution">Redevance/ha/mois (F)</Label>
+                                  <Label htmlFor="contribution">Échéancier mensuel / ha (F)</Label>
                                   <Input 
                                     id="contribution"
                                     type="number"
