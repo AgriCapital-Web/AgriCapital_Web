@@ -40,14 +40,14 @@ const RapportsTechniques = () => {
 
   const fetchData = async () => {
     // Fetch interventions techniques
-    const { data: plantationsData } = await (supabase as any).from("plantations").select("id,souscripteur_id,id_unique,nom_plantation").order("nom_plantation");
+    const { data: plantationsData } = await (supabase as any).from("plantations").select("id,client_id,id_unique,nom_plantation").order("nom_plantation");
     setPlantationOptions(plantationsData || []);
 
     const { data: interventionsData } = await (supabase as any)
       .from("interventions_techniques")
       .select(`
         *,
-        technicien:profiles!interventions_techniques_technicien_id_fkey(nom_complet),
+        agent_technique:profiles!interventions_techniques_agent_technique_id_fkey(nom_complet),
         plantation:plantations(id_unique, nom_plantation)
       `)
       .order("date_intervention", { ascending: false });
@@ -117,14 +117,14 @@ const RapportsTechniques = () => {
     setReportSaving(true);
     try {
       const plantation = interventions.find((i:any) => i.plantation?.id === reportForm.plantation_id)?.plantation
-        || (await supabase.from("plantations").select("id,souscripteur_id").eq("id", reportForm.plantation_id).maybeSingle()).data;
+        || (await supabase.from("plantations").select("id,client_id").eq("id", reportForm.plantation_id).maybeSingle()).data;
       const reportId = crypto.randomUUID();
       const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", (await supabase.auth.getUser()).data.user?.id || "").maybeSingle();
       const payload = {
         id: reportId,
         plantation_id: reportForm.plantation_id,
-        souscripteur_id: plantation?.souscripteur_id || null,
-        technicien_id: profile?.id || null,
+        client_id: plantation?.client_id || null,
+        agent_technique_id: profile?.id || null,
         date_visite: new Date(reportForm.date_visite).toISOString(),
         type_visite: reportForm.type_visite,
         observations: reportForm.observations || null,
@@ -269,7 +269,7 @@ const RapportsTechniques = () => {
                         <TableHead>Date</TableHead>
                         <TableHead>Plantation</TableHead>
                         <TableHead>Type</TableHead>
-                        <TableHead>Technicien</TableHead>
+                        <TableHead>Agent technique</TableHead>
                         <TableHead>Observations</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -298,7 +298,7 @@ const RapportsTechniques = () => {
                                 {intervention.type_intervention?.replace(/_/g, " ")}
                               </Badge>
                             </TableCell>
-                            <TableCell>{intervention.technicien?.nom_complet}</TableCell>
+                            <TableCell>{intervention.agent_technique?.nom_complet}</TableCell>
                             <TableCell className="max-w-xs truncate">
                               {intervention.observations || "—"}
                             </TableCell>
