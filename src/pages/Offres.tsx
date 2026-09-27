@@ -275,6 +275,7 @@ const Offres = () => {
     setPromoFormData({
       nom: "",
       pourcentage_reduction: "30",
+      montant_fixe_reduction: "",
       date_debut: "",
       date_fin: "",
       description: "",
@@ -290,6 +291,7 @@ const Offres = () => {
     setPromoFormData({
       nom: promo.nom,
       pourcentage_reduction: promo.pourcentage_reduction.toString(),
+      montant_fixe_reduction: String(promo.montant_fixe_reduction || 0),
       date_debut: format(new Date(promo.date_debut), 'yyyy-MM-dd'),
       date_fin: format(new Date(promo.date_fin), 'yyyy-MM-dd'),
       description: promo.description || "",
