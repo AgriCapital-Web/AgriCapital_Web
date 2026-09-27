@@ -4661,6 +4661,7 @@ export type Database = {
           mensualite_montant: number | null
           montant_promo_applique: number
           montant_total_contrat: number
+          mode_paiement: string
           nationalite: string | null
           nom: string | null
           nom_complet: string | null
@@ -4736,6 +4737,7 @@ export type Database = {
           mensualite_montant?: number | null
           montant_promo_applique?: number
           montant_total_contrat?: number
+          mode_paiement?: string
           nationalite?: string | null
           nom?: string | null
           nom_complet?: string | null
@@ -4811,6 +4813,7 @@ export type Database = {
           mensualite_montant?: number | null
           montant_promo_applique?: number
           montant_total_contrat?: number
+          mode_paiement?: string
           nationalite?: string | null
           nom?: string | null
           nom_complet?: string | null
