@@ -333,7 +333,7 @@ const ProprietairesTerres = () => {
   const update = (field: string, value: any) => setFormData(f => ({ ...f, [field]: value }));
 
   return (
-    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_SOUSCRIPTIONS}>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
       <MainLayout>
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
