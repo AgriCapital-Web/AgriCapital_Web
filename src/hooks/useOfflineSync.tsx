@@ -82,6 +82,8 @@ export function useOfflineSync() {
         { store: STORES.LEAD_RELANCES, table: 'lead_relances' },
         { store: STORES.PROPRIETAIRES_TERRES, table: 'proprietaires_terres' },
         { store: STORES.PARCELLES, table: 'parcelles' },
+        { store: STORES.RAPPORTS_VISITES, table: 'rapports_visites_techniques' },
+        { store: STORES.RAPPORTS_MEDIAS, table: 'rapports_visites_medias' },
       ];
       for (const { store, table } of MAIN_TABLES) {
         try {
@@ -208,6 +210,8 @@ export function useOfflineSync() {
       lead_relances: STORES.LEAD_RELANCES,
       proprietaires_terres: STORES.PROPRIETAIRES_TERRES,
       parcelles: STORES.PARCELLES,
+      rapports_visites_techniques: STORES.RAPPORTS_VISITES,
+      rapports_visites_medias: STORES.RAPPORTS_MEDIAS,
     };
     const store = storeMap[table];
     if (store && operation !== 'delete') {
