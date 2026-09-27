@@ -25,11 +25,11 @@ export const RoleDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = userRoles.some(r => ["super_admin", "directeur_tc"].includes(r));
-  const isSTC = userRoles.some(r => ["responsable_commercial", "responsable_commercial", "responsable_commercial"].includes(r));
-  const isChefEquipe = userRoles.some(r => ["chef_equipe_commercial", "chef_equipe_commercial_commercial", "chef_equipe_commercial_technique"].includes(r));
+  const isAdmin = userRoles.some(r => ["super_admin", "directeur_tc", "responsable_operations"].includes(r));
+  const isResponsableCommercial = userRoles.includes("responsable_commercial");
+  const isChefEquipe = userRoles.some(r => ["chef_equipe_commercial", "chef_equipe_technique", "chef_equipe_service_client"].includes(r));
   const isCommercial = userRoles.includes("commercial");
-  const isTechnique = userRoles.includes("agent_technique");
+  const isTechnique = userRoles.includes("chef_equipe_technique");
 
   useEffect(() => {
     if (!user) return;
@@ -56,7 +56,7 @@ export const RoleDashboard = () => {
           equipes: eq || 0,
           zoneName: "Vue globale — Toutes les zones",
         });
-      } else if (isSTC || isChefEquipe || isCommercial || isTechnique) {
+      } else if (isResponsableCommercial || isChefEquipe || isCommercial || isTechnique) {
         const { data: zones } = await (supabase as any)
           .from("zone_assignments").select("zone_id, zone_type").eq("user_id", user!.id);
 
@@ -111,11 +111,11 @@ export const RoleDashboard = () => {
 
   if (loading) return null;
 
-  const roleLabel = isAdmin ? "Administrateur" : isSTC ? "Superviseur TC" : isChefEquipe ? "Chef d'Équipe" : isTechnique ? "Technicien" : "Commercial";
-  const zoneLevel = isAdmin ? "Global" : isSTC ? "Districts" : isChefEquipe ? "Départements" : "Sous-préfectures";
+  const roleLabel = isAdmin ? "Administrateur" : isResponsableCommercial ? "Responsable Commercial" : isChefEquipe ? "Chef d'Équipe" : isTechnique ? "Technique" : "Commercial";
+  const zoneLevel = isAdmin ? "Global" : isResponsableCommercial ? "Régions" : isChefEquipe ? "Départements" : "Sous-préfectures";
 
-  const showCommercialKPIs = isCommercial || isSTC || isAdmin;
-  const showTechKPIs = isTechnique || isSTC || isAdmin;
+  const showCommercialKPIs = isCommercial || isResponsableCommercial || isAdmin;
+  const showTechKPIs = isTechnique || isResponsableCommercial || isAdmin;
 
   return (
     <Card className="border-primary/20 bg-primary/5">
