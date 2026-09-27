@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +15,6 @@ import {
   Download, 
   Upload, 
   Cloud, 
-  Clock, 
   HardDrive, 
   Table, 
   Shield,
@@ -50,8 +48,6 @@ const GestionBaseDonnees = () => {
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState("json");
   const [exporting, setExporting] = useState(false);
-  const [autoBackup] = useState(false);
-  const [backupFrequency] = useState("daily");
   const [lastBackup, setLastBackup] = useState<string | null>(null);
 
   const handleExport = async () => {
@@ -317,32 +313,6 @@ const GestionBaseDonnees = () => {
                 <Switch checked={false} disabled aria-label="Sauvegarde automatique non configurée" />
               </div>
 
-              {autoBackup && (
-                <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                  <div className="space-y-2">
-                    <Label>Fréquence</Label>
-                    <Select value={backupFrequency} onValueChange={setBackupFrequency}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hourly">Toutes les heures</SelectItem>
-                        <SelectItem value="daily">Quotidien</SelectItem>
-                        <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                        <SelectItem value="monthly">Mensuel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-amber-600" />
-                    <p className="text-sm text-amber-800">
-                      La sauvegarde automatique vers des services externes (Google Drive, etc.) 
-                      nécessite une configuration avancée. Contactez l'équipe technique.
-                    </p>
-                  </div>
-                </div>
-              )}
 
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
