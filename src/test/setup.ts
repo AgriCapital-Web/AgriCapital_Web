@@ -11,6 +11,6 @@ Object.defineProperty(window, "matchMedia", {
 });
 
 if (typeof globalThis.ResizeObserver === "undefined") {
-  // @ts-ignore
+  // @ts-expect-error ResizeObserver is intentionally provided by the test environment
   globalThis.ResizeObserver = class { observe(){} unobserve(){} disconnect(){} };
 }
