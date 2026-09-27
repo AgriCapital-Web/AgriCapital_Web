@@ -23,7 +23,12 @@
       "purpose": "any"
     }
   ],
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "lang": "fr-FR",
-  "dir": "ltr"
+  "dir": "ltr",
+  "author": "Inocent KOFFI",
+  "publisher": "AgriCapital SARL"
 }
