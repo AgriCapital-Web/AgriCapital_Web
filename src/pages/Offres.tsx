@@ -210,6 +210,9 @@ const Offres = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-prix-effectif'] });
+      queryClient.invalidateQueries({ queryKey: ['promotion-active'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-acquisition'] });
     }
   });
 
@@ -224,6 +227,9 @@ const Offres = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['promotions'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-prix-effectif'] });
+      queryClient.invalidateQueries({ queryKey: ['promotion-active'] });
+      queryClient.invalidateQueries({ queryKey: ['offres-acquisition'] });
       toast({ title: "Promotion supprimée" });
     }
   });
