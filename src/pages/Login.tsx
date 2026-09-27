@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import logoV2 from "@/assets/logo-agricapital-v2.png";
 import logoWhite from "@/assets/logo-white.png";
-import { Eye, EyeOff, LogIn, UserPlus, ScanLine } from "lucide-react";
+import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -80,18 +80,7 @@ const Login = () => {
 
       {/* Panneau droit - Formulaire de connexion */}
       <div className="relative flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-background min-h-screen lg:min-h-0">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => navigate("/verifier-carte?scan=1")}
-          className="absolute right-4 top-4 gap-2 sm:right-6 sm:top-6"
-        >
-          <ScanLine className="h-4 w-4" />
-          Scanner / vérifier une carte
-        </Button>
-
-        {/* Logo mobile — sans cadre */}
+{/* Logo mobile — sans cadre */}
 
         <div className="lg:hidden mb-8 w-full flex flex-col items-center">
           <img
