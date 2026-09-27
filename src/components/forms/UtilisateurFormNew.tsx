@@ -81,6 +81,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
   const isCommercialProfile = departementSelectionne === "Commercial";
 
   const isTechniqueProfile = departementSelectionne === "Technique";
+  const showEquipe = isCommercialProfile || isTechniqueProfile;
 
   const equipesFiltrees = useMemo(() => {
     if (isCommercialProfile) return equipes.filter((e) => !e.type_equipe || e.type_equipe === "commerciale");
@@ -177,7 +178,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             taux_commission: data.taux_commission ? Number(data.taux_commission) : null,
             district_id: data.district_id || null,
             region_id: data.region_id || null,
-            equipe_id: data.equipe_id || null,
+            equipe_id: showEquipe ? (data.equipe_id || null) : null,
             photo_url: photoUrl || null,
           })
           .eq("id", utilisateur.id);
@@ -373,7 +374,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             </Select>
           </div>}
 
-          {!governanceOnly && <div className="space-y-2">
+          {!governanceOnly && showEquipe && <div className="space-y-2">
             <Label>Équipe</Label>
             <Select
               defaultValue={utilisateur?.equipe_id}
