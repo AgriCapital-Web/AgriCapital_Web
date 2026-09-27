@@ -46,8 +46,8 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const souscripteurId = String(body?.souscripteur_id || "");
-    if (!souscripteurId) return json({ success: false, error: "souscripteur_id requis" }, 400);
+    const souscripteurId = String(body?.client_id || "");
+    if (!souscripteurId) return json({ success: false, error: "client_id requis" }, 400);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL") || "",
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const { data: s, error: sError } = await admin.from("souscripteurs")
+    const { data: s, error: sError } = await admin.from("clients")
       .select("id,user_id,nom_complet,telephone,email,numero_contrat,id_unique,compte_actif")
       .eq("id", souscripteurId).single();
     if (sError) throw sError;
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
           numero_client: s.numero_contrat || s.id_unique || s.id,
           username,
           role: "client",
-          souscripteur_id: s.id,
+          client_id: s.id,
         },
       };
       if (phone) { attrs.phone = phone; attrs.phone_confirm = true; }
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     }, { onConflict: "user_id" });
     if (profileError) throw profileError;
 
-    const { error: updateError } = await admin.from("souscripteurs")
+    const { error: updateError } = await admin.from("clients")
       .update({ user_id: user.id, compte_actif: true, updated_at: new Date().toISOString() })
       .eq("id", s.id);
     if (updateError) throw updateError;
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
       await admin.rpc("notification_emit_event", {
         _event: "client_account_ready",
         _context: {
-          souscripteur_id: s.id,
+          client_id: s.id,
           user_id: user.id,
           username,
           password: passwordForNotification,
