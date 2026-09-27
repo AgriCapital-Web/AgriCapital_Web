@@ -30,13 +30,13 @@ export const Etape5Documents = ({ formData, updateFormData }: Etape5Props) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Contrat de souscription</CardTitle>
+          <CardTitle>Contrat client</CardTitle>
           <CardDescription>Contrat signé (AGC-SUB-YYYY-SPxxx-NNNN) + date de signature</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <FileUploadVisual
-              label="Contrat de Souscription (Signé) *"
+              label="Contrat client (Signé) *"
               field="contrat"
               accept=".pdf,image/*"
               required
