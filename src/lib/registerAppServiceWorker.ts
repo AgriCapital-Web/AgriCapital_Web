@@ -4,7 +4,7 @@ function registrationAllowed() {
   const host = window.location.hostname;
   const previewHost = host.startsWith("id-preview--") || host.startsWith("preview--") ||
     PREVIEW_HOSTS.some((root) => host === root || host.endsWith(`.${root}`));
-  return import.meta.env.PROD && window.top === window.self && !previewHost && !new URLSearchParams(location.search).get("sw") === "off";
+  return import.meta.env.PROD && window.top === window.self && !previewHost && new URLSearchParams(location.search).get("sw") !== "off";
 }
 
 async function unregisterAppWorkers() {
