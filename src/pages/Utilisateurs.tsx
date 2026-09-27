@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Users, Plus, Search, Edit, Shield, MoreHorizontal, UserCheck, UserX, KeyRound, AtSign, Trash2 } from "lucide-react";
+import { Users, Plus, Search, Edit, Shield, MoreHorizontal, UserCheck, UserX, KeyRound, AtSign, Trash2, Eye } from "lucide-react";
 import UtilisateurFormNew from "@/components/forms/UtilisateurFormNew";
 import { ROLES as ROLE_KEYS, ROLE_LABELS } from "@/lib/roles";
 import { getSafeErrorMessage } from "@/lib/safeError";
@@ -29,6 +29,8 @@ const Utilisateurs = () => {
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [viewUser, setViewUser] = useState<any>(null);
+  const [viewPhotoUrl, setViewPhotoUrl] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [adminAction, setAdminAction] = useState<null | "roles" | "password" | "username">(null);
   const [adminTarget, setAdminTarget] = useState<any>(null);
@@ -71,6 +73,18 @@ const Utilisateurs = () => {
   useEffect(() => {
     fetchUtilisateurs();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadPhoto = async () => {
+      if (!viewUser?.photo_url) { setViewPhotoUrl(""); return; }
+      if (/^(https?:|data:)/.test(viewUser.photo_url)) { setViewPhotoUrl(viewUser.photo_url); return; }
+      const { data } = await supabase.storage.from("photos-profils").createSignedUrl(viewUser.photo_url, 3600);
+      if (!cancelled) setViewPhotoUrl(data?.signedUrl || "");
+    };
+    void loadPhoto();
+    return () => { cancelled = true; };
+  }, [viewUser?.photo_url]);
 
   useRealtime({ table: "profiles", onChange: fetchUtilisateurs });
   useRealtime({ table: "user_roles", onChange: fetchUtilisateurs });
@@ -259,6 +273,10 @@ const Utilisateurs = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setViewUser(user)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Voir la fiche
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
                           setSelectedUser(user);
                           setDialogOpen(true);
@@ -311,6 +329,28 @@ const Utilisateurs = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={!!viewUser} onOpenChange={(o) => !o && setViewUser(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Fiche utilisateur — {viewUser?.nom_complet || "Utilisateur"}</DialogTitle></DialogHeader>
+          {viewUser && (
+            <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-6">
+              <div className="flex justify-center">
+                {viewPhotoUrl ? <img src={viewPhotoUrl} alt={viewUser.nom_complet} className="h-32 w-32 rounded-2xl object-cover border" /> : <div className="h-32 w-32 rounded-2xl border bg-muted flex items-center justify-center text-muted-foreground text-xs text-center">Aucune photo</div>}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div><span className="text-muted-foreground">Nom</span><p className="font-medium">{viewUser.nom_complet || "—"}</p></div>
+                <div><span className="text-muted-foreground">Email</span><p className="font-medium break-all">{viewUser.email || "—"}</p></div>
+                <div><span className="text-muted-foreground">Téléphone</span><p>{viewUser.telephone || "—"}</p></div>
+                <div><span className="text-muted-foreground">Relation RH</span><p>{viewUser.relation_rh || "—"}</p></div>
+                <div><span className="text-muted-foreground">Département</span><p>{viewUser.departement || "—"}</p></div>
+                <div><span className="text-muted-foreground">Équipe</span><p>{viewUser.equipe_id || "—"}</p></div>
+                <div className="sm:col-span-2"><span className="text-muted-foreground">Rôles</span><div className="flex flex-wrap gap-1 mt-1">{getRoles(viewUser).map((role:string)=><Badge key={role} variant="outline">{ROLE_LABELS[role] || role}</Badge>)}</div></div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!adminAction} onOpenChange={(o) => !o && setAdminAction(null)}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
