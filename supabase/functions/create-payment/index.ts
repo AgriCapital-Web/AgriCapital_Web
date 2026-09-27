@@ -106,7 +106,7 @@ serve(async (req) => {
     // SECURITY: this function runs with the service role (RLS bypassed) and the
     // client portal has no Supabase JWT. Every action therefore requires a valid
     // portal session token issued by `send-otp` after OTP verification, and the
-    // session phone must own the subscriber/payment being acted on.
+    // session phone must own the client/payment being acted on.
     const sessionPhone = await verifyPortalSession(
       req.headers.get("x-portal-session") || body.portal_token,
     );
@@ -118,7 +118,7 @@ serve(async (req) => {
         .select("telephone")
         .eq("id", clientId)
         .maybeSingle();
-      if (!owner) throw new Error("Souscripteur introuvable");
+      if (!owner) throw new Error("Client introuvable");
       return phoneMatches(owner.telephone, sessionPhone);
     };
 
@@ -131,14 +131,14 @@ serve(async (req) => {
     if (action === "activate_free") {
       const { client_id, plantation_id, reference } = body;
       if (!client_id || !plantation_id) throw new Error("client_id et plantation_id requis");
-      if (!(await assertOwnsSouscripteur(client_id))) return unauthorized("Accès refusé à ce client");
+      if (!(await assertOwnsClient(client_id))) return unauthorized("Accès refusé à ce client");
 
       const { data: client } = await supabase
         .from("clients")
         .select("*, offres(*)")
         .eq("id", client_id)
         .maybeSingle();
-      if (!client) throw new Error("Souscripteur introuvable");
+      if (!client) throw new Error("Client introuvable");
 
       const { data: plantation } = await supabase
         .from("plantations")
@@ -224,7 +224,7 @@ serve(async (req) => {
       if (!client_id || !type_paiement || !montant || !reference) {
         throw new Error("Champs requis manquants");
       }
-      if (!(await assertOwnsSouscripteur(client_id))) return unauthorized("Accès refusé à ce client");
+      if (!(await assertOwnsClient(client_id))) return unauthorized("Accès refusé à ce client");
       const isDepotInitial = type_paiement === "DA";
       const paymentPhase = isDepotInitial ? null : (metadata?.phase || (metadata?.annee_tarif ? `annee_${metadata.annee_tarif}` : null));
 
@@ -431,7 +431,7 @@ serve(async (req) => {
       const { reference, transaction_id } = body;
       if (!reference && !transaction_id) throw new Error("Reference requise");
       // SECURITY: requires a valid portal session (checked above) AND the
-      // payment must belong to the subscriber owning that session. Only the
+      // payment must belong to the client owning that session. Only the
       // minimum fields needed to render the result UI are returned; PII
       // (nom_complet, telephone, client_id) is never exposed.
       const selectFields = "id, reference, statut, montant, montant_paye, type_paiement, mode_paiement, date_paiement, created_at, metadata, plantations(nom_plantation, id_unique, superficie_ha), clients(telephone)";
