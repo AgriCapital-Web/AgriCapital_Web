@@ -210,6 +210,12 @@ const NouvelleSouscription = () => {
       }
 
       const nomComplet = `${formData.nom_famille || ''} ${formData.prenoms || ''}`.trim();
+      const selectedOffer = formData.offre || {};
+      const modePaiement = formData.mode_paiement === "comptant" ? "comptant" : "echeancier";
+      const superficie = Number(formData.superficie_prevue || 0);
+      const paiementInitialMontant = modePaiement === "comptant"
+        ? Number(selectedOffer.montant_cash_par_ha || selectedOffer.montant_total_par_ha || 0) * superficie
+        : Number(selectedOffer.montant_depot_initial_par_ha || selectedOffer.montant_da_par_ha || 0) * superficie;
       
       const { data: client, error: errorSous, offline } = await offlineInsert("souscripteurs", {
           offre_id: formData.offre_id,
@@ -245,6 +251,8 @@ const NouvelleSouscription = () => {
           updated_by: user.id,
           statut: 'actif',
           statut_global: 'actif',
+          mode_paiement: modePaiement,
+          paiement_initial_montant: paiementInitialMontant,
         });
 
       if (errorSous) throw errorSous;
