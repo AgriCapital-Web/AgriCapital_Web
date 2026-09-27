@@ -1,12 +1,24 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-agricapital-automation-secret",
+const ALLOWED_ORIGINS = new Set(
+  (Deno.env.get("ALLOWED_ORIGINS") || "https://agricapital.ci,https://www.agricapital.ci,https://app.agricapital.ci,https://portail.agricapital.ci,http://localhost:5173,http://localhost:8080")
+    .split(",").map((v) => v.trim()).filter(Boolean),
+);
+const corsHeaders = (req: Request) => {
+  const origin = req.headers.get("origin") || "";
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-agricapital-automation-secret",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Vary": "Origin",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
 };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
-  status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  status, headers: { ...corsHeaders(req), "Content-Type": "application/json" },
 });
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -295,7 +307,7 @@ async function runScheduledAutomations() {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders(req) });
   try {
     const body = await req.json().catch(() => ({}));
     const mode = body.mode || "status";
