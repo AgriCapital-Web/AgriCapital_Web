@@ -4244,6 +4244,7 @@ export type Database = {
           plantation_id: string
           rapport_id: string
           storage_path: string
+          updated_at: string
         }
         Insert: {
           client_visible?: boolean
@@ -4257,6 +4258,7 @@ export type Database = {
           plantation_id: string
           rapport_id: string
           storage_path: string
+          updated_at?: string
         }
         Update: {
           client_visible?: boolean
@@ -4270,6 +4272,7 @@ export type Database = {
           plantation_id?: string
           rapport_id?: string
           storage_path?: string
+          updated_at?: string
         }
         Relationships: [
           {
