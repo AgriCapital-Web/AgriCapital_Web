@@ -61,7 +61,6 @@ update public.offres set
   montant_total_par_ha=518600,
   duree_paiement_mois=36,
   tranches_paiement='[
-    {"libelle":"Paiement initial","montant":65000,"mensualite_par_ha":65000,"mois":1},
     {"libelle":"Mensualité","montant":453600,"mensualite_par_ha":12600,"mois":36}
   ]'::jsonb,
   updated_at=now()
