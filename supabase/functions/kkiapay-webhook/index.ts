@@ -152,6 +152,30 @@ serve(async (req) => {
       processed_at: new Date().toISOString(),
     });
 
+    // Declenche les notifications configurees uniquement apres confirmation SUCCESS.
+    try {
+      await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/notification-dispatch`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          mode: "event",
+          event_code: "paiement_recu",
+          context: {
+            paiement_id: payment.id,
+            souscripteur_id: payment.souscripteur_id,
+            montant: providerAmount,
+            reference: payment.reference,
+            transaction_id: transactionId,
+          },
+        }),
+      });
+    } catch (notificationError) {
+      console.error("Notification paiement non declenchee", notificationError);
+    }
+
     await admin.from("historique_activites").insert({
       table_name: "paiements",
       record_id: payment.id,
