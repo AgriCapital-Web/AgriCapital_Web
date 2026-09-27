@@ -452,6 +452,7 @@ const Promotions = () => {
                 ))}
               </TableBody>
             </Table>
+            </div>
           ) : (
             <p className="text-center py-8 text-muted-foreground">Aucune promotion configurée.</p>
           )}
