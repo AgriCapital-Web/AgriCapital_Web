@@ -93,6 +93,8 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     // PalmTerroir : le total est toujours recalculé depuis la formule sélectionnée
     // (PI + somme des mensualités de la formule × nombre de mois).
     const isPalmTerroir = String(o.code || '').startsWith('palm-terroir');
+    const isCashEligible = ['palm-invest','palm-invest-plus','terra-palm','terra-palm-plus'].includes(String(o.code || '').toLowerCase());
+    const modePaiement = isCashEligible && formData.mode_paiement === 'comptant' ? 'comptant' : 'echeancier';
     const mensualitesFormule = tranches.filter((t: any) =>
       Number(t.mensualite_par_ha) > 0 && t.type !== 'paiement_initial'
     );
@@ -100,11 +102,14 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       (sum: number, t: any) => sum + Number(t.mensualite_par_ha) * Number(t.mois || 0),
       0,
     );
-    const totalUnitaire = isPalmTerroir
-      ? piUnitaire + totalMensualitesParHa
-      : Number(o.montant_total_par_ha ?? 0);
+    const cashUnitaire = Number(o.montant_cash_par_ha ?? 0);
+    const totalUnitaire = modePaiement === 'comptant' && isCashEligible && cashUnitaire > 0
+      ? cashUnitaire
+      : isPalmTerroir
+        ? piUnitaire + totalMensualitesParHa
+        : Number(o.montant_total_par_ha ?? 0);
 
-    let piUnitaireFinal = piUnitaire;
+    let piUnitaireFinal = modePaiement === 'comptant' ? totalUnitaire : piUnitaire;
     let totalFinal = totalUnitaire * ha;
     let promoCible: string | null = null;
     let promoReduction = 0;
@@ -129,14 +134,15 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       totalUnitaire,
       totalFinal,
       totalNormal: totalUnitaire * ha,
-      cashUnitaire: o.montant_cash_par_ha ?? 0,
+      cashUnitaire,
+      modePaiement,
       tranches,
-      duree: o.duree_paiement_mois ?? 0,
+      duree: modePaiement === 'comptant' ? 1 : (o.duree_paiement_mois ?? 0),
       promoCible,
       promoReduction,
       promotionAppliquee: !!promotionActive,
     };
-  }, [formData.offre_id, formData.superficie_prevue, promotionActive, offres]);
+  }, [formData.offre_id, formData.superficie_prevue, formData.mode_paiement, promotionActive, offres]);
 
   if (isLoading) {
     return (
@@ -176,6 +182,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 offre_code: selected?.code || "",
                 offre: selected,
                 type_souscripteur: selected?.type_offre === "sans_terre" ? "sans_terre" : "avec_terre",
+                mode_paiement: ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(selected?.code || "").toLowerCase()) ? (formData.mode_paiement || "echeancier") : "echeancier",
                 ...(selected?.type_offre === "sans_terre" ? {} : { parcelle_id: null }),
               });
             }}
@@ -243,6 +250,27 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
               );
             })}
           </RadioGroup>
+
+          {(() => {
+            const selected = offres?.find((o: any) => o.id === formData.offre_id);
+            const code = String(selected?.code || "").toLowerCase();
+            const cashEligible = ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(code);
+            if (!selected || !cashEligible || Number(selected.montant_cash_par_ha || 0) <= 0) return null;
+            return (
+              <div className="mt-5 rounded-2xl border bg-muted/30 p-4">
+                <div className="text-sm font-semibold">Mode de paiement</div>
+                <p className="text-xs text-muted-foreground mt-1">Le client choisit entre l’échéancier de l’offre et le paiement comptant.</p>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Button type="button" variant={formData.mode_paiement !== "comptant" ? "default" : "outline"} onClick={() => updateFormData({ mode_paiement: "echeancier" })}>
+                    Échéancier — {selected.duree_paiement_mois} mois
+                  </Button>
+                  <Button type="button" variant={formData.mode_paiement === "comptant" ? "default" : "outline"} onClick={() => updateFormData({ mode_paiement: "comptant" })}>
+                    Comptant — {formatMontant(Number(selected.montant_cash_par_ha))} F/ha
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
@@ -279,7 +307,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 <span>Paiement Initial{calculs.promoCible === 'paiement_initial' ? ' (promo)' : ''}:</span>
                 <span className="font-bold text-primary">{formatMontant(calculs.totalPI)} F</span>
               </div>
-              {calculs.tranches.length > 0 && (
+              {calculs.modePaiement !== "comptant" && calculs.tranches.length > 0 && (
                 <div className="border-t pt-2 space-y-1 text-sm">
                    <div className="font-medium mb-1">Échéancier de paiement :</div>
                   {calculs.tranches.filter((t:any) => Number(t.mensualite_par_ha) > 0).map((t: any, i: number) => (
@@ -291,7 +319,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between">
-                 <span className="font-semibold">Total contrat ({calculs.duree} mois){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
+                 <span className="font-semibold">Total contrat ({calculs.modePaiement === "comptant" ? "comptant" : `${calculs.duree} mois`}){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
                 <span className="text-lg font-bold text-primary">{formatMontant(calculs.totalFinal)} F</span>
               </div>
               {calculs.promotionAppliquee && (
