@@ -169,9 +169,14 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "clients.view", "documents.view", "documents.upload", "leads.view",
     "plantations.view", "tickets.view", "rapports.export",
   ),
+  [ROLES.ASSOCIE_ACTIONNAIRE]: only(
+    "offres.view", "promotions.view", "leads.view", "clients.view", "plantations.view",
+    "paiements.view", "documents.view", "rapports.view_technique", "rapports.view_financier",
+    "rapports.export", "commissions.view", "tickets.view",
+  ),
 };
 
-/** Garantit une entrée pour chacun des 11 rôles officiels */
+/** Garantit une entrée pour chacun des rôles officiels */
 OFFICIAL_ROLE_CODES.forEach((code) => {
   DEFAULT_ROLE_PERMISSIONS[code] ||= [];
 });
