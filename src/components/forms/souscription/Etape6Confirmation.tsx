@@ -36,10 +36,10 @@ export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) =>
               <p className="text-xs text-muted-foreground">{formData.telephone}</p>
             </div>
 
-            <div className="space-y-2">
+            {formData.necessite_cotitulaire !== false && <div className="space-y-2">
                <h4 className="font-semibold text-sm">Cotitulaire / mandataire</h4>
                <p className="text-sm">{formData.has_cotitulaire ? `${formData.cotit_nom_famille || ''} ${formData.cotit_prenoms || ''}` : 'Non désigné'}</p>
-            </div>
+            </div>}
 
             <div className="space-y-2">
               <h4 className="font-semibold text-sm">Offre & formule</h4>
@@ -104,7 +104,7 @@ export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) =>
                 Une fois soumis, le dossier sera envoyé au Service Client pour examen.
               </p>
               <p className="text-xs text-muted-foreground">
-                Vous recevrez un numéro de référence et une notification par SMS.
+                Vous recevrez un numéro de référence et une notification via le canal automatique prévu pour votre numéro (SMS, WhatsApp puis email en cas d’échec).
               </p>
             </div>
           </CardContent>
