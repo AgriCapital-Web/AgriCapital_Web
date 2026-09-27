@@ -38,6 +38,13 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } },
     );
 
+    const clientIp = (req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown").slice(0, 120);
+    const ipSince = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: ipCount } = await admin.from("rate_limits").select("*", { count: "exact", head: true })
+      .eq("identifier", clientIp).eq("action", "account_request").gt("first_attempt_at", ipSince);
+    if ((ipCount || 0) >= 5) return json({ error: "Trop de demandes. Réessayez plus tard." }, 429);
+    await admin.from("rate_limits").insert({ identifier: clientIp, action: "account_request" });
+
     const body = await req.json();
     const {
       username, password, email, nom_complet, telephone, role_souhaite,
@@ -47,8 +54,8 @@ serve(async (req) => {
     if (!username || !password || !email || !nom_complet || !telephone || !role_souhaite || !photo_url) {
       return json({ error: "Champs obligatoires manquants (identifiant, mot de passe, email, nom, téléphone, rôle, photo).", step: "validate_body" }, 400);
     }
-    if (String(password).length < 8) {
-      return json({ error: "Le mot de passe doit contenir au moins 8 caractères.", step: "validate_password" }, 400);
+    if (String(password).length < 12 || String(password).length > 128) {
+      return json({ error: "Le mot de passe doit contenir entre 12 et 128 caractères.", step: "validate_password" }, 400);
     }
     if (!/^[a-zA-Z0-9._-]{3,30}$/.test(String(username))) {
       return json({ error: "Identifiant invalide (3 à 30 caractères : lettres, chiffres, . _ -).", step: "validate_username" }, 400);
@@ -59,6 +66,13 @@ serve(async (req) => {
 
     const cleanUsername = String(username).trim().toLowerCase();
     const cleanEmail = String(email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleanEmail) || cleanEmail.length > 255) {
+      return json({ error: "Adresse email invalide.", step: "validate_email" }, 400);
+    }
+    const { count: emailCount } = await admin.from("rate_limits").select("*", { count: "exact", head: true })
+      .eq("identifier", `account_request_email:${cleanEmail}`).eq("action", "account_request_email").gt("first_attempt_at", ipSince);
+    if ((emailCount || 0) >= 3) return json({ error: "Trop de demandes pour cette adresse. Réessayez plus tard." }, 429);
+    await admin.from("rate_limits").insert({ identifier: `account_request_email:${cleanEmail}`, action: "account_request_email" });
 
     // Username déjà pris ?
     const { data: available } = await admin.rpc("username_available", { _username: cleanUsername });
