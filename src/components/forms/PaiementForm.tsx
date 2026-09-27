@@ -498,7 +498,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
                   <div className="flex justify-between text-green-600">
                     <span>Économie:</span>
                     <span className="font-bold">
-                      {(prixPI?.depot_initial_base || 0) - montantCalculePI}.toLocaleString()} F
+                      {((prixPI?.depot_initial_base || 0) - (montantCalculePI || 0)).toLocaleString()} F
                     </span>
                   </div>
                 )}
