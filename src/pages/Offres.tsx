@@ -548,8 +548,8 @@ const Offres = () => {
                                   <Input 
                                     id="montant_da"
                                     type="number"
-                                    value={editOffre.montant_da_par_ha}
-                                    onChange={(e) => setEditOffre({...editOffre, montant_da_par_ha: Number(e.target.value)})}
+                                    value={editOffre.montant_da_par_ha ?? ""}
+                                    onChange={(e) => setEditOffre({...editOffre, montant_da_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
                                   />
                                 </div>
                                 <div>
@@ -557,10 +557,40 @@ const Offres = () => {
                                   <Input 
                                     id="contribution"
                                     type="number"
-                                    value={editOffre.contribution_mensuelle_par_ha}
-                                    onChange={(e) => setEditOffre({...editOffre, contribution_mensuelle_par_ha: Number(e.target.value)})}
+                                    value={editOffre.contribution_mensuelle_par_ha ?? ""}
+                                    onChange={(e) => {
+                                      const value = e.target.value === "" ? 0 : Number(e.target.value);
+                                      const current = getTranches(editOffre);
+                                      const next = current.length ? current.map((t:any,i:number)=>i===current.length-1?{...t,mensualite_par_ha:value}:t) : [{annee:1,mois:1,mensualite_par_ha:value}];
+                                      setEditOffre({...editOffre, contribution_mensuelle_par_ha:value, tranches_paiement:next});
+                                    }}
                                   />
                                 </div>
+                              </div>
+                              <div className="space-y-3 rounded-lg border p-3">
+                                <div>
+                                  <div className="text-sm font-semibold">Échéancier par période</div>
+                                  <p className="text-xs text-muted-foreground">Le PI reste séparé. Les mensualités sont configurées par An 1, An 2 et An 3.</p>
+                                </div>
+                                {getTranches(editOffre).filter((t:any)=>t.type !== "paiement_initial").map((t:any,index:number)=>(
+                                  <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <div>
+                                      <Label>An {index+1} — nombre de mois</Label>
+                                      <Input type="number" min="0" value={t.mois ?? ""} onChange={(e)=>{
+                                        const next=getTranches(editOffre).map((x:any,i:number)=>i===index?{...x,mois:e.target.value===""?"":Number(e.target.value)}:x);
+                                        setEditOffre({...editOffre,tranches_paiement:next});
+                                      }}/>
+                                    </div>
+                                    <div>
+                                      <Label>Mensualité / ha (F)</Label>
+                                      <Input type="number" min="0" value={t.mensualite_par_ha ?? ""} onChange={(e)=>{
+                                        const next=getTranches(editOffre).map((x:any,i:number)=>i===index?{...x,mensualite_par_ha:e.target.value===""?"":Number(e.target.value)}:x);
+                                        setEditOffre({...editOffre,tranches_paiement:next});
+                                      }}/>
+                                    </div>
+                                    <div className="flex items-end pb-2 text-xs text-muted-foreground">{formatMontant((Number(t.mois)||0)*(Number(t.mensualite_par_ha)||0))} F / période</div>
+                                  </div>
+                                ))}
                               </div>
                               <Button 
                                 onClick={handleSaveOffre} 
