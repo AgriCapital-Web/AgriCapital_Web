@@ -183,7 +183,9 @@ All colors MUST be HSL.
     min-width: 0;
   }
 
-  .responsive-grid > * {
+  .responsive-grid > *,
+  .grid > *,
+  .flex > * {
     min-width: 0;
   }
 
