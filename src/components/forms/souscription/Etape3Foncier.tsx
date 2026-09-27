@@ -64,7 +64,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
         <CardHeader>
           <CardTitle>Identification foncière — Contrat V1</CardTitle>
           <CardDescription>
-            Le souscripteur est-il externe (terre fournie par AgriCapital) ou propriétaire de la terre ?
+            Le client est-il externe (terre fournie par AgriCapital) ou propriétaire de la terre ?
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -76,7 +76,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
                 typeFoncier === "EXT" ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/50"
               }`}
             >
-              <div className="font-semibold">EXT — Souscripteur externe</div>
+              <div className="font-semibold">EXT — Client externe</div>
               <p className="text-xs text-muted-foreground mt-1">
                 AgriCapital fournit la terre via une convention Planter-Partager. Sélection d'un lot Hxx.
               </p>
@@ -90,7 +90,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
             >
               <div className="font-semibold">OWN — Propriétaire foncier</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Le souscripteur apporte sa propre terre, enregistrée comme parcelle client.
+                Le client apporte sa propre terre, enregistrée comme parcelle client.
               </p>
             </button>
           </div>
@@ -162,7 +162,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
           <CardHeader>
             <CardTitle>Identification du propriétaire foncier</CardTitle>
             <CardDescription>
-              Le souscripteur est lui-même propriétaire — saisie minimale du foncier.
+              Le client est lui-même propriétaire — saisie minimale du foncier.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
