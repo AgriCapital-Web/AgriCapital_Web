@@ -72,28 +72,15 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
   // Affichage conditionnel : couverture territoriale pour Commercial / Technique
   // ou pour tout rôle disposant d'une couverture terrain.
+  const governanceOnly = relationRH === "PDG" || relationRH === "Associé / Actionnaire";
   const needsCoverage = useMemo(
-    () =>
-      requiresCoverage(departementSelectionne) ||
-      selectedRoles.some((r) => TERRITORIAL_ROLES.includes(r)),
-    [departementSelectionne, selectedRoles, requiresCoverage],
+    () => !governanceOnly && (departementSelectionne === "Commercial" || departementSelectionne === "Technique"),
+    [departementSelectionne, governanceOnly],
   );
 
-  const isCommercialProfile = useMemo(
-    () =>
-      departementSelectionne === "Commercial" ||
-      selectedRoles.some((r) =>
-        [APP_ROLES.COMMERCIAL, APP_ROLES.CHEF_EQUIPE_COMMERCIAL, APP_ROLES.RESPONSABLE_COMMERCIAL].includes(r as any),
-      ),
-    [departementSelectionne, selectedRoles],
-  );
+  const isCommercialProfile = departementSelectionne === "Commercial";
 
-  const isTechniqueProfile = useMemo(
-    () =>
-      departementSelectionne === "Technique" ||
-      selectedRoles.includes(APP_ROLES.CHEF_EQUIPE_TECHNIQUE),
-    [departementSelectionne, selectedRoles],
-  );
+  const isTechniqueProfile = departementSelectionne === "Technique";
 
   const equipesFiltrees = useMemo(() => {
     if (isCommercialProfile) return equipes.filter((e) => !e.type_equipe || e.type_equipe === "commerciale");
@@ -357,11 +344,13 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
               <SelectContent>
                 <SelectItem value="Employé">Employé</SelectItem>
                 <SelectItem value="Prestataire">Prestataire</SelectItem>
+                <SelectItem value="PDG">PDG</SelectItem>
+                <SelectItem value="Associé / Actionnaire">Associé / Actionnaire</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
+          {!governanceOnly && <div className="space-y-2">
             <Label>Département *</Label>
             <Select
               defaultValue={utilisateur?.departement}
@@ -378,9 +367,9 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div>}
 
-          <div className="space-y-2">
+          {!governanceOnly && <div className="space-y-2">
             <Label>Équipe</Label>
             <Select
               defaultValue={utilisateur?.equipe_id}
@@ -397,9 +386,9 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div>}
 
-          {relationRH === "Prestataire" && (
+          {relationRH === "Prestataire" && !governanceOnly && (
             <div className="space-y-2">
               <Label>Taux Commission (FCFA par ha)</Label>
               <Input 
