@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { PERMISSIONS, hasPermission } from "@/lib/roles";
+import { PERMISSIONS, hasPermission, ROLE_SHORT_LABELS } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationCenter } from "@/components/common/NotificationCenter";
@@ -59,8 +59,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   };
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col bg-primary text-primary-foreground">
-      <div className="border-b border-primary-foreground/10 px-4 py-6 bg-white">
+    <div className="flex h-full flex-col bg-primary text-primary-foreground shadow-xl">
+      <div className="border-b border-primary-foreground/10 px-4 py-5 bg-white/95 backdrop-blur">
         <button onClick={() => navigate('/dashboard')} className="flex w-full items-center justify-center">
           <img src={logoV2} alt="AgriCapital" className="w-full max-w-[220px] h-auto object-contain" />
           <span className="sr-only">AgriCapital</span>
@@ -81,7 +81,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               key={item.path}
               variant="ghost"
               className={cn(
-                "h-10 w-full justify-start gap-3 rounded-md px-3 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground",
+                "h-10 w-full justify-start gap-3 rounded-xl px-3 text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground transition-all duration-200",
                 active && "bg-primary-foreground text-primary shadow-sm hover:bg-primary-foreground hover:text-primary"
               )}
               onClick={() => { navigate(item.path); setOpen(false); }}
@@ -131,19 +131,19 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <SheetContent side="left" className="w-72 p-0"><SidebarContent /></SheetContent>
       </Sheet>
 
-      <main className="min-w-0 flex-1 pt-14 md:pt-0">
-        <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur md:flex">
+      <main className="min-w-0 flex-1 pt-14 md:pt-0 bg-muted/20">
+        <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b bg-background/80 px-6 backdrop-blur-xl shadow-sm md:flex">
           <div className="ml-auto flex min-w-0 items-center gap-3">
             <NetworkIndicator />
             {pendingCount > 0 && <Badge variant="outline" className="border-accent text-accent">{pendingCount} en attente</Badge>}
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={syncNow} disabled={isSyncing || !isOnline} title="Synchroniser">
               <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
             </Button>
-            <div className="text-right leading-tight"><p className="text-sm font-semibold">{profile?.nom_complet || "Utilisateur"}</p><p className="text-xs text-muted-foreground">{userRoles.join(' / ') || 'Compte actif'}</p></div>
+            <div className="text-right leading-tight"><p className="text-sm font-semibold">{profile?.nom_complet || "Utilisateur"}</p><p className="text-xs text-muted-foreground">{userRoles.map(r => ROLE_SHORT_LABELS[r] || r).join(" / ") || "Compte actif"}</p></div>
             <Avatar className="h-9 w-9 cursor-pointer" onClick={() => navigate('/profil')}><AvatarImage src={photoUrl || ''} /><AvatarFallback className="bg-primary text-primary-foreground text-sm">{getInitials(profile?.nom_complet || '')}</AvatarFallback></Avatar>
           </div>
         </header>
-        <div className="min-w-0 w-full max-w-full p-3 sm:p-5 lg:p-7">{children}</div>
+        <div className="min-w-0 w-full max-w-[1600px] mx-auto p-3 sm:p-5 lg:p-7">{children}</div>
       </main>
 
 
