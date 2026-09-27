@@ -1,14 +1,4 @@
-/**
- * SOURCE DE VÉRITÉ UNIQUE — Rôles officiels AgriCapital CRM
- *
- * Les 12 rôles officiels ci-dessous sont les SEULS rôles valides du système.
- * Ils sont utilisés partout : utilisateurs, rôles, permissions, formulaires,
- * demandes de compte, filtres, menus, règles d'accès et portail.
- *
- * Les anciens rôles sont conservés uniquement dans LEGACY_ROLE_MAP afin de
- * remapper automatiquement l'affichage tant que la migration SQL n'est pas
- * exécutée. Aucun nouvel enregistrement ne doit les utiliser.
- */
+/** Source de vérité unique — rôles officiels AgriCapital CRM. */
 
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
@@ -46,7 +36,7 @@ export const OFFICIAL_ROLES: RoleDefinition[] = [
   { code: ROLES.CHEF_EQUIPE_COMMERCIAL, nom: "Chef d'Equipe Commercial", court: 'CEC', description: "Encadrement d'une équipe commerciale terrain", niveau: 4, niveauLabel: 'Encadrement', couleur: 'bg-secondary text-secondary-foreground' },
   { code: ROLES.CHEF_EQUIPE_TECHNIQUE, nom: "Chef d'Equipe Technique", court: 'CET', description: "Encadrement d'une équipe technique terrain", niveau: 4, niveauLabel: 'Encadrement', couleur: 'bg-secondary text-secondary-foreground' },
   { code: ROLES.CHEF_EQUIPE_SERVICE_CLIENT, nom: "Chef d'Equipe Service Client", court: 'CESC', description: "Encadrement de l'équipe service client", niveau: 4, niveauLabel: 'Encadrement', couleur: 'bg-secondary text-secondary-foreground' },
-  { code: ROLES.COMMERCIAL, nom: 'Commercial', court: 'Comm', description: 'Prospection, leads et souscriptions', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
+  { code: ROLES.COMMERCIAL, nom: 'Commercial', court: 'Comm', description: 'Prospection, leads et clients', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
   { code: ROLES.SERVICE_CLIENT, nom: 'Service Client', court: 'SC', description: 'Support, tickets et assistance client', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
   { code: ROLES.ASSISTANT_ADMIN, nom: 'Assistant(e) Administratif(ve)', court: 'AA', description: 'Appui administratif et gestion documentaire', niveau: 5, niveauLabel: 'Opérationnel', couleur: 'bg-muted text-muted-foreground' },
   { code: ROLES.ASSOCIE_ACTIONNAIRE, nom: 'Associé / Actionnaire', court: 'A/A', description: 'Lecture seule des indicateurs, ventes, clients, plantations et finances autorisées', niveau: 2, niveauLabel: 'Gouvernance', couleur: 'bg-emerald-500/10 text-emerald-700' },
@@ -98,7 +88,7 @@ export const TERRITORIAL_ROLES: string[] = [
 ];
 
 /**
- * Compatibilité : anciennes constantes de navigation.
+ * Matrice de permissions de navigation.
  * Elles sont désormais dérivées de la matrice de permissions (voir permissions.ts).
  */
 export function hasPermission(userRoles: string[], permission: readonly string[]): boolean {
@@ -115,7 +105,7 @@ export const PERMISSIONS = {
   VIEW_AGRIPLAN: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL, ROLES.CHEF_EQUIPE_TECHNIQUE, ROLES.COMPTABLE, ROLES.SERVICE_CLIENT, ROLES.ASSISTANT_ADMIN],
   /** Création de leads et de ventes AgriPlan */
   AGRIPLAN_VENTES: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.RESPONSABLE_COMMERCIAL, ROLES.CHEF_EQUIPE_COMMERCIAL, ROLES.COMMERCIAL],
-  /** Rapports de visite / suivi technique AgriPlan (techniciens autorisés) */
+  /** Rapports de visite / suivi technique AgriPlan (équipe technique autorisée) */
   AGRIPLAN_TECHNIQUE: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS, ROLES.DIRECTEUR_TC, ROLES.CHEF_EQUIPE_TECHNIQUE],
   /** Archivage d'un dossier AgriPlan (sans suppression de données) */
   AGRIPLAN_ARCHIVER: [ROLES.SUPER_ADMIN, ROLES.RESPONSABLE_OPERATIONS],
