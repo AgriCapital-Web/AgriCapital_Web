@@ -267,60 +267,60 @@ const GestionCartes = () => {
   };
 
   const exporter = async (ref: React.RefObject<HTMLDivElement>, nom: string) => {
-    const element = ref.current;
-    if (!element) {
+    const source = ref.current;
+    if (!source) {
       toast.error("La carte n'est pas prête à être exportée.");
       return;
     }
+    let exportNode: HTMLDivElement | null = null;
     try {
       if (document.fonts?.ready) await document.fonts.ready;
+      await document.fonts?.load("700 25px Arial");
+      await document.fonts?.load("400 12px Arial");
 
-      // Le rendu exporté doit être strictement celui de la prévisualisation :
-      // même composant, mêmes dimensions 540 × 856, aucune transformation CSS.
-      // On attend explicitement les images asynchrones (notamment les URLs signées
-      // Supabase) afin d'éviter qu'une photo ou un asset manque dans le PNG.
-      const images = Array.from(element.querySelectorAll("img"));
-      await Promise.all(
-        images.map(async (img) => {
-          if (!img.complete || img.naturalWidth === 0) {
-            await new Promise<void>((resolve) => {
-              const done = () => {
-                img.removeEventListener("load", done);
-                img.removeEventListener("error", done);
-                resolve();
-              };
-              img.addEventListener("load", done, { once: true });
-              img.addEventListener("error", done, { once: true });
-            });
-          }
-          if (img.decode) await img.decode().catch(() => undefined);
-        }),
-      );
+      exportNode = source.cloneNode(true) as HTMLDivElement;
+      Object.assign(exportNode.style, {
+        position: "fixed", left: "-10000px", top: "0",
+        width: "540px", height: "856px", margin: "0", padding: "0",
+        transform: "none", zoom: "1", display: "block", overflow: "hidden",
+        opacity: "1", pointerEvents: "none", zIndex: "-1",
+      });
+      document.body.appendChild(exportNode);
 
-      const canvas = await html2canvas(element, {
-        width: 540,
-        height: 856,
-        scale: 2,
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        imageTimeout: 15000,
-        scrollX: 0,
-        scrollY: 0,
+      const images = Array.from(exportNode.querySelectorAll("img"));
+      await Promise.all(images.map(async (img) => {
+        if (!img.complete || img.naturalWidth === 0) {
+          await new Promise<void>((resolve) => {
+            const done = () => {
+              img.removeEventListener("load", done);
+              img.removeEventListener("error", done);
+              resolve();
+            };
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          });
+        }
+        if (img.decode) await img.decode().catch(() => undefined);
+      }));
+
+      const canvas = await html2canvas(exportNode, {
+        width: 540, height: 856, scale: 2,
+        backgroundColor: "#ffffff", useCORS: true, allowTaint: false,
+        logging: false, imageTimeout: 15000, scrollX: 0, scrollY: 0,
+        windowWidth: 540, windowHeight: 856, foreignObjectRendering: false,
       });
 
-      // La nouvelle carte est au ratio portrait d'une carte bancaire (54 × 85,6 mm).
-      // L'export 1080 × 1712 px conserve ce ratio avec une définition élevée.
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
-      a.download = `${nom}.png`;
+      a.download = \${nom}.png;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      toast.success(`${nom}.png exporté en 1080 × 1712 px.`);
+      toast.success(\${nom}.png exporté en 1080 × 1712 px.);
     } catch (e: any) {
       toast.error(e?.message || "Échec de l'export de la carte.");
+    } finally {
+      exportNode?.remove();
     }
   };
 
