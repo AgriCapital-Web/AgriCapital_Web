@@ -38,7 +38,7 @@ serve(async (req) => {
     // Helper to get souscripteur for current user
     const getSouscripteur = async () => {
       const { data } = await supabase
-        .from("souscripteurs")
+        .from("clients")
         .select("*")
         .eq("user_id", user.id)
         .single();
@@ -65,11 +65,11 @@ serve(async (req) => {
         ] = await Promise.all([
           supabase.from("plantations")
             .select("*, regions(nom), departements(nom), sous_prefectures(nom), districts(nom)")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", souscripteur.id)
             .order("created_at", { ascending: false }),
           supabase.from("paiements")
             .select("*")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", souscripteur.id)
             .order("created_at", { ascending: false })
             .limit(50),
           supabase.from("promotions")
@@ -84,7 +84,7 @@ serve(async (req) => {
             .order("ordre"),
           supabase.from("remboursements")
             .select("*")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", souscripteur.id)
             .order("created_at", { ascending: false })
             .limit(10),
           supabase.from("v_souscripteur_synthese")
@@ -93,7 +93,7 @@ serve(async (req) => {
             .maybeSingle(),
           supabase.from("paiements")
             .select("*")
-            .eq("souscripteur_id", souscripteur.id)
+            .eq("client_id", souscripteur.id)
             .eq("est_depot_initial", true)
             .maybeSingle(),
         ]);
@@ -141,7 +141,7 @@ serve(async (req) => {
         const { data: depot } = await supabase
           .from("paiements")
           .select("*")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", souscripteur.id)
           .eq("est_depot_initial", true)
           .maybeSingle();
         return new Response(JSON.stringify({ depot_initial: depot || null, souscripteur }), {
@@ -159,7 +159,7 @@ serve(async (req) => {
         const { data: echeances } = await supabase
           .from("paiements")
           .select("*")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", souscripteur.id)
           .eq("type_paiement", "REDEVANCE")
           .order("numero_echeance", { ascending: true });
         return new Response(JSON.stringify({ echeances: echeances || [] }), {
@@ -204,7 +204,7 @@ serve(async (req) => {
           });
         }
         const { data, error } = await supabase.rpc("simuler_paiement_fractionne", {
-          _souscripteur_id: souscripteur.id,
+          _client_id: souscripteur.id,
           _montant: montant,
         });
         if (error) throw error;
@@ -237,7 +237,7 @@ serve(async (req) => {
         const { data: paiements } = await supabase
           .from("paiements")
           .select("*, plantations(id_unique, nom_plantation)")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", souscripteur.id)
           .order("created_at", { ascending: false })
           .limit(200);
 
@@ -257,7 +257,7 @@ serve(async (req) => {
         const { data: plantations } = await supabase
           .from("plantations")
           .select("*, regions(nom), departements(nom), sous_prefectures(nom), districts(nom)")
-          .eq("souscripteur_id", souscripteur.id)
+          .eq("client_id", souscripteur.id)
           .order("created_at", { ascending: false });
 
         return new Response(JSON.stringify({ plantations: plantations || [] }), {
@@ -341,7 +341,7 @@ serve(async (req) => {
               .from("plantations")
               .select("id")
               .eq("id", body.plantation_id)
-              .eq("souscripteur_id", souscripteur?.id ?? "00000000-0000-0000-0000-000000000000")
+              .eq("client_id", souscripteur?.id ?? "00000000-0000-0000-0000-000000000000")
               .maybeSingle();
             if (!ownedPlantation) {
               return new Response(JSON.stringify({ error: "Plantation introuvable" }), {
