@@ -19,6 +19,19 @@ const json = (req: Request, body: unknown, status = 200) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors(req) });
   try {
+    const token = (req.headers.get('Authorization') || '').replace(/^Bearer\\s+/i, '').trim();
+    if (!token) return new Response(JSON.stringify({ error: 'Non authentifié' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
+    const { data: callerData } = await authClient.auth.getUser(token);
+    const caller = callerData?.user;
+    if (!caller) return new Response(JSON.stringify({ error: 'Session invalide' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { data: isSuperAdmin } = await authClient.rpc('has_role', { _user_id: caller.id, _role: 'super_admin' });
+    if (!isSuperAdmin) return new Response(JSON.stringify({ error: 'Accès réservé au super administrateur' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     const url = Deno.env.get("SUPABASE_URL")!;
     const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } });
