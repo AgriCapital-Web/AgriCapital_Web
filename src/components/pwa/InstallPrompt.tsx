@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Download, Smartphone, Wifi, WifiOff, Battery, Zap } from 'lucide-react';
+import { Download, Smartphone, WifiOff, Zap, HardDrive } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -83,14 +83,14 @@ const InstallPrompt = () => {
 
   return (
     <Dialog open={showPrompt} onOpenChange={setShowPrompt}>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="max-w-sm mx-auto rounded-2xl p-5">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-lg">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <Smartphone className="h-7 w-7 text-primary" />
+          <DialogTitle className="flex items-center gap-3 text-base">
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <Smartphone className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <span className="block">Installer AgriCapital CRM</span>
+              <span className="block">Installer AgriCapital</span>
               <span className="text-sm font-normal text-muted-foreground">Application officielle</span>
             </div>
           </DialogTitle>
@@ -106,11 +106,11 @@ const InstallPrompt = () => {
                   </ol>
                 </div>
               ) : (
-                <p>Accédez à AgriCapital CRM directement depuis votre écran d'accueil pour une expérience optimale.</p>
+                <p className="text-sm">Installez l’application pour la retrouver directement sur l’écran d’accueil, y compris lorsque la connexion est faible ou absente.</p>
               )}
               
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <div className="flex flex-col items-center gap-1.5 p-3 bg-muted rounded-lg">
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <div className="flex flex-col items-center gap-1.5 p-2.5 bg-muted rounded-xl">
                   <WifiOff className="h-5 w-5 text-primary" />
                   <span className="text-xs text-center font-medium">Mode hors ligne</span>
                 </div>
@@ -119,14 +119,14 @@ const InstallPrompt = () => {
                   <span className="text-xs text-center font-medium">Plus rapide</span>
                 </div>
                 <div className="flex flex-col items-center gap-1.5 p-3 bg-muted rounded-lg">
-                  <Battery className="h-5 w-5 text-primary" />
-                  <span className="text-xs text-center font-medium">Notifications</span>
+                  <HardDrive className="h-5 w-5 text-primary" />
+                  <span className="text-xs text-center font-medium">Données locales</span>
                 </div>
               </div>
             </div>
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-3 mt-4">
+        <div className="flex flex-col gap-2 mt-3">
           {!isIOS && deferredPrompt && (
             <Button onClick={handleInstall} size="lg" className="w-full gap-2">
               <Download className="h-5 w-5" />
