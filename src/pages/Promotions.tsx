@@ -32,8 +32,8 @@ const Promotions = () => {
     date_fin: "",
     description: "",
     applique_toutes_offres: true,
-    type_promotion: "depot_initial" as string,
-    cible: "depot_initial" as string,
+    type_promotion: "paiement_initial" as string,
+    cible: "paiement_initial" as string,
     montant_fixe_reduction: "",
   });
 
@@ -75,8 +75,7 @@ const Promotions = () => {
           active: true,
         applique_toutes_offres: data.applique_toutes_offres,
         type_promotion:
-          data.cible === "total_contrat" ? "cout_global" :
-          data.cible === "special" ? "special" : "depot_initial",
+          data.cible,
         cible: data.cible,
       };
 
@@ -134,8 +133,8 @@ const Promotions = () => {
       date_fin: "",
       description: "",
       applique_toutes_offres: true,
-      type_promotion: "depot_initial",
-      cible: "depot_initial",
+      type_promotion: "paiement_initial",
+      cible: "paiement_initial",
       montant_fixe_reduction: "",
     });
     setEditingPromo(null);
@@ -151,7 +150,7 @@ const Promotions = () => {
       description: promo.description || "",
       applique_toutes_offres: promo.applique_toutes_offres ?? true,
       type_promotion: promo.type_promotion || "depot_initial",
-      cible: promo.cible || (promo.type_promotion === "cout_global" ? "total_contrat" : "depot_initial"),
+      cible: promo.cible || (promo.type_promotion === "cout_global" ? "cout_global" : "paiement_initial"),
       montant_fixe_reduction: promo.montant_fixe_reduction?.toString() || "",
     });
     setIsDialogOpen(true);
@@ -169,14 +168,14 @@ const Promotions = () => {
   };
 
   const getTypeBadge = (promo: any) => {
-    const cible = promo.cible || (promo.type_promotion === "cout_global" ? "total_contrat" : "depot_initial");
-    if (cible === "total_contrat") return <Badge className="bg-amber-500">Total du Contrat</Badge>;
+    const cible = promo.cible || (promo.type_promotion === "cout_global" ? "cout_global" : "paiement_initial");
+    if (cible === "cout_global") return <Badge className="bg-amber-500">Total du Contrat</Badge>;
     if (cible === "special")      return <Badge className="bg-purple-500">Spéciale</Badge>;
-    return <Badge className="bg-blue-500">Dépôt Initial</Badge>;
+    return <Badge className="bg-blue-500">Paiement Initial</Badge>;
   };
 
   const calculateReducedAmount = (percentage: number) => {
-    const montantNormal = 30000;
+    const montantNormal = Number(offresRef?.[0]?.montant_depot_initial_par_ha || 0);
     return montantNormal - (montantNormal * percentage / 100);
   };
 
@@ -186,7 +185,7 @@ const Promotions = () => {
         <div>
           <h1 className="text-3xl font-bold">Gestion des Promotions</h1>
           <p className="text-muted-foreground">
-            Réductions sur le Dépôt Initial (DI) ou le Coût Global de souscription
+            Réductions sur le Paiement Initial (PI) ou le Coût Global (CG) du contrat
           </p>
         </div>
           
@@ -198,7 +197,7 @@ const Promotions = () => {
             <DialogHeader>
               <DialogTitle>{editingPromo ? "Modifier la promotion" : "Créer une promotion"}</DialogTitle>
               <DialogDescription>
-                Choisissez le type de promotion : sur le dépôt initial (DI) ou sur le coût global.
+                Choisissez l'assiette de la promotion : Paiement Initial (PI) ou Coût Global (CG).
               </DialogDescription>
             </DialogHeader>
             
@@ -224,14 +223,13 @@ const Promotions = () => {
                     <SelectValue placeholder="Choisir le type de promotion" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="depot_initial">Promotion sur le Dépôt Initial (DI)</SelectItem>
-                    <SelectItem value="total_contrat">Promotion sur le prix global (total du contrat)</SelectItem>
-                    <SelectItem value="special">Promotion spéciale (montant fixe en FCFA)</SelectItem>
+                    <SelectItem value="paiement_initial">Promotion sur le Paiement Initial (PI)</SelectItem>
+                    <SelectItem value="cout_global">Promotion sur le Coût Global (CG)</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {formData.cible === "depot_initial" && "La réduction s'applique uniquement sur le dépôt initial (DI) exigé à la souscription."}
-                  {formData.cible === "total_contrat" && "La réduction s'applique sur le prix global : DI + mensualités du contrat. Le DI et la mensualité sont recalculés automatiquement et propagés au portail client."}
+                  {formData.cible === "paiement_initial" && "La réduction s'applique uniquement sur le Paiement Initial (PI) du contrat."}
+                  {formData.cible === "total_contrat" && "La réduction s'applique sur le Coût Global (CG) du contrat. Le PI et les mensualités sont recalculés automatiquement."}
                   {formData.cible === "special" && "Remise fixe en FCFA, appliquée manuellement lors de la souscription (geste commercial, bon d'achat)."}
                 </p>
               </div>
@@ -250,19 +248,19 @@ const Promotions = () => {
                     />
                     <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
-                  {formData.cible === "depot_initial" && (
+                  {formData.cible === "paiement_initial" && (
                     <p className="text-xs text-muted-foreground">
-                      DI réduit: {calculateReducedAmount(parseInt(formData.pourcentage_reduction || "0")).toLocaleString()} F/ha
+                      PI réduit: {calculateReducedAmount(parseInt(formData.pourcentage_reduction || "0")).toLocaleString()} F/ha
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label>Référence</Label>
-                  <Input value={formData.cible === "depot_initial" ? "Dépôt Initial selon l'offre" : "Total contrat 34 mois"} disabled />
+                  <Input value={formData.cible === "depot_initial" ? "Paiement Initial selon l'offre" : "Total contrat 34 mois"} disabled />
                   <p className="text-xs text-primary font-medium">
                     Économie: {formData.cible === "depot_initial" 
-                      ? `${formData.pourcentage_reduction}% sur le DI`
+                      ? `${formData.pourcentage_reduction}% sur le PI`
                       : `${formData.pourcentage_reduction}% sur le total`
                     }
                   </p>
@@ -281,7 +279,7 @@ const Promotions = () => {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Cette remise fixe sera à appliquer manuellement lors de la souscription (bon commercial, geste, etc.).
+                  Cette option historique n'est plus proposée dans le formulaire. Utilisez PI ou CG.
                 </p>
               </div>
               )}
@@ -342,7 +340,7 @@ const Promotions = () => {
                     </table>
                   </div>
                   <p className="text-[11px] text-muted-foreground italic">
-                    Les montants sont par hectare. Pour un souscripteur, multiplier par le nombre d'hectares de la souscription.
+                    Les montants sont par hectare. Pour un client, multiplier par le nombre d'hectares de la souscription.
                   </p>
                 </div>
               )}
@@ -365,7 +363,7 @@ const Promotions = () => {
             <Calculator className="h-5 w-5" />Prix effectifs actuels
           </CardTitle>
           <CardDescription>
-            Montants réellement appliqués aux souscriptions et au portail (par hectare), promotions actives incluses.
+            Montants réellement appliqués aux parcours clients et au portail (par hectare), promotions actives incluses.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -381,7 +379,7 @@ const Promotions = () => {
                     <TableHead>Offre</TableHead>
                     <TableHead>Promotion</TableHead>
                     <TableHead className="text-right">Prix global</TableHead>
-                    <TableHead className="text-right">DI</TableHead>
+                    <TableHead className="text-right">PI</TableHead>
                     <TableHead className="text-right">Mensualité</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -428,7 +426,7 @@ const Promotions = () => {
       <Card>
         <CardHeader>
           <CardTitle>Liste des promotions</CardTitle>
-          <CardDescription>Gérez les promotions sur le DI (dépôt initial) et sur le coût global.</CardDescription>
+          <CardDescription>Gérez les promotions sur le PI (dépôt initial) et sur le coût global.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
