@@ -21,6 +21,7 @@ import { uploadOrQueueFile } from "@/lib/offlineFiles";
 
 const RapportsTechniques = () => {
   const [interventions, setInterventions] = useState<any[]>([]);
+  const [plantationOptions, setPlantationOptions] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
   const { toast } = useToast();
@@ -39,6 +40,9 @@ const RapportsTechniques = () => {
 
   const fetchData = async () => {
     // Fetch interventions techniques
+    const { data: plantationsData } = await (supabase as any).from("plantations").select("id,souscripteur_id,id_unique,nom_plantation").order("nom_plantation");
+    setPlantationOptions(plantationsData || []);
+
     const { data: interventionsData } = await (supabase as any)
       .from("interventions_techniques")
       .select(`
@@ -209,7 +213,7 @@ const RapportsTechniques = () => {
               <DialogHeader><DialogTitle>Rapport de visite technique</DialogTitle></DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div><Label>Plantation *</Label><Select value={reportForm.plantation_id} onValueChange={(v)=>setReportForm(p=>({...p,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une plantation" /></SelectTrigger><SelectContent>{interventions.map((i:any)=>i.plantation?.id).filter(Boolean).filter((v:string,i:number,a:string[])=>a.indexOf(v)===i).map((id:string)=><SelectItem key={id} value={id}>{interventions.find((i:any)=>i.plantation?.id===id)?.plantation?.nom_plantation || id}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label>Plantation *</Label><Select value={reportForm.plantation_id} onValueChange={(v)=>setReportForm(p=>({...p,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une plantation" /></SelectTrigger><SelectContent>{plantationOptions.map((p:any)=><SelectItem key={p.id} value={p.id}>{p.nom_plantation || p.id_unique || p.id}</SelectItem>)}</SelectContent></Select></div>
                   <div><Label>Date et heure</Label><Input type="datetime-local" value={reportForm.date_visite} onChange={e=>setReportForm(p=>({...p,date_visite:e.target.value}))}/></div>
                 </div>
                 <div><Label>Type de visite</Label><Select value={reportForm.type_visite} onValueChange={v=>setReportForm(p=>({...p,type_visite:v}))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="suivi">Suivi</SelectItem><SelectItem value="inspection">Inspection</SelectItem><SelectItem value="traitement">Traitement</SelectItem><SelectItem value="incident">Incident</SelectItem><SelectItem value="mise_en_place">Mise en place</SelectItem></SelectContent></Select></div>
