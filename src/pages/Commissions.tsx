@@ -144,7 +144,7 @@ const Commissions = () => {
 
   const getTypeLabel = (type: string) => {
     const labels: any = {
-      souscription: "Souscription",
+      acquisition: "Acquisition",
       suivi: "Suivi",
       recolte: "Récolte",
       paiement: "Paiement",
