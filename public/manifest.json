@@ -1,7 +1,7 @@
 {
   "name": "CRM AgriCapital",
   "short_name": "CRM AgriCapital",
-  "description": "Plateforme de gestion des souscripteurs et plantations AgriCapital - Gestion commerciale, technique et financière",
+  "description": "Plateforme de gestion des clients et plantations AgriCapital - Gestion commerciale, technique et financière",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
