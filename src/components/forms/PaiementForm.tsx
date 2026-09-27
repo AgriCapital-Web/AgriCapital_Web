@@ -17,6 +17,18 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 interface PaiementFormProps { paiement?: any; onSuccess: () => void; onCancel: () => void; }
 const fcfa = (n:number) => Math.round(n || 0).toLocaleString("fr-FR");
 
+const getPaiementInitialParHa = (offre: any) => {
+  const signature = Number(offre?.paiement_signature_par_ha);
+  if (Number.isFinite(signature) && signature > 0) return signature;
+  const tranche = Array.isArray(offre?.tranches_paiement)
+    ? offre.tranches_paiement.find((t: any) => t?.type === "paiement_initial")
+    : null;
+  const trancheInitial = Number(tranche?.montant);
+  if (Number.isFinite(trancheInitial) && trancheInitial > 0) return trancheInitial;
+  return Number(offre?.montant_pi_par_ha || 0);
+};
+
+
 const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   const { toast } = useToast();
   const { register, handleSubmit, watch, setValue } = useForm({ defaultValues: paiement || { type_paiement: "paiement_initial" } });
@@ -26,13 +38,13 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   const [fileUrl, setFileUrl] = useState(paiement?.fichier_preuve_url || "");
   const [filePreview, setFilePreview] = useState("");
   const typePaiement = watch("type_paiement");
-  const souscripteurId = watch("client_id");
+  const clientId = watch("client_id");
   const typePreuve = watch("type_preuve");
 
   useEffect(() => {
     (async () => {
       const { data, error } = await (supabase as any).from("clients")
-        .select("*, offre:offres(id,code,nom,famille_offre,formule_code,montant_paiement_initial_par_ha,montant_total_par_ha)")
+        .select("*, offre:offres(id,code,nom,famille_offre,formule_code,montant_pi_par_ha,montant_total_par_ha,paiement_signature_par_ha,tranches_paiement)")
         .order("created_at", { ascending: false });
       if (error) toast({ variant:"destructive", title:"Erreur", description:getSafeErrorMessage(error) });
       else setSouscripteurs(data || []);
@@ -40,24 +52,24 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   }, [toast]);
 
   useEffect(() => {
-    const s = clients.find(x => x.id === souscripteurId) || null;
+    const s = clients.find(x => x.id === clientId) || null;
     setSelected(s);
     if (!s) return;
     setValue("parcours", s.famille_offre || s.offre?.famille_offre || null);
-    const initial = Math.round(Number(s.total_hectares || 0) * Number(s.offre?.montant_paiement_initial_par_ha || 0));
+    const initial = Math.round(Number(s.total_hectares || 0) * getPaiementInitialParHa(s.offre));
     if (typePaiement === "paiement_initial") {
       setValue("montant_theorique", initial);
       setValue("montant_paye", initial);
       setValue("est_paiement_initial", true);
-      setValue("est_paiement_initial", true);
+      setValue("est_depot_initial", true);
     } else {
       setValue("est_paiement_initial", false);
-      setValue("est_paiement_initial", false);
+      setValue("est_depot_initial", false);
     }
-  }, [souscripteurId, clients, typePaiement, setValue]);
+  }, [clientId, clients, typePaiement, setValue]);
 
   const paiementInitial = useMemo(() => selected
-    ? Math.round(Number(selected.total_hectares || 0) * Number(selected.offre?.montant_paiement_initial_par_ha || 0))
+    ? Math.round(Number(selected.total_hectares || 0) * getPaiementInitialParHa(selected.offre))
     : 0, [selected]);
 
   const handleFileUpload = async (file: File) => {
@@ -95,8 +107,8 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
       const montantTheorique = initial ? paiementInitial : (parsed.montant_theorique ?? parsed.montant_paye ?? 0);
       const paiementData = {
         ...data, ...parsed,
-        type_paiement: initial ? "paiement_initial" : "echeance",
-        est_paiement_initial: initial, est_paiement_initial: initial,
+        type_paiement: initial ? "DA" : "REDEVANCE",
+        est_paiement_initial: initial,
         montant: parsed.montant_paye ?? montantTheorique,
         montant_theorique: montantTheorique,
         fichier_preuve_url: fileUrl || data.fichier_preuve_url || null,
