@@ -120,16 +120,91 @@ All colors MUST be HSL.
 }
 
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
     @apply border-border;
+    box-sizing: border-box;
   }
 
-  html,
+  html {
+    width: 100%;
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
-    /* Aucun débordement horizontal sur mobile */
-    overflow-x: hidden;
+    width: 100%;
+    min-width: 320px;
     max-width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+  }
+
+  #root {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+  }
+
+  img {
+    height: auto;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    max-width: 100%;
+  }
+
+  pre,
+  code {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  [data-radix-scroll-area-viewport] {
+    max-width: 100%;
+  }
+
+  .responsive-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .responsive-grid > * {
+    min-width: 0;
+  }
+
+  .responsive-flex {
+    min-width: 0;
+  }
+
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .responsive-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .responsive-table table {
+    min-width: 720px;
   }
 
   body {
