@@ -73,6 +73,8 @@ const Offres = () => {
     date_fin: "",
     description: "",
     applique_toutes_offres: true,
+    cible: "paiement_initial",
+    type_promotion: "paiement_initial",
   });
 
   // Fetch offres
@@ -164,6 +166,8 @@ const Offres = () => {
         description: data.description,
         active: true,
         applique_toutes_offres: data.applique_toutes_offres,
+        cible: data.cible,
+        type_promotion: data.cible,
       };
 
       if (editingPromo) {
@@ -257,6 +261,8 @@ const Offres = () => {
       date_fin: "",
       description: "",
       applique_toutes_offres: true,
+      cible: "paiement_initial",
+      type_promotion: "paiement_initial",
     });
     setEditingPromo(null);
   };
@@ -270,6 +276,8 @@ const Offres = () => {
       date_fin: format(new Date(promo.date_fin), 'yyyy-MM-dd'),
       description: promo.description || "",
       applique_toutes_offres: promo.applique_toutes_offres ?? true,
+      cible: promo.cible || (promo.type_promotion === "cout_global" ? "cout_global" : "paiement_initial"),
+      type_promotion: promo.cible || (promo.type_promotion === "cout_global" ? "cout_global" : "paiement_initial"),
     });
     setIsPromoDialogOpen(true);
   };
@@ -315,7 +323,7 @@ const Offres = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Offres & Promotions</h2>
-          <p className="text-muted-foreground">Gérez les offres de souscription et les promotions</p>
+          <p className="text-muted-foreground">Gérez les offres clients et les promotions</p>
         </div>
       </div>
 
@@ -351,7 +359,7 @@ const Offres = () => {
                 <div>
                   <p className="font-semibold text-green-800">Promotion active: {activePromo.nom}</p>
                   <p className="text-sm text-green-600">
-                    -{activePromo.pourcentage_reduction}% sur le DI jusqu'au {format(new Date(activePromo.date_fin), 'dd/MM/yyyy', { locale: fr })}
+                    -{activePromo.pourcentage_reduction}% sur {activePromo.cible === "cout_global" ? "le CG" : "le PI"} jusqu'au {format(new Date(activePromo.date_fin), 'dd/MM/yyyy', { locale: fr })}
                   </p>
                 </div>
               </CardContent>
@@ -434,7 +442,7 @@ const Offres = () => {
                               </span>
                             </div>
                             <div className="flex items-baseline justify-between gap-2">
-                              <span className="text-muted-foreground">Dépôt initial (DI) / ha</span>
+                              <span className="text-muted-foreground">Paiement Initial (PI) / ha</span>
                               <span className="flex items-baseline gap-2">
                                 {promoActive && pe && pe.depot_initial_effectif !== pe.depot_initial_base && (
                                   <span className="line-through text-muted-foreground">{formatMontant(pe.depot_initial_base)}F</span>
@@ -454,7 +462,7 @@ const Offres = () => {
                           </div>
                           {promoActive && pe && (
                             <Badge className="bg-green-500">
-                              {pe.promotion_nom} — {pe.promotion_cible === "depot_initial" ? "DI" : "Prix global"} -{pe.reduction_pct}%
+                              {pe.promotion_nom} — {pe.promotion_cible === "paiement_initial" ? "PI" : "CG"} -{pe.reduction_pct}%
                             </Badge>
                           )}
                         </div>
@@ -525,7 +533,7 @@ const Offres = () => {
                               </div>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                  <Label htmlFor="montant_da">Montant DI/ha (F)</Label>
+                                  <Label htmlFor="montant_da">Montant PI/ha (F)</Label>
                                   <Input 
                                     id="montant_da"
                                     type="number"
@@ -589,7 +597,7 @@ const Offres = () => {
                     {editingPromo ? "Modifier la promotion" : "Créer une promotion"}
                   </DialogTitle>
                   <DialogDescription>
-                    La réduction sera appliquée automatiquement sur le Dépôt Initial de toutes les offres.
+                    La réduction sera appliquée automatiquement sur le Paiement Initial (PI) ou le Coût Global (CG), selon le choix ci-dessous.
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -603,6 +611,25 @@ const Offres = () => {
                       placeholder="Ex: Promo Lancement Phase Pilote"
                       required
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Assiette de la promotion *</Label>
+                    <Select
+                      value={promoFormData.cible}
+                      onValueChange={(v) => setPromoFormData({ ...promoFormData, cible: v, type_promotion: v })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="paiement_initial">Paiement Initial (PI)</SelectItem>
+                        <SelectItem value="cout_global">Coût Global (CG)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {promoFormData.cible === "paiement_initial"
+                        ? "La remise porte uniquement sur le Paiement Initial."
+                        : "La remise porte sur le prix global du contrat. Le PI et les mensualités sont recalculés."}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -623,10 +650,10 @@ const Offres = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Aperçu (PalmElite)</Label>
+                      <Label>Aperçu indicatif</Label>
                       <div className="p-2 bg-green-50 rounded border border-green-200">
                         <p className="text-sm text-green-700">
-                          20 000F → {formatMontant(calculateReducedAmount(20000, parseInt(promoFormData.pourcentage_reduction || "0")))}F
+                          20 000F → {formatMontant(calculateReducedAmount(promoFormData.cible === "paiement_initial" ? 20000 : 100000, parseInt(promoFormData.pourcentage_reduction || "0")))}F
                         </p>
                       </div>
                     </div>
