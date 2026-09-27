@@ -165,12 +165,12 @@ const NouvelleSouscription = () => {
         throw new Error("Veuillez remplir tous les champs obligatoires (identité, coordonnées et offre)");
       }
 
-      // Validation V1 — type_souscripteur_foncier (EXT/OWN) + cohérence convention/lot
-      const typeFoncier = formData.type_souscripteur_foncier || (formData.type_souscripteur === "avec_terre" ? "OWN" : "EXT");
+      // Validation V1 — type_client_foncier (EXT/OWN) + cohérence convention/lot
+      const typeFoncier = formData.type_client_foncier || (formData.type_client === "avec_terre" ? "OWN" : "EXT");
       const famille = formData.famille_offre;
       if (!["PALMINVEST","TERRAPALM","PALMTERROIR"].includes(famille)) throw new Error("Offre non reconnue : sélectionnez une des trois offres officielles.");
-      if (famille === "PALMINVEST") formData.type_souscripteur_foncier = "EXT";
-      if (famille !== "PALMINVEST") formData.type_souscripteur_foncier = "OWN";
+      if (famille === "PALMINVEST") formData.type_client_foncier = "EXT";
+      if (famille !== "PALMINVEST") formData.type_client_foncier = "OWN";
       if (typeFoncier === "EXT") {
         if (!formData.convention_id || !formData.lot_id) {
           throw new Error("Client externe : convention Planter-Partager et lot Hxx obligatoires");
@@ -193,7 +193,7 @@ const NouvelleSouscription = () => {
       // Créer le souscripteur
       const nomComplet = `${formData.nom_famille || ''} ${formData.prenoms || ''}`.trim();
       
-      const { data: souscripteur, error: errorSous, offline } = await offlineInsert("souscripteurs", {
+      const { data: souscripteur, error: errorSous, offline } = await offlineInsert("clients", {
           offre_id: formData.offre_id,
           famille_offre: formData.famille_offre,
           formule_code: formData.formule_code,
@@ -202,8 +202,8 @@ const NouvelleSouscription = () => {
           total_hectares: Number(formData.superficie_prevue) || 0,
           paiement_initial_montant: 0,
           parcelle_id: formData.parcelle_id || null,
-          type_souscripteur: formData.type_souscripteur || "sans_terre",
-          type_souscripteur_foncier: typeFoncier,
+          type_client: formData.type_client || "sans_terre",
+          type_client_foncier: typeFoncier,
           nom: formData.nom_famille || "",
           prenoms: formData.prenoms || "",
           nom_complet: nomComplet,
@@ -261,25 +261,25 @@ const NouvelleSouscription = () => {
         if (!file) throw new Error("Document obligatoire manquant : " + item.type);
         const uploaded = await uploadFile("documents", file, `${user.id}/souscriptions/${souscripteur.id}/identite`);
         if (!uploaded) throw new Error("Upload impossible : " + item.type);
-        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: item.type, fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+        documentsPayload.push({ client_id: souscripteur.id, type_document: item.type, fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
         if (item.type === "photo_profil") {
-          await (supabase as any).from("souscripteurs").update({ photo_profil_url: uploaded.url }).eq("id", souscripteur.id);
+          await (supabase as any).from("clients").update({ photo_profil_url: uploaded.url }).eq("id", souscripteur.id);
         }
       }
       if (formData.contrat_acquisition_file) {
         const uploaded = await uploadFile("documents", formData.contrat_acquisition_file, `${user.id}/souscriptions/${souscripteur.id}/contrats`);
         if (!uploaded) throw new Error("Upload impossible du contrat d'acquisition client");
-        contractRows.push({ souscripteur_id: souscripteur.id, type_contrat: "acquisition_client", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_acquisition || null, observations: "Contrat signé fourni lors du parcours client" });
-        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_acquisition_client_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+        contractRows.push({ client_id: souscripteur.id, type_contrat: "acquisition_client", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_acquisition || null, observations: "Contrat signé fourni lors du parcours client" });
+        documentsPayload.push({ client_id: souscripteur.id, type_document: "contrat_acquisition_client_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
       }
       if (formData.contrat_accompagnement_file) {
         const uploaded = await uploadFile("documents", formData.contrat_accompagnement_file, `${user.id}/souscriptions/${souscripteur.id}/contrats`);
         if (!uploaded) throw new Error("Upload impossible du contrat d'accompagnement agricole");
-        contractRows.push({ souscripteur_id: souscripteur.id, type_contrat: "accompagnement_agricole", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_accompagnement || null, observations: "Contrat signé fourni lors du parcours client" });
-        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_accompagnement_agricole_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+        contractRows.push({ client_id: souscripteur.id, type_contrat: "accompagnement_agricole", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_accompagnement || null, observations: "Contrat signé fourni lors du parcours client" });
+        documentsPayload.push({ client_id: souscripteur.id, type_document: "contrat_accompagnement_agricole_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
       }
       if (contractRows.length) {
-        const { error: contractError } = await (supabase as any).from("client_contracts").upsert(contractRows, { onConflict: "souscripteur_id,type_contrat" });
+        const { error: contractError } = await (supabase as any).from("client_contracts").upsert(contractRows, { onConflict: "client_id,type_contrat" });
         if (contractError) throw contractError;
       }
       for (const annexe of ANNEXES_SOUSCRIPTION.filter((a) => a.condition(formData))) {
@@ -287,10 +287,10 @@ const NouvelleSouscription = () => {
         if (!file) continue;
         const uploaded = await uploadFile("documents", file, `${user.id}/souscriptions/${souscripteur.id}/annexes`);
         if (!uploaded) throw new Error(`Upload impossible: ${annexe.label}`);
-        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: annexe.field, fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+        documentsPayload.push({ client_id: souscripteur.id, type_document: annexe.field, fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
       }
       if (documentsPayload.length > 0) {
-        const { error: docsError } = await (supabase as any).from("documents_souscription").insert(documentsPayload);
+        const { error: docsError } = await (supabase as any).from("documents_acquisition").insert(documentsPayload);
         if (docsError) throw docsError;
       }
 
@@ -298,10 +298,10 @@ const NouvelleSouscription = () => {
       // Le terme commercial officiel est désormais « Paiement initial ».
       const offreRow = (await (supabase as any).from("offres").select("montant_depot_initial_par_ha,montant_total_par_ha").eq("id", formData.offre_id).single()).data;
       const paiementInitial = Math.round(Number(offreRow?.montant_depot_initial_par_ha || 0) * Number(formData.superficie_prevue || 0));
-      await (supabase as any).from("souscripteurs").update({ paiement_initial_montant: paiementInitial }).eq("id", souscripteur.id);
+      await (supabase as any).from("clients").update({ paiement_initial_montant: paiementInitial }).eq("id", souscripteur.id);
       if (paiementInitial > 0) {
         const { error: paymentError } = await (supabase as any).from("paiements").insert({
-          souscripteur_id: souscripteur.id,
+          client_id: souscripteur.id,
           montant: paiementInitial,
           montant_theorique: paiementInitial,
           montant_paye: 0,
@@ -322,7 +322,7 @@ const NouvelleSouscription = () => {
         await (supabase as any)
           .from("lots_hectares")
           .update({
-            souscripteur_id: souscripteur.id,
+            client_id: souscripteur.id,
             statut: "attribue",
             date_attribution: new Date().toISOString().slice(0, 10),
           })
@@ -332,7 +332,7 @@ const NouvelleSouscription = () => {
       if (formData.lead_id && !offline) {
         const { error: leadError } = await (supabase as any)
           .from("leads")
-          .update({ statut: "converti", souscripteur_id: souscripteur.id, converti_at: new Date().toISOString() })
+          .update({ statut: "converti", client_id: souscripteur.id, converti_at: new Date().toISOString() })
           .eq("id", formData.lead_id);
         if (leadError) throw leadError;
       }
