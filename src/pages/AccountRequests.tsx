@@ -15,9 +15,9 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 import { SignedImg } from "@/hooks/useSignedUrl";
 
 const ROLES = [
-  "commercial", "technicien", "chef_equipe_commercial", "chef_equipe_technique",
-  "responsable_commercial", "responsable_technique_agronomique", "responsable_zone",
-  "comptable", "service_client", "operations", "super_admin",
+  "commercial", "chef_equipe_commercial", "chef_equipe_technique", "chef_equipe_service_client",
+  "responsable_commercial", "responsable_operations", "directeur_tc",
+  "comptable", "service_client", "assistant_administratif", "super_admin", "associe_actionnaire",
 ];
 
 const AccountRequests = () => {
