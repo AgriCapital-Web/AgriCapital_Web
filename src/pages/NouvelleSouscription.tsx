@@ -28,19 +28,18 @@ const NouvelleSouscription = () => {
   const [searchParams] = useSearchParams();
   const [syncState, setSyncState] = useState<SyncState>("draft");
 
-  // Étapes du contrat V1 — Parcours client uniquement (sans parcelle, sans enquête)
-  // La conversion en plantation se fait depuis la page Plantations.
+  // Le parcours commence désormais par l'offre. PalmInvest/TerraPalm utilisent le parcours complet ;
+  // PalmTerroir utilise un parcours allégé sans co-titulaire.
   const etapes = useMemo(() => {
-    return [
-      { num: 1, titre: "Client", component: Etape1Souscripteur },
-      { num: 2, titre: "Co-titulaire", component: Etape2Cotitulaire },
-      { num: 3, titre: "Offre", component: Etape0Offre },
-      { num: 4, titre: "Foncier", component: Etape3Foncier },
-      { num: 5, titre: "Documents", component: Etape5Documents },
-      { num: 6, titre: "Confirmation", component: Etape6Confirmation },
-    ];
-  }, []);
-
+    const famille = formData.famille_offre;
+    const base = [{ num: 1, titre: "Offre", component: Etape0Offre }, { num: 2, titre: "Client", component: Etape1Souscripteur }];
+    if (famille !== "PALMTERROIR") base.push({ num: 3, titre: "Co-titulaire", component: Etape2Cotitulaire });
+    base.push({ num: base.length + 1, titre: "Foncier", component: Etape3Foncier });
+    base.push({ num: base.length + 1, titre: "Documents", component: Etape5Documents });
+    base.push({ num: base.length + 1, titre: "Confirmation", component: Etape6Confirmation });
+    return base;
+  }, [formData.famille_offre]);
+  
   useEffect(() => {
     const leadId = searchParams.get("lead_id");
     if (!leadId) return;
@@ -139,6 +138,10 @@ const NouvelleSouscription = () => {
   };
 
   const passerEtapeSuivante = async () => {
+    if (safeEtape === 0 && !formData.offre_id) {
+      toast({ variant: "destructive", title: "Offre obligatoire", description: "Choisissez d'abord l'offre puis sa formule." });
+      return;
+    }
     const nouvelleEtape = Math.min(etapes.length - 1, etapeActuelle + 1);
     await sauvegarderBrouillon(nouvelleEtape);
     setEtapeActuelle(nouvelleEtape);
@@ -154,12 +157,16 @@ const NouvelleSouscription = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
-      if (!formData.nom_famille || !formData.prenoms || !formData.telephone || !formData.offre_id) {
+      if (!formData.famille_offre || !formData.formule_code || !formData.nom_famille || !formData.prenoms || !formData.telephone || !formData.offre_id) {
         throw new Error("Veuillez remplir tous les champs obligatoires (identité, coordonnées et offre)");
       }
 
       // Validation V1 — type_souscripteur_foncier (EXT/OWN) + cohérence convention/lot
       const typeFoncier = formData.type_souscripteur_foncier || (formData.type_souscripteur === "avec_terre" ? "OWN" : "EXT");
+      const famille = formData.famille_offre;
+      if (!["PALMINVEST","TERRAPALM","PALMTERROIR"].includes(famille)) throw new Error("Offre non reconnue : sélectionnez une des trois offres officielles.");
+      if (famille === "PALMINVEST") formData.type_souscripteur_foncier = "EXT";
+      if (famille !== "PALMINVEST") formData.type_souscripteur_foncier = "OWN";
       if (typeFoncier === "EXT") {
         if (!formData.convention_id || !formData.lot_id) {
           throw new Error("Client externe : convention Planter-Partager et lot Hxx obligatoires");
@@ -184,6 +191,12 @@ const NouvelleSouscription = () => {
       
       const { data: souscripteur, error: errorSous, offline } = await offlineInsert("souscripteurs", {
           offre_id: formData.offre_id,
+          famille_offre: formData.famille_offre,
+          formule_code: formData.formule_code,
+          formule_nom: formData.formule_nom,
+          parcours_code: formData.famille_offre,
+          total_hectares: Number(formData.superficie_prevue) || 0,
+          paiement_initial_montant: 0,
           parcelle_id: formData.parcelle_id || null,
           type_souscripteur: formData.type_souscripteur || "sans_terre",
           type_souscripteur_foncier: typeFoncier,
@@ -216,20 +229,37 @@ const NouvelleSouscription = () => {
           updated_by: user.id,
           statut: 'actif',
           statut_global: 'actif',
+          compte_actif: false,
         });
 
       if (errorSous) throw errorSous;
       if (!souscripteur) throw new Error("Client non créé");
       setSyncState(offline ? "queued" : "syncing");
 
-      const requiredMissing = ANNEXES_SOUSCRIPTION.find((a) => a.condition(formData) && formData[`${a.field}_status`] === "joint" && !formData[`${a.field}_file`]);
+      const contractMissing =
+        (formData.contrat_acquisition_requis !== false && !formData.contrat_acquisition_file) ||
+        (formData.contrat_accompagnement_requis !== false && !formData.contrat_accompagnement_file);
+      if (contractMissing) throw new Error("Les contrats requis (acquisition client et/ou accompagnement agricole) doivent être joints.");
+      const requiredMissing = ANNEXES_SOUSCRIPTION.find((a) => a.condition(formData) && formData[\`\${a.field}_status\`] === "joint" && !formData[\`\${a.field}_file\`]);
       if (requiredMissing) throw new Error(`${requiredMissing.label}: fichier obligatoire lorsque “Joint” est coché`);
 
       const documentsPayload: any[] = [];
-      if (formData.contrat_file) {
-        const uploaded = await uploadFile("documents", formData.contrat_file, `${user.id}/souscriptions/${souscripteur.id}`);
-        if (!uploaded) throw new Error("Upload impossible du contrat signé");
-        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_souscription_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+      const contractRows: any[] = [];
+      if (formData.contrat_acquisition_file) {
+        const uploaded = await uploadFile("documents", formData.contrat_acquisition_file, \`\${user.id}/souscriptions/\${souscripteur.id}/contrats\`);
+        if (!uploaded) throw new Error("Upload impossible du contrat d'acquisition client");
+        contractRows.push({ souscripteur_id: souscripteur.id, type_contrat: "acquisition_client", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_acquisition || null, observations: "Contrat signé fourni lors du parcours client" });
+        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_acquisition_client_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+      }
+      if (formData.contrat_accompagnement_file) {
+        const uploaded = await uploadFile("documents", formData.contrat_accompagnement_file, \`\${user.id}/souscriptions/\${souscripteur.id}/contrats\`);
+        if (!uploaded) throw new Error("Upload impossible du contrat d'accompagnement agricole");
+        contractRows.push({ souscripteur_id: souscripteur.id, type_contrat: "accompagnement_agricole", statut: "signe", fichier_url: uploaded.url, date_signature: formData.date_signature_accompagnement || null, observations: "Contrat signé fourni lors du parcours client" });
+        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_accompagnement_agricole_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+      }
+      if (contractRows.length) {
+        const { error: contractError } = await (supabase as any).from("client_contracts").upsert(contractRows, { onConflict: "souscripteur_id,type_contrat" });
+        if (contractError) throw contractError;
       }
       for (const annexe of ANNEXES_SOUSCRIPTION.filter((a) => a.condition(formData))) {
         const file = formData[`${annexe.field}_file`];
@@ -241,6 +271,28 @@ const NouvelleSouscription = () => {
       if (documentsPayload.length > 0) {
         const { error: docsError } = await (supabase as any).from("documents_souscription").insert(documentsPayload);
         if (docsError) throw docsError;
+      }
+
+      // Le Paiement initial est enregistré comme échéance à payer. Le terme officiel remplace
+      // partout le legacy "Dépôt Initial".
+      const offreRow = (await (supabase as any).from("offres").select("montant_depot_initial_par_ha,montant_total_par_ha").eq("id", formData.offre_id).single()).data;
+      const paiementInitial = Math.round(Number(offreRow?.montant_depot_initial_par_ha || 0) * Number(formData.superficie_prevue || 0));
+      await (supabase as any).from("souscripteurs").update({ paiement_initial_montant: paiementInitial }).eq("id", souscripteur.id);
+      if (paiementInitial > 0) {
+        const { error: paymentError } = await (supabase as any).from("paiements").insert({
+          souscripteur_id: souscripteur.id,
+          montant: paiementInitial,
+          montant_theorique: paiementInitial,
+          montant_paye: 0,
+          type_paiement: "paiement_initial",
+          est_depot_initial: true,
+          statut: "en_attente",
+          parcours: formData.famille_offre,
+          phase: "mise_en_place",
+          date_echeance: new Date().toISOString().slice(0,10),
+          created_by: user.id,
+        });
+        if (paymentError && !String(paymentError.message || "").toLowerCase().includes("duplicate")) throw paymentError;
       }
 
       // Attribution du lot Hxx au souscripteur (EXT)
