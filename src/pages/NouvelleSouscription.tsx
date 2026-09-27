@@ -28,7 +28,7 @@ const NouvelleSouscription = () => {
   const [searchParams] = useSearchParams();
   const [syncState, setSyncState] = useState<SyncState>("draft");
 
-  // Étapes du contrat V1 — Souscription uniquement (sans parcelle, sans enquête)
+  // Étapes du contrat V1 — Parcours client uniquement (sans parcelle, sans enquête)
   // La conversion en plantation se fait depuis la page Plantations.
   const etapes = useMemo(() => {
     return [
@@ -269,7 +269,7 @@ const NouvelleSouscription = () => {
       }
 
       toast({
-        title: "✅ Souscription enregistrée",
+        title: "✅ Parcours client enregistré",
         description: `N° Contrat: ${souscripteur.numero_contrat || souscripteur.id_unique || souscripteur.id}`,
       });
       setSyncState(offline ? "queued" : "synced");
@@ -297,9 +297,9 @@ const NouvelleSouscription = () => {
       <MainLayout>
       <div className="max-w-7xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Nouvelle Souscription</h1>
+          <h1 className="text-3xl font-bold">Nouveau parcours client</h1>
           <p className="text-muted-foreground">
-            Contrat de Souscription V1 — Sauvegarde automatique
+            Contrat client V1 — Sauvegarde automatique
           </p>
           <SyncStatusBadge state={syncState} className="mt-2" />
         </div>
@@ -344,7 +344,7 @@ const NouvelleSouscription = () => {
               onClick={soumettreFormulaire}
               disabled={saving || !formData.contrat_lu}
             >
-              {saving ? "Envoi en cours..." : "✓ SOUMETTRE LA SOUSCRIPTION"}
+              {saving ? "Envoi en cours..." : "✓ ENREGISTRER LE PARCOURS"}
             </Button>
           )}
         </div>
