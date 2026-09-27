@@ -21,8 +21,14 @@
       "type": "image/png"
     }
   ],
-  "categories": ["business", "finance", "agriculture"],
+  "categories": [
+    "business",
+    "finance",
+    "agriculture"
+  ],
   "prefer_related_applications": false,
   "lang": "fr",
-  "id": "agricapital-crm"
+  "id": "agricapital-crm",
+  "author": "Inocent KOFFI",
+  "publisher": "AgriCapital SARL"
 }
