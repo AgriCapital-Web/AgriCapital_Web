@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       if (daysPastDue > 30) priority = "urgent";
       else if (daysPastDue > 14) priority = "warning";
 
-      // Create notification for the subscriber if they have a user_id
+      // Create notification for the client if they have a user_id
       if (client.user_id) {
         notifications.push({
           user_id: client.user_id,
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
       summary.notified++;
     }
 
-    // Bulk insert subscriber notifications
+    // Bulk insert client notifications
     if (notifications.length > 0) {
       await supabase.from("notifications").insert(notifications);
     }
