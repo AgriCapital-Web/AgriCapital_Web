@@ -89,7 +89,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     const ha = Number(formData.superficie_prevue);
     const o = offre as any;
     const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
-    const piUnitaire = Number(o.montant_pi_par_ha ?? o.montant_pi_par_ha ?? 0);
+    const piUnitaire = Number(o.montant_pi_par_ha ?? 0);
 
     // PalmTerroir : le total est toujours recalculé depuis la formule sélectionnée
     // (PI + somme des mensualités de la formule × nombre de mois).
