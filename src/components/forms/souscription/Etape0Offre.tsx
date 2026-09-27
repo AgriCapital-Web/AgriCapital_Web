@@ -5,218 +5,127 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Crown, TrendingUp, Leaf, Check, Sparkles, Loader2 } from "lucide-react";
+import { Check, Leaf, TrendingUp, Sprout, Loader2 } from "lucide-react";
 import { usePromotionActive } from "@/hooks/usePromotionActive";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
-type Offre = Tables<'offres'>;
-
-interface Etape0Props {
-  formData: any;
-  updateFormData: (data: any) => void;
-}
-
-const getIcone = (code: string) => {
-  switch (code) {
-    case 'palm-elite': return Crown;
-    case 'palm-invest-plus': return Crown;
-    case 'palm-invest': return TrendingUp;
-    case 'terra-palm-plus': return Crown;
-    case 'terra-palm': return Leaf;
-    default: return Crown;
-  }
+type Offre = Tables<"offres"> & {
+  famille_offre?: string | null;
+  formule_code?: string | null;
+  formule_nom?: string | null;
+  necessite_foncier_client?: boolean;
+  necessite_cotitulaire?: boolean;
+  contrat_acquisition_requis?: boolean;
+  contrat_accompagnement_requis?: boolean;
+  parcours_code?: string | null;
 };
 
-const getCouleur = (code: string) => {
-  switch (code) {
-    case 'palm-elite':
-    case 'palm-invest-plus':
-    case 'terra-palm-plus':
-      return { text: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/30' };
-    case 'palm-invest':
-      return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
-    case 'terra-palm':
-      return { text: 'text-emerald-700', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' };
-    default:
-      return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
+interface Props { formData: any; updateFormData: (data: any) => void; }
+
+const FAMILLES = [
+  { code: "PALMINVEST", nom: "PalmInvest", description: "Vous n'avez pas de terre : AgriCapital sécurise le foncier et crée votre plantation.", icon: TrendingUp },
+  { code: "TERRAPALM", nom: "TerraPalm", description: "Vous avez votre terre : nous la transformons en plantation productive.", icon: Leaf },
+  { code: "PALMTERROIR", nom: "PalmTerroir", description: "Vous disposez d'une parcelle et développez progressivement votre plantation.", icon: Sprout },
+];
+
+const formatFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
+
+const parseAvantages = (value: any): string[] => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try { return JSON.parse(value); } catch { return [value]; }
   }
+  return [];
 };
 
-export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
+export const Etape0Offre = ({ formData, updateFormData }: Props) => {
   const { data: promotionActive } = usePromotionActive();
-  
-  // Determine type_offre filter based on type_souscripteur
-  const typeOffre = formData.type_souscripteur === "avec_terre" ? "avec_terre" : "sans_terre";
-  
   const { data: offres, isLoading } = useQuery({
-    queryKey: ['offres-souscription', typeOffre],
+    queryKey: ["offres-souscription-officielles"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('offres')
-        .select('*')
-        .eq('actif', true)
-        .eq('type_offre', typeOffre)
-        .order('ordre', { ascending: true });
-      
+      const { data, error } = await supabase.from("offres").select("*")
+        .eq("actif", true)
+        .in("code", ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus","palm-terroir-essentielle","palm-terroir-flexible"])
+        .order("ordre", { ascending: true });
       if (error) throw error;
-      return data as Offre[];
-    }
+      return (data || []) as Offre[];
+    },
   });
 
-  const formatMontant = (montant: number) => {
-    return new Intl.NumberFormat('fr-FR').format(montant);
+  const famille = formData.famille_offre || "";
+  const formules = useMemo(() => (offres || []).filter((o) => o.famille_offre === famille), [offres, famille]);
+  const selected = (offres || []).find((o) => o.id === formData.offre_id);
+
+  const selectFamille = (code: string) => {
+    const first = (offres || []).find((o) => o.famille_offre === code);
+    updateFormData({
+      famille_offre: code,
+      offre_id: null,
+      formule_code: null,
+      formule_nom: null,
+      type_souscripteur: code === "PALMINVEST" ? "sans_terre" : "avec_terre",
+      type_souscripteur_foncier: code === "PALMINVEST" ? "EXT" : "OWN",
+      convention_id: null,
+      lot_id: null,
+      parcelle_id: null,
+      ...(first ? {
+        contrat_acquisition_requis: first.contrat_acquisition_requis !== false,
+        contrat_accompagnement_requis: first.contrat_accompagnement_requis !== false,
+        necessite_cotitulaire: first.necessite_cotitulaire !== false,
+      } : {}),
+    });
   };
 
-  const parseAvantages = (avantages: any): string[] => {
-    if (Array.isArray(avantages)) return avantages;
-    if (typeof avantages === 'string') {
-      try {
-        return JSON.parse(avantages);
-      } catch {
-        return [avantages];
-      }
-    }
-    return [];
+  const selectFormule = (id: string) => {
+    const o = (offres || []).find((x) => x.id === id);
+    if (!o) return;
+    updateFormData({
+      offre_id: o.id,
+      formule_code: o.formule_code,
+      formule_nom: o.formule_nom || o.nom,
+      famille_offre: o.famille_offre,
+      type_souscripteur: o.type_offre === "sans_terre" ? "sans_terre" : "avec_terre",
+      type_souscripteur_foncier: o.necessite_foncier_client ? "OWN" : "EXT",
+      contrat_acquisition_requis: o.contrat_acquisition_requis !== false,
+      contrat_accompagnement_requis: o.contrat_accompagnement_requis !== false,
+      necessite_cotitulaire: o.necessite_cotitulaire !== false,
+    });
   };
 
-  // Calculer PI + total contrat avec application de la promo selon cible
-  const calculs = useMemo(() => {
-    if (!formData.offre_id || !formData.superficie_prevue || !offres) return null;
-    
-    const offre = offres.find(o => o.id === formData.offre_id);
-    if (!offre) return null;
-
+  const calculations = useMemo(() => {
+    if (!selected || !formData.superficie_prevue) return null;
     const ha = Number(formData.superficie_prevue);
-    const o = offre as any;
-    const piUnitaire = o.montant_depot_initial_par_ha ?? o.montant_da_par_ha ?? 0;
-    const totalUnitaire = o.montant_total_par_ha ?? 0;
+    const pi = Number(selected.montant_depot_initial_par_ha || selected.montant_da_par_ha || 0);
+    const total = Number(selected.montant_total_par_ha || 0) * ha;
+    const promoCible = promotionActive?.cible || null;
+    const pct = Number(promotionActive?.pourcentage_reduction || 0);
+    const piFinal = promoCible === "paiement_initial" ? pi * (1 - pct / 100) : pi;
+    const totalFinal = promoCible === "cout_global" ? total * (1 - pct / 100) : total;
+    return { ha, pi, total, piFinal: piFinal * ha, totalFinal, tranches: Array.isArray(selected.tranches_paiement) ? selected.tranches_paiement : [] };
+  }, [selected, formData.superficie_prevue, promotionActive]);
 
-    let piUnitaireFinal = piUnitaire;
-    let totalFinal = totalUnitaire * ha;
-    let promoCible: string | null = null;
-    let promoReduction = 0;
-
-    if (promotionActive) {
-      promoCible = (promotionActive as any).cible ?? 'paiement_initial';
-      promoReduction = promotionActive.pourcentage_reduction;
-      if (promoCible === 'paiement_initial') {
-        piUnitaireFinal = piUnitaire - (piUnitaire * promoReduction / 100);
-      } else if (promoCible === 'cout_global') {
-        totalFinal = totalFinal - (totalFinal * promoReduction / 100);
-      }
-    }
-
-    const totalPI = piUnitaireFinal * ha;
-    const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
-
-    return {
-      ha,
-      piUnitaire,
-      piUnitaireFinal,
-      totalPI,
-      totalUnitaire,
-      totalFinal,
-      totalNormal: totalUnitaire * ha,
-      cashUnitaire: o.montant_cash_par_ha ?? 0,
-      tranches,
-      promoCible,
-      promoReduction,
-      promotionAppliquee: !!promotionActive,
-    };
-  }, [formData.offre_id, formData.superficie_prevue, promotionActive, offres]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  if (isLoading) return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
 
   return (
     <div className="space-y-6">
-      {/* Promotion active */}
-      {promotionActive && (
-        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 text-amber-700 font-semibold mb-2">
-            <Sparkles className="h-5 w-5" />
-            <span>🎉 Promotion en cours: {promotionActive.nom}</span>
-          </div>
-          <p className="text-sm text-amber-600">
-             {`-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'cout_global' ? 'le Coût Global' : 'le Paiement Initial'}`}
-          </p>
-        </div>
-      )}
-
       <Card>
         <CardHeader>
-          <CardTitle>Choisissez votre Offre</CardTitle>
-          <CardDescription>Sélectionnez l'offre qui correspond au profil du client</CardDescription>
+          <CardTitle>Étape 1 — Choisissez l'offre</CardTitle>
+          <CardDescription>Le choix de l'offre détermine automatiquement le parcours, le foncier, les contrats et les informations demandées.</CardDescription>
         </CardHeader>
         <CardContent>
-          <RadioGroup
-            value={formData.offre_id}
-            onValueChange={(value) => updateFormData({ offre_id: value })}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4"
-          >
-            {offres?.map((offre: any) => {
-              const IconComponent = getIcone(offre.code);
-              const couleurs = getCouleur(offre.code);
-              const isSelected = formData.offre_id === offre.id;
-              const avantagesList = parseAvantages(offre.avantages);
-              
+          <RadioGroup value={famille} onValueChange={selectFamille} className="grid gap-4 md:grid-cols-3">
+            {FAMILLES.map((f) => {
+              const Icon = f.icon;
+              const active = famille === f.code;
               return (
-                <div key={offre.id}>
-                  <RadioGroupItem
-                    value={offre.id}
-                    id={offre.id}
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor={offre.id}
-                    className={`flex flex-col h-full p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      isSelected 
-                        ? `${couleurs.border} ${couleurs.bg} ring-2 ring-offset-2 ring-primary` 
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`p-2 rounded-full ${couleurs.bg}`}>
-                        <IconComponent className={`h-6 w-6 ${couleurs.text}`} />
-                      </div>
-                      <div>
-                        <h3 className={`font-bold ${couleurs.text}`}>{offre.nom}</h3>
-                        <p className="text-xs text-muted-foreground">{offre.description}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-auto space-y-2">
-                      {offre.montant_total_par_ha === 0 ? (
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-lg font-bold text-green-600">GRATUIT</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-lg font-bold">{formatMontant(offre.montant_total_par_ha)}F</span>
-                             <span className="text-xs text-muted-foreground">/ha (total 35 mois)</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            PI: {formatMontant(offre.montant_depot_initial_par_ha)}F/ha · Cash: {formatMontant(offre.montant_cash_par_ha)}F/ha
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {offre.gestion_type === 'deleguee' ? 'Gestion déléguée · 70% revenus' : 'Gestion propre · 100% revenus'}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {isSelected && (
-                      <div className="mt-3 flex items-center gap-1 text-primary text-sm font-medium">
-                        <Check className="h-4 w-4" /> Sélectionné
-                      </div>
-                    )}
+                <div key={f.code}>
+                  <RadioGroupItem value={f.code} id={`famille-${f.code}`} className="peer sr-only" />
+                  <Label htmlFor={`famille-${f.code}`} className={`block h-full cursor-pointer rounded-xl border-2 p-5 transition ${active ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "hover:border-primary/50"}`}>
+                    <div className="mb-3 flex items-center gap-3"><Icon className="h-7 w-7 text-primary" /><span className="text-lg font-bold">{f.nom}</span></div>
+                    <p className="text-sm text-muted-foreground">{f.description}</p>
+                    <Badge className="mt-4" variant={active ? "default" : "outline"}>{active ? "Offre sélectionnée" : "Sélectionner"}</Badge>
                   </Label>
                 </div>
               );
@@ -225,109 +134,69 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
         </CardContent>
       </Card>
 
-      {/* Superficie prévue */}
+      {famille && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Choisissez la formule</CardTitle>
+            <CardDescription>La formule définit la gestion de la plantation et les conditions financières.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup value={formData.offre_id || ""} onValueChange={selectFormule} className="grid gap-4 md:grid-cols-2">
+              {formules.map((o: any) => {
+                const active = formData.offre_id === o.id;
+                return (
+                  <div key={o.id}>
+                    <RadioGroupItem value={o.id} id={`formule-${o.id}`} className="peer sr-only" />
+                    <Label htmlFor={`formule-${o.id}`} className={`block h-full cursor-pointer rounded-xl border-2 p-4 ${active ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "hover:border-primary/50"}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div><p className="font-bold">{o.formule_nom || o.nom}</p><p className="text-sm text-muted-foreground">{o.description}</p></div>
+                        {active && <Check className="h-5 w-5 shrink-0 text-primary" />}
+                      </div>
+                      <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                        <div><span className="text-muted-foreground">Paiement initial / ha</span><p className="font-bold">{formatFCFA(Number(o.montant_depot_initial_par_ha || 0))} F</p></div>
+                        <div><span className="text-muted-foreground">Total / ha</span><p className="font-bold text-primary">{formatFCFA(Number(o.montant_total_par_ha || 0))} F</p></div>
+                      </div>
+                    </Label>
+                  </div>
+                );
+              })}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Superficie prévue</CardTitle>
-          <CardDescription>Indiquez la superficie approximative pour calculer le Paiement Initial (PI)</CardDescription>
+          <CardDescription>La superficie sert à calculer automatiquement le Paiement initial et le montant contractuel.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
+        <CardContent>
+          <div className="max-w-sm space-y-2">
             <Label htmlFor="superficie_prevue">Superficie (hectares) *</Label>
-            <Input
-              id="superficie_prevue"
-              type="number"
-              step="0.5"
-              min="1"
-              max="100"
-              value={formData.superficie_prevue || ""}
-              onChange={(e) => updateFormData({ superficie_prevue: e.target.value })}
-              placeholder="Ex: 5"
-              required
-            />
+            <Input id="superficie_prevue" type="number" step="0.1" min="0.1" max="1000" value={formData.superficie_prevue || ""} onChange={(e) => updateFormData({ superficie_prevue: e.target.value })} />
           </div>
-
-          {/* Récap calculé */}
-          {calculs && (
-            <div className="p-4 bg-primary/10 rounded-lg space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>Superficie:</span>
-                <span className="font-medium">{calculs.ha} ha</span>
+          {calculations && (
+            <div className="mt-5 rounded-xl bg-primary/10 p-4 text-sm">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <p>Paiement initial : <strong>{formatFCFA(calculations.piFinal)} F</strong></p>
+                <p>Total contractuel : <strong>{formatFCFA(calculations.totalFinal)} F</strong></p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Paiement Initial{calculs.promoCible === 'paiement_initial' ? ' (promo)' : ''}:</span>
-                <span className="font-bold text-primary">{formatMontant(calculs.totalPI)} F</span>
-              </div>
-              {calculs.tranches.length > 0 && (
-                <div className="border-t pt-2 space-y-1 text-sm">
-                   <div className="font-medium mb-1">Échéances mensuelles (35 mois) :</div>
-                  {calculs.tranches.map((t: any, i: number) => (
-                    <div key={i} className="flex justify-between text-xs text-muted-foreground">
-                      <span>An {t.annee} — {t.mois} mois</span>
-                      <span>{formatMontant(Number(t.mensualite_par_ha) * calculs.ha)} F/mois</span>
+              <div className="mt-3 border-t pt-3">
+                <p className="mb-2 font-semibold">Échéancier</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {calculations.tranches.map((t: any, i: number) => (
+                    <div key={i} className="rounded-md border bg-background p-2 text-xs">
+                      <span className="font-medium">{t.libelle || "Échéance"}</span>
+                      <span className="ml-2 text-muted-foreground">{t.mois} mois</span>
+                      {t.mensualite_par_ha && <span className="ml-2">{formatFCFA(Number(t.mensualite_par_ha) * calculations.ha)} F/mois</span>}
                     </div>
                   ))}
                 </div>
-              )}
-              <div className="border-t pt-2 flex justify-between">
-                 <span className="font-semibold">Total contrat (35 mois){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
-                <span className="text-lg font-bold text-primary">{formatMontant(calculs.totalFinal)} F</span>
               </div>
-              {calculs.promotionAppliquee && (
-                <div className="flex items-center gap-1 text-xs text-amber-600">
-                  <Sparkles className="h-3 w-3" />
-                  <span>Promo -{calculs.promoReduction}% appliquée sur {calculs.promoCible === 'cout_global' ? 'le total' : 'le PI'}</span>
-                </div>
-              )}
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Résumé de l'offre sélectionnée */}
-      {formData.offre_id && offres && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Récapitulatif de l'Offre</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              const offre = offres.find(o => o.id === formData.offre_id);
-              if (!offre) return null;
-              const avantagesList = parseAvantages(offre.avantages);
-              
-              return (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Offre:</span>
-                      <p className="font-medium">{offre.nom}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Type:</span>
-                      <p className="font-medium">{offre.description}</p>
-                    </div>
-                  </div>
-                  
-                  {avantagesList.length > 0 && (
-                    <div className="border-t pt-4">
-                      <h4 className="font-medium mb-2">Avantages inclus:</h4>
-                      <ul className="space-y-1">
-                        {avantagesList.map((avantage: string, idx: number) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                            <span>{avantage}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
