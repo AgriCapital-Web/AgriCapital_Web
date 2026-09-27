@@ -1,0 +1,2 @@
+-- See the applied database migration 20260927050200: canonical offer pricing, 40-month schedule rules, payment generation fix, and contract totals recalculation. 
+-- This file is kept in source control as the authoritative migration text.
