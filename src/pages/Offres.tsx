@@ -9,10 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import OffreAgriPlan from "@/pages/parametres/OffreAgriPlan";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, Crown, TrendingUp, Leaf, Plus, Pencil, Loader2, Trash2, Gift, Percent, CheckCircle, XCircle, Edit } from "lucide-react";
+import { Check, Crown, TrendingUp, Leaf, Sprout, Plus, Pencil, Loader2, Trash2, Gift, Percent, CheckCircle, XCircle, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -25,16 +24,10 @@ type Offre = Tables<'offres'>;
 type Promotion = Tables<'promotions'>;
 
 const getIcone = (code: string) => {
-  switch (code) {
-    case 'PALMELITE':
-      return Crown;
-    case 'PALMINVEST':
-      return TrendingUp;
-    case 'TERRAPALM':
-      return Leaf;
-    default:
-      return Crown;
-  }
+  if (code.startsWith('palm-invest')) return TrendingUp;
+  if (code.startsWith('terra-palm')) return Leaf;
+  if (code.startsWith('palm-terroir')) return Sprout;
+  return Crown;
 };
 
 const getCouleur = (code: string, couleur?: string | null) => {
@@ -46,12 +39,12 @@ const getCouleur = (code: string, couleur?: string | null) => {
     };
   }
   switch (code) {
-    case 'PALMELITE':
-      return { text: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/30' };
     case 'PALMINVEST':
       return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
     case 'TERRAPALM':
       return { text: 'text-emerald-700', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' };
+    case 'PALMTERROIR':
+      return { text: 'text-orange-600', bg: 'bg-orange-500/10', border: 'border-orange-500/30' };
     default:
       return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
   }
@@ -61,7 +54,7 @@ const Offres = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { parOffre } = useOffresPrixEffectif();
-  const [activeTab, setActiveTab] = useState<'offres' | 'promotions' | 'agriplan'>('offres');
+  const [activeTab, setActiveTab] = useState<'offres' | 'promotions'>('offres');
   const [editOffre, setEditOffre] = useState<Offre | null>(null);
   const [isOffreDialogOpen, setIsOffreDialogOpen] = useState(false);
   const [isPromoDialogOpen, setIsPromoDialogOpen] = useState(false);
@@ -324,11 +317,11 @@ const Offres = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">Offres & Promotions</h2>
-          <p className="text-muted-foreground">Gérez les offres clients et les promotions</p>
+          <p className="text-muted-foreground">PalmInvest, TerraPalm et PalmTerroir — 6 formules officielles</p>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'offres' | 'promotions' | 'agriplan')}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'offres' | 'promotions')}>
         <TabsList>
           <TabsTrigger value="offres" className="gap-2">
             <Crown className="h-4 w-4" />
@@ -341,15 +334,7 @@ const Offres = () => {
               <Badge className="ml-1 bg-green-500" variant="secondary">1 active</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="agriplan" className="gap-2">
-            <Leaf className="h-4 w-4" />
-            AgriPlan
-          </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="agriplan" className="space-y-4">
-          <OffreAgriPlan />
-        </TabsContent>
 
         {/* Onglet Offres */}
         <TabsContent value="offres" className="space-y-4">
