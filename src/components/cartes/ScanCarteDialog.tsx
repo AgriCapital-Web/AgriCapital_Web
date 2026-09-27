@@ -18,7 +18,7 @@ export const extraireCode = (valeur: string) => {
   if (!v) return "";
   try {
     const url = new URL(v);
-    const match = url.pathname.match(/\/verifier-carte\/([A-Za-z0-9-]{6,64})\/?$/i);
+    const match = url.pathname.match(/\/verify\/([A-Za-z0-9-]{6,64})\/?$/i);
     if (match?.[1]) return match[1];
   } catch {
     // Le QR peut contenir directement le code.
@@ -90,9 +90,9 @@ const ScanCarteDialog = ({ open, onOpenChange, onCode }: Props) => {
         },
         {
           preferredCamera,
-          maxScansPerSecond: 8,
+          maxScansPerSecond: 15,
           returnDetailedScanResult: true,
-          highlightScanRegion: true,
+          highlightScanRegion: false,
           highlightCodeOutline: true,
           onDecodeError: () => undefined,
         },
@@ -178,7 +178,7 @@ const ScanCarteDialog = ({ open, onOpenChange, onCode }: Props) => {
             Scanner une carte AgriCapital
           </DialogTitle>
           <DialogDescription>
-            Autorisez la caméra puis placez le QR code dans la zone de lecture.
+            La caméra arrière se lance automatiquement. Placez simplement le QR code devant l’objectif.
           </DialogDescription>
         </DialogHeader>
 
@@ -200,7 +200,7 @@ const ScanCarteDialog = ({ open, onOpenChange, onCode }: Props) => {
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Le lecteur utilise la caméra arrière lorsque plusieurs caméras sont disponibles.
+            Lecture automatique haute fréquence : maintenez la carte imprimée devant l’objectif, même à quelques centimètres.
           </p>
         )}
 
