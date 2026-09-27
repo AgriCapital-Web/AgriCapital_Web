@@ -33,7 +33,7 @@ const HistoriqueComplet = () => {
           *,
           user:profiles!historique_actions_user_id_fkey(nom_complet)
         `)
-        .eq("souscripteur_id", id)
+        .eq("client_id", id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -77,7 +77,7 @@ const HistoriqueComplet = () => {
           <div>
             <h1 className="text-3xl font-bold">Historique Complet</h1>
             <p className="text-muted-foreground mt-1">
-              Toutes les actions effectuées sur ce planteur
+              Toutes les actions effectuées sur ce client
             </p>
           </div>
 
