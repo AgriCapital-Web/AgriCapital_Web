@@ -41,6 +41,10 @@ const NouvelleSouscription = () => {
   }, [formData.famille_offre]);
   
   useEffect(() => {
+    if (etapeActuelle >= etapes.length) setEtapeActuelle(Math.max(0, etapes.length - 1));
+  }, [etapes.length, etapeActuelle]);
+
+  useEffect(() => {
     const leadId = searchParams.get("lead_id");
     if (!leadId) return;
     setFormData((prev: any) => ({
