@@ -221,6 +221,7 @@ const NouvelleSouscription = () => {
           region_id: formData.region_id || null,
           departement_id: formData.departement_id || null,
           sous_prefecture_id: formData.sous_prefecture_id || null,
+          village_id: formData.village_id || null,
           type_compte: formData.type_compte || null,
           banque_operateur: formData.banque_operateur || null,
           numero_compte: formData.numero_compte || null,
@@ -245,6 +246,22 @@ const NouvelleSouscription = () => {
 
       const documentsPayload: any[] = [];
       const contractRows: any[] = [];
+
+      const identityFiles = [
+        { field: "photo_piece_recto_file", type: "piece_identite_recto", required: true },
+        { field: "photo_piece_verso_file", type: "piece_identite_verso", required: true },
+        { field: "photo_profil_file", type: "photo_profil", required: true },
+      ];
+      for (const item of identityFiles) {
+        const file = formData[item.field];
+        if (!file) throw new Error("Document obligatoire manquant : " + item.type);
+        const uploaded = await uploadFile("documents", file, `${user.id}/souscriptions/${souscripteur.id}/identite`);
+        if (!uploaded) throw new Error("Upload impossible : " + item.type);
+        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: item.type, fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+        if (item.type === "photo_profil") {
+          await (supabase as any).from("souscripteurs").update({ photo_profil_url: uploaded.url }).eq("id", souscripteur.id);
+        }
+      }
       if (formData.contrat_acquisition_file) {
         const uploaded = await uploadFile("documents", formData.contrat_acquisition_file, `${user.id}/souscriptions/${souscripteur.id}/contrats`);
         if (!uploaded) throw new Error("Upload impossible du contrat d'acquisition client");
