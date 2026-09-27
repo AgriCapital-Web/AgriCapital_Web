@@ -85,7 +85,7 @@ const MISSIONS_PAR_ROLE: Record<string, string> = {
   chef_equipe_service_client: "Encadrement service client",
   commercial: "Acquisition clients",
   technicien: "Suivi des plantations",
-  service_client: "Assistance souscripteurs",
+  service_client: "Assistance clients",
   assistant_administratif: "Appui administratif",
 };
 
@@ -178,7 +178,7 @@ const CardShell = ({ children }: { children: ReactNode }) => (
       backgroundColor: BLANC,
       border: "1px solid #D8D8D8",
       color: GRIS,
-      fontFamily: "'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif",
+      fontFamily: "Arial, Helvetica, sans-serif",
       boxSizing: "border-box",
     }}
   >
