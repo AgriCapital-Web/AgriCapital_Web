@@ -157,7 +157,7 @@ const NouvelleSouscription = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
-      if (!formData.famille_offre || !formData.formule_code || !formData.nom_famille || !formData.prenoms || !formData.telephone || !formData.offre_id) {
+      if (!formData.famille_offre || !formData.formule_code || !formData.nom_famille || !formData.prenoms || !formData.telephone || !formData.offre_id || !formData.village_id) {
         throw new Error("Veuillez remplir tous les champs obligatoires (identité, coordonnées et offre)");
       }
 
