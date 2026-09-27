@@ -1,5 +1,5 @@
 -- 2026-09-27 : planification notification worker sans secret custom.
-do $$
+do $outer$
 declare jid integer;
 begin
   select jobid into jid from cron.job where jobname='agricapital-notification-automation' limit 1;
@@ -7,11 +7,11 @@ begin
   perform cron.schedule(
     'agricapital-notification-automation',
     '*/5 * * * *',
-    $$select net.http_post(
+    $inner$select net.http_post(
       url:='https://rfzfsmpsuempafhkqhra.supabase.co/functions/v1/notification-cron',
       headers:='{"Content-Type":"application/json"}'::jsonb,
       body:='{}'::jsonb,
       timeout_milliseconds:=10000
-    );$$
+    );$inner$
   );
-end $$;
+end $outer$;
