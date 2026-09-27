@@ -4,7 +4,7 @@ import { createPortalSession, normalizePhone, phoneMatches } from "../_shared/po
 const corsHeaders={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type"};
 const json=(body:Record<string,unknown>,status=200)=>new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}});
 const ip=(req:Request)=>req.headers.get("cf-connecting-ip")||req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
-const admin=()=>createClient(Deno.env.get("SUPABASE_URL")||"",JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}").default||"",{auth:{autoRefreshToken:false,persistSession:false}});
+const admin=()=>createClient(Deno.env.get("SUPABASE_URL")||"",Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"",{auth:{autoRefreshToken:false,persistSession:false}});
 const otp=()=>String((new DataView(crypto.getRandomValues(new Uint8Array(4)).buffer).getUint32(0)%900000)+100000);
 const hash=async(v:string)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)))).map(b=>b.toString(16).padStart(2,"0")).join("");
 
