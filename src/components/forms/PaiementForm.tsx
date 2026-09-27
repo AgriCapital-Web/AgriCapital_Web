@@ -20,18 +20,18 @@ const fcfa = (n:number) => Math.round(n || 0).toLocaleString("fr-FR");
 const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   const { toast } = useToast();
   const { register, handleSubmit, watch, setValue } = useForm({ defaultValues: paiement || { type_paiement: "paiement_initial" } });
-  const [souscripteurs, setSouscripteurs] = useState<any[]>([]);
+  const [clients, setSouscripteurs] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [fileUrl, setFileUrl] = useState(paiement?.fichier_preuve_url || "");
   const [filePreview, setFilePreview] = useState("");
   const typePaiement = watch("type_paiement");
-  const souscripteurId = watch("souscripteur_id");
+  const souscripteurId = watch("client_id");
   const typePreuve = watch("type_preuve");
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await (supabase as any).from("souscripteurs")
+      const { data, error } = await (supabase as any).from("clients")
         .select("*, offre:offres(id,code,nom,famille_offre,formule_code,montant_depot_initial_par_ha,montant_total_par_ha)")
         .order("created_at", { ascending: false });
       if (error) toast({ variant:"destructive", title:"Erreur", description:getSafeErrorMessage(error) });
@@ -40,7 +40,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
   }, [toast]);
 
   useEffect(() => {
-    const s = souscripteurs.find(x => x.id === souscripteurId) || null;
+    const s = clients.find(x => x.id === souscripteurId) || null;
     setSelected(s);
     if (!s) return;
     setValue("parcours", s.famille_offre || s.offre?.famille_offre || null);
@@ -54,7 +54,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
       setValue("est_paiement_initial", false);
       setValue("est_depot_initial", false);
     }
-  }, [souscripteurId, souscripteurs, typePaiement, setValue]);
+  }, [souscripteurId, clients, typePaiement, setValue]);
 
   const paiementInitial = useMemo(() => selected
     ? Math.round(Number(selected.total_hectares || 0) * Number(selected.offre?.montant_depot_initial_par_ha || 0))
@@ -82,7 +82,7 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
 
   const onSubmit = async (data:any) => {
     try {
-      if (!data.souscripteur_id) throw new Error("Client obligatoire.");
+      if (!data.client_id) throw new Error("Client obligatoire.");
       const parsed:any = {};
       for (const field of ["montant_paye","montant_theorique"] as const) {
         if (data[field] !== undefined && data[field] !== null && data[field] !== "") {
@@ -120,9 +120,9 @@ const PaiementForm = ({ paiement, onSuccess, onCancel }: PaiementFormProps) => {
         <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent>
           <SelectItem value="paiement_initial">Paiement initial</SelectItem><SelectItem value="echeance">Échéance</SelectItem>
         </SelectContent></Select></div>
-      <div><Label>Client *</Label><Select onValueChange={v=>setValue("souscripteur_id",v)} defaultValue={paiement?.souscripteur_id}>
+      <div><Label>Client *</Label><Select onValueChange={v=>setValue("client_id",v)} defaultValue={paiement?.client_id}>
         <SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger><SelectContent>
-          {souscripteurs.map(s=><SelectItem key={s.id} value={s.id}>{s.numero_contrat || s.id_unique || s.id} — {s.nom_complet}</SelectItem>)}
+          {clients.map(s=><SelectItem key={s.id} value={s.id}>{s.numero_contrat || s.id_unique || s.id} — {s.nom_complet}</SelectItem>)}
         </SelectContent></Select></div>
       {selected && <Card className="border-primary/20 bg-primary/5"><CardHeader className="pb-3"><CardTitle className="text-sm">Offre officielle</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <div className="flex justify-between"><span>Offre</span><strong>{selected.offre?.nom || "—"}</strong></div>
