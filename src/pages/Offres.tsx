@@ -26,11 +26,11 @@ type Promotion = Tables<'promotions'>;
 
 const getIcone = (code: string) => {
   switch (code) {
-    case 'PALMELITE':
+    case 'palm-invest-plus':
       return Crown;
-    case 'PALMINVEST':
+    case 'palm-invest':
       return TrendingUp;
-    case 'TERRAPALM':
+    case 'terra-palm':
       return Leaf;
     default:
       return Crown;
@@ -46,11 +46,11 @@ const getCouleur = (code: string, couleur?: string | null) => {
     };
   }
   switch (code) {
-    case 'PALMELITE':
+    case 'palm-invest-plus':
       return { text: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/30' };
-    case 'PALMINVEST':
+    case 'palm-invest':
       return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
-    case 'TERRAPALM':
+    case 'terra-palm':
       return { text: 'text-emerald-700', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' };
     default:
       return { text: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/30' };
