@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       // Stale/invalid refresh token → clean local storage so ProtectedRoute redirects to /login
       if (error && /refresh.*token/i.test(error.message || '')) {
-        try { await supabase.auth.signOut(); } catch {}
+        try { await supabase.auth.signOut(); } catch { /* best effort */ }
         setSession(null); setUser(null); setProfile(null); setUserRoles([]);
         setLoading(false);
         return;
@@ -207,7 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           toast({ title: "Connexion hors ligne", description: "Erreur réseau — mode hors ligne activé." });
           return { error: null };
         }
-      } catch {}
+      } catch { /* best effort */ }
       return { error };
     }
   };
