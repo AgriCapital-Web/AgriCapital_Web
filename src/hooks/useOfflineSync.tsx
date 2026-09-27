@@ -2,8 +2,8 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
-  cacheSouscripteurs, cachePlantations, cacheReferenceData,
-  getCachedSouscripteurs, getCachedPlantations, getCachedItems,
+  cacheClients, cachePlantations, cacheReferenceData,
+  getCachedClients, getCachedPlantations, getCachedItems,
   getPendingSyncOps, clearSyncedOps, addToSyncQueue, markOpStatus,
   getLastSyncTime, getOfflineStats, getSyncQueueStats,
   STORES, type SyncOperation,
@@ -75,7 +75,7 @@ export function useOfflineSync() {
     try {
       // Field-team essentials (incremental by updated_at)
       const MAIN_TABLES: Array<{ store: string; table: string }> = [
-        { store: STORES.SOUSCRIPTEURS, table: 'souscripteurs' },
+        { store: STORES.CLIENTS, table: 'clients' },
         { store: STORES.PLANTATIONS, table: 'plantations' },
         { store: STORES.PAIEMENTS, table: 'paiements' },
         { store: STORES.LEADS, table: 'leads' },
@@ -203,7 +203,7 @@ export function useOfflineSync() {
 
     // Optimistic local update
     const storeMap: Record<string, string> = {
-      souscripteurs: STORES.SOUSCRIPTEURS,
+      clients: STORES.CLIENTS,
       plantations: STORES.PLANTATIONS,
       paiements: STORES.PAIEMENTS,
       leads: STORES.LEADS,
@@ -232,7 +232,7 @@ export function useOfflineSync() {
   }, [pushData]);
 
   // Get cached data for offline use
-  const getOfflineSouscripteurs = useCallback(() => getCachedSouscripteurs(), []);
+  const getOfflineClients = useCallback(() => getCachedClients(), []);
   const getOfflinePlantations = useCallback(() => getCachedPlantations(), []);
   const getOfflineItems = useCallback((store: string) => getCachedItems(store), []);
   const getStats = useCallback(() => getOfflineStats(), []);
@@ -302,7 +302,7 @@ export function useOfflineSync() {
     networkQuality,
     syncNow,
     queueMutation,
-    getOfflineSouscripteurs,
+    getOfflineClients,
     getOfflinePlantations,
     getOfflineItems,
     getStats,
