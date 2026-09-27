@@ -5,8 +5,8 @@ import { fr } from 'date-fns/locale';
 interface ReceiptData {
   reference: string;
   date: Date;
-  souscripteurNom: string;
-  souscripteurTelephone: string;
+  acquereurNom: string;
+  acquereurTelephone: string;
   plantationNom: string;
   typePaiement: string;
   montant: number;
@@ -69,12 +69,12 @@ export const generatePaymentReceiptHTML = (data: ReceiptData): string => {
             <span class="info-value">${format(data.date, "dd MMMM yyyy 'à' HH:mm", { locale: fr })}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Souscripteur</span>
-            <span class="info-value">${data.souscripteurNom}</span>
+            <span class="info-label">Acquéreur</span>
+            <span class="info-value">${data.acquereurNom}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Téléphone</span>
-            <span class="info-value">${data.souscripteurTelephone}</span>
+            <span class="info-value">${data.acquereurTelephone}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Plantation</span>
