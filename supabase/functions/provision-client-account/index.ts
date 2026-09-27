@@ -37,8 +37,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ success: false, error: "POST requis" }, 405);
 
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const secret = Deno.env.get("NOTIFICATION_CRON_SECRET") || "";
-  if (!secret || req.headers.get("x-agricapital-account-secret") !== secret) {
+  const internal = req.headers.get("x-agricapital-account-secret") || "";
+  if ((!secret || internal !== secret) && internal !== serviceKey) {
     return json({ success: false, error: "Non autorisé" }, 401);
   }
 
