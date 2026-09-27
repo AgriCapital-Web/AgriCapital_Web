@@ -42,6 +42,7 @@ const render = (template: string, contact: Contact, context: Record<string, unkn
 async function internalAuthorized(req: Request) {
   const expected = Deno.env.get("NOTIFICATION_CRON_SECRET");
   const supplied = req.headers.get("x-agricapital-automation-secret");
+  if (supplied && supplied === serviceKey) return true;
   if (expected && supplied && supplied === expected) return true;
   if (!supplied) return false;
   const { data, error } = await admin.rpc("notification_get_internal_secret");
@@ -284,6 +285,26 @@ serve(async (req) => {
       return json({ ok: true, count: contacts.length, sample: contacts.slice(0,20).map((c) => ({
         nom_complet:c.nom_complet,email:c.email,telephone:c.telephone,offre_nom:c.offre_nom,role_code:c.role_code
       }))});
+    }
+    if (mode === "event") {
+      if (!body.event_code) return json({ error: "event_code requis" }, 400);
+      const { data: automations, error } = await admin.from("notification_automations")
+        .select("*").eq("evenement", body.event_code).eq("actif", true);
+      if (error) throw error;
+      const results = [];
+      for (const automation of automations || []) {
+        let list = await contacts(automation.criteres || {});
+        const ctx = body.context || {};
+        if (ctx.souscripteur_id) list = list.filter((x: any) => x.source_id === ctx.souscripteur_id && x.source_type === "client");
+        if (ctx.user_id) list = list.filter((x: any) => x.user_id === ctx.user_id);
+        results.push(await deliver({
+          id: automation.id, automation_id: automation.id, canal: automation.canal,
+          sujet: automation.sujet, contenu: automation.contenu, contacts: list,
+          event: body.event_code + ":" + (ctx.paiement_id || ctx.user_id || "global"), context: ctx,
+        }));
+        await admin.from("notification_automations").update({ derniere_execution_at: new Date().toISOString() }).eq("id", automation.id);
+      }
+      return json({ ok: true, results });
     }
     if (mode === "campaign") {
       if (!body.campaign_id) return json({ error: "campaign_id requis" }, 400);
