@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 type Message = { role: "user" | "assistant"; content: string };
 
 interface AIAssistantProps {
-  mode: "admin" | "subscriber";
+  mode: "admin" | "client";
   context?: string;
 }
 
