@@ -52,12 +52,12 @@ const Dashboard = () => {
   const { profile, userRoles } = useAuth();
   const profilePhotoUrl = useSignedUrl('photos-profils', profile?.photo_url);
 
-  // Souscripteur (user) : redirection vers son espace personnel
-  const isSouscripteurOnly =
+  // Client (user) : redirection vers son espace personnel
+  const isClientOnly =
     userRoles.length > 0 && userRoles.every((r) => r === "user");
 
   // Définition des actions rapides selon les permissions
-  const canCreateSouscription = hasPermission(userRoles, PERMISSIONS.CREATE_SOUSCRIPTION);
+  const canCreateAcquisition = hasPermission(userRoles, PERMISSIONS.CREATE_SOUSCRIPTION);
   const canViewPaiements = hasPermission(userRoles, PERMISSIONS.VIEW_PAIEMENTS);
   const canViewPlantations = hasPermission(userRoles, PERMISSIONS.VIEW_PLANTATIONS);
   const canValidateDocuments = hasPermission(userRoles, PERMISSIONS.VALIDATE_PAYMENTS);
@@ -82,7 +82,7 @@ const Dashboard = () => {
   const [alertes, setAlertes] = useState<any[]>([]);
   const [topClients, setTopClients] = useState<any[]>([]);
   const [docsEnAttente, setDocsEnAttente] = useState(0);
-  const [souscriptionsEnAttente, setSouscriptionsEnAttente] = useState(0);
+  const [acquisitionsEnAttente, setAcquisitionsEnAttente] = useState(0);
   const [synthese, setSynthese] = useState<any[]>([]);
   const [syntheseAgg, setSyntheseAgg] = useState({
     contratsActifs: 0,
@@ -98,7 +98,7 @@ const Dashboard = () => {
     try {
       // Vue de synthèse — cycle 28 ans
       const { data: syn } = await (supabase as any)
-        .from("v_souscripteur_synthese")
+        .from("v_client_synthese")
         .select("*");
       if (syn && syn.length) {
         setSynthese(syn);
@@ -116,7 +116,7 @@ const Dashboard = () => {
 
       // Stats globales
       const { count: clientsCount } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("*", { count: "exact", head: true });
 
       const { data: plantations } = await (supabase as any)
@@ -138,7 +138,7 @@ const Dashboard = () => {
 
       const { data: paiements } = await (supabase as any)
         .from("paiements")
-        .select("montant, statut, created_at, plantation_id, plantations(souscripteurs(nom_complet))");
+        .select("montant, statut, created_at, plantation_id, plantations(clients(nom_complet))");
       
       const totalPaiements = paiements?.filter((p) => p.statut === "valide")
         .reduce((sum, p) => sum + (p.montant || 0), 0) || 0;
@@ -149,7 +149,7 @@ const Dashboard = () => {
 
       // Clients récents
       const { data: clients } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("id_unique, nom_complet, created_at, statut_global, nombre_plantations")
         .order("created_at", { ascending: false })
         .limit(5);
@@ -159,7 +159,7 @@ const Dashboard = () => {
       // Paiements récents
       const paiementsRecents = paiements?.slice(0, 5).map((p: any) => ({
         ...p,
-        client_nom: p.plantations?.souscripteurs?.nom_complet || "N/A"
+        client_nom: p.plantations?.clients?.nom_complet || "N/A"
       })) || [];
       setRecentPaiements(paiementsRecents);
 
@@ -240,7 +240,7 @@ const Dashboard = () => {
 
       // Top clients
       const { data: topClientsData } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("nom_complet, nombre_plantations, total_hectares")
         .order("total_hectares", { ascending: false })
         .limit(5);
@@ -249,17 +249,17 @@ const Dashboard = () => {
 
       // Documents en attente
       const { count: docsCount } = await (supabase as any)
-        .from("documents_souscription")
+        .from("documents_acquisition")
         .select("*", { count: "exact", head: true })
         .eq("statut", "en_attente");
       setDocsEnAttente(docsCount || 0);
 
-      // Souscriptions en attente
+      // Acquisitions en attente
       const { count: subsCount } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("*", { count: "exact", head: true })
         .eq("statut", "en_attente");
-      setSouscriptionsEnAttente(subsCount || 0);
+      setAcquisitionsEnAttente(subsCount || 0);
 
       setStats({
         totalClients: clientsCount || 0,
@@ -278,7 +278,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => { fetchStats(); }, []);
-  useRealtime({ table: "souscripteurs", onChange: fetchStats });
+  useRealtime({ table: "clients", onChange: fetchStats });
   useRealtime({ table: "plantations", onChange: fetchStats });
   useRealtime({ table: "paiements", onChange: fetchStats });
 
@@ -333,7 +333,7 @@ const Dashboard = () => {
 
           {/* Actions rapides */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            {isSouscripteurOnly && (
+            {isClientOnly && (
               <>
                 <Button asChild variant="default" className="h-auto py-4 flex-col gap-2">
                   <Link to="/profil">
@@ -361,13 +361,13 @@ const Dashboard = () => {
                 </Button>
               </>
             )}
-            {!isSouscripteurOnly && (
+            {!isClientOnly && (
             <>
-            {canCreateSouscription && (
+            {canCreateAcquisition && (
               <Button asChild variant="default" className="h-auto py-4 flex-col gap-2">
-                <Link to="/nouvelle-souscription">
+                <Link to="/nouvelle-acquisition">
                   <Plus className="h-5 w-5" />
-                  <span className="text-xs sm:text-sm">Nouvelle souscription</span>
+                  <span className="text-xs sm:text-sm">Nouvelle acquisition</span>
                 </Link>
               </Button>
             )}
@@ -410,16 +410,16 @@ const Dashboard = () => {
             <Card className="border-l-4 border-l-primary">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" /> Souscriptions
+                  <FileText className="h-4 w-4 text-primary" /> Acquisitions
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline justify-between">
                   <div>
                     <div className="text-2xl font-bold">{stats.totalClients}</div>
-                    <p className="text-xs text-muted-foreground">{souscriptionsEnAttente} en attente</p>
+                    <p className="text-xs text-muted-foreground">{acquisitionsEnAttente} en attente</p>
                   </div>
-                  <Link to="/souscriptions" className="text-xs text-primary hover:underline">Voir →</Link>
+                  <Link to="/acquisitions" className="text-xs text-primary hover:underline">Voir →</Link>
                 </div>
               </CardContent>
             </Card>
@@ -457,8 +457,8 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Synthèse cycle 28 ans — v_souscripteur_synthese */}
-          {synthese.length > 0 && !isSouscripteurOnly && (
+          {/* Synthèse cycle 28 ans — v_client_synthese */}
+          {synthese.length > 0 && !isClientOnly && (
             <Card className="border-l-4 border-l-primary">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
