@@ -478,40 +478,28 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                 Carte personnelle — non transférable
               </p>
             </div>
-            <div style={{ position: "relative", width: 112, height: 60, flexShrink: 0 }}>
-              <img
-                src={signature}
-                alt="Signature de la direction"
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: 0,
-                  width: 102,
-                  height: 42,
-                  objectFit: "contain",
-                }}
-              />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "flex-end",
+                gap: 5,
+                width: 120,
+                height: 60,
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ width: 72, height: 58, display: "flex", alignItems: "flex-end", justifyContent: "center", flexShrink: 0 }}>
+                <img
+                  src={signature}
+                  alt="Signature de la direction"
+                  style={{ width: 70, height: 38, objectFit: "contain", display: "block" }}
+                />
+              </div>
               <img
                 src={cachet}
                 alt="Cachet AgriCapital"
-                style={{
-                  position: "absolute",
-                  right: -6,
-                  bottom: -3,
-                  width: 58,
-                  height: 58,
-                  objectFit: "contain",
-                }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 12,
-                  bottom: 0,
-                  height: 1,
-                  backgroundColor: "#A5A5A5",
-                }}
+                style={{ width: 46, height: 46, objectFit: "contain", display: "block", flexShrink: 0 }}
               />
             </div>
           </div>
@@ -523,8 +511,6 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
 CarteRecto.displayName = "CarteRecto";
 
 export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ carte }, ref) => {
-  const verification = verificationUrl(carte.code_verification);
-
   return (
     <div ref={ref}>
       <CardShell>
