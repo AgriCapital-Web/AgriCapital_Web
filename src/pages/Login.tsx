@@ -50,7 +50,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Panneau gauche - Branding (caché sur mobile, visible sur desktop) */}
+      {/* Panneau gauche - Branding, conservé sur mobile sous forme de bandeau fluide */}
       <div className="flex w-full min-h-[30vh] lg:min-h-screen lg:w-1/2 bg-primary relative flex-col items-center justify-center p-12 overflow-hidden">
         {/* Pattern décoratif */}
         <div className="absolute inset-0 opacity-10">
@@ -79,7 +79,7 @@ const Login = () => {
 
 
       {/* Panneau droit - Formulaire de connexion */}
-      <div className="relative flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-background min-h-screen lg:min-h-0">
+      <div className="relative flex-1 flex flex-col items-center justify-center p-5 sm:p-8 bg-background min-h-[70vh] lg:min-h-0">
 {/* Logo mobile — sans cadre */}
 
         <div className="hidden mb-8 w-full flex flex-col items-center">
