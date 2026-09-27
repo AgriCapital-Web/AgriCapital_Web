@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import OffreAgriPlan from "@/pages/parametres/OffreAgriPlan";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, Crown, TrendingUp, Leaf, Plus, Pencil, Loader2, Trash2, Gift, Percent, CheckCircle, XCircle, Edit } from "lucide-react";
@@ -61,7 +60,7 @@ const Offres = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { parOffre } = useOffresPrixEffectif();
-  const [activeTab, setActiveTab] = useState<'offres' | 'promotions' | 'agriplan'>('offres');
+  const [activeTab, setActiveTab] = useState<'offres' | 'promotions'>('offres');
   const [editOffre, setEditOffre] = useState<Offre | null>(null);
   const [isOffreDialogOpen, setIsOffreDialogOpen] = useState(false);
   const [isPromoDialogOpen, setIsPromoDialogOpen] = useState(false);
@@ -238,22 +237,22 @@ const Offres = () => {
 
   const handleSaveOffre = () => {
     if (!editOffre) return;
-    const di = Math.max(0, Number(editOffre.montant_da_par_ha) || 0);
+    const pi = Math.max(0, Number(editOffre.montant_pi_par_ha) || 0);
     const tranches = getTranches(editOffre).map((t: any, index: number) => {
       const mois = Math.max(0, Number(t.mois) || ((Number(t.mois_fin) || 0) - (Number(t.mois_debut) || 0) + 1));
       const mensuel = Math.max(0, Number(t.mensualite_par_ha) || 0);
       return { ...t, annee: Number(t.annee) || index + 1, mois, mensualite_par_ha: mensuel, total_periode_par_ha: mensuel * mois };
     });
     const duree = tranches.reduce((sum: number, t: any) => sum + Number(t.mois || 0), 0);
-    const total = di + tranches.reduce((sum: number, t: any) => sum + Number(t.total_periode_par_ha || 0), 0);
+    const total = pi + tranches.reduce((sum: number, t: any) => sum + Number(t.total_periode_par_ha || 0), 0);
     const lastMonthly = Number(tranches[tranches.length - 1]?.mensualite_par_ha || 0);
     updateOffreMutation.mutate({
       id: editOffre.id,
       updates: {
         nom: editOffre.nom,
         description: editOffre.description,
-        montant_da_par_ha: di,
-        montant_depot_initial_par_ha: di,
+        montant_pi_par_ha: pi,
+        montant_depot_initial_par_ha: pi,
         contribution_mensuelle_par_ha: lastMonthly,
         montant_total_par_ha: total,
         duree_paiement_mois: duree,
@@ -338,7 +337,7 @@ const Offres = () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'offres' | 'promotions' | 'agriplan')}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'offres' | 'promotions')}>
         <TabsList>
           <TabsTrigger value="offres" className="gap-2">
             <Crown className="h-4 w-4" />
@@ -351,15 +350,7 @@ const Offres = () => {
               <Badge className="ml-1 bg-green-500" variant="secondary">1 active</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="agriplan" className="gap-2">
-            <Leaf className="h-4 w-4" />
-            AgriPlan
-          </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="agriplan" className="space-y-4">
-          <OffreAgriPlan />
-        </TabsContent>
 
         {/* Onglet Offres */}
         <TabsContent value="offres" className="space-y-4">
@@ -383,8 +374,8 @@ const Offres = () => {
               const couleurs = getCouleur(offre.code, offre.couleur);
               const avantagesList = parseAvantages(offre.avantages);
               const montantPromo = activePromo 
-                ? calculateReducedAmount(offre.montant_da_par_ha, activePromo.pourcentage_reduction)
-                : offre.montant_da_par_ha;
+                ? calculateReducedAmount(offre.montant_pi_par_ha, activePromo.pourcentage_reduction)
+                : offre.montant_pi_par_ha;
               
               return (
                 <Card 
@@ -418,7 +409,7 @@ const Offres = () => {
                         {activePromo ? (
                           <>
                             <span className="text-lg text-muted-foreground line-through">
-                              {formatMontant(offre.montant_da_par_ha)}F
+                              {formatMontant(offre.montant_pi_par_ha)}F
                             </span>
                             <span className="text-2xl font-bold text-green-600">
                               {formatMontant(montantPromo)}F
@@ -428,7 +419,7 @@ const Offres = () => {
                         ) : (
                           <>
                             <span className="text-2xl font-bold text-primary">
-                              {formatMontant(offre.montant_da_par_ha)}F
+                              {formatMontant(offre.montant_pi_par_ha)}F
                             </span>
                             <span className="text-sm">/ha</span>
                           </>
@@ -544,12 +535,12 @@ const Offres = () => {
                               </div>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                  <Label htmlFor="montant_da">Montant PI/ha (F)</Label>
+                                  <Label htmlFor="montant_pi">Montant PI/ha (F)</Label>
                                   <Input 
-                                    id="montant_da"
+                                    id="montant_pi"
                                     type="number"
-                                    value={editOffre.montant_da_par_ha ?? ""}
-                                    onChange={(e) => setEditOffre({...editOffre, montant_da_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
+                                    value={editOffre.montant_pi_par_ha ?? ""}
+                                    onChange={(e) => setEditOffre({...editOffre, montant_pi_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
                                   />
                                 </div>
                                 <div>
