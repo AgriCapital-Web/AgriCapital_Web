@@ -52,7 +52,7 @@ const num = (v: unknown) => Number(v || 0);
 export const promotionCible = (p: PromotionBase) =>
   (() => {
     const cible = p.cible || p.type_promotion;
-    if (["depot_initial", "dépôt_initial", "da", "di", "paiement_initial"].includes(String(cible).toLowerCase())) return "paiement_initial";
+    if (["depot_initial", "dépôt_initial", "pi", "paiement_initial"].includes(String(cible).toLowerCase())) return "paiement_initial";
     if (["total_contrat", "cout_global", "coût_global", "cg"].includes(String(cible).toLowerCase())) return "cout_global";
     return "paiement_initial";
   })();
