@@ -278,7 +278,7 @@ const GestionCartes = () => {
       if (document.fonts?.ready) await document.fonts.ready;
 
       // Le rendu exporté doit être strictement celui de la prévisualisation :
-      // même composant, mêmes dimensions 480 × 678, aucune transformation CSS.
+      // même composant, mêmes dimensions 540 × 856, aucune transformation CSS.
       // On attend explicitement les images asynchrones (notamment les URLs signées
       // Supabase) afin d'éviter qu'une photo ou un asset manque dans le PNG.
       const images = Array.from(element.querySelectorAll("img"));
@@ -300,9 +300,9 @@ const GestionCartes = () => {
       );
 
       const canvas = await html2canvas(element, {
-        width: 480,
-        height: 678,
-        scale: 1023 / 480,
+        width: 540,
+        height: 856,
+        scale: 2,
         backgroundColor: "#ffffff",
         useCORS: true,
         allowTaint: false,
@@ -312,15 +312,15 @@ const GestionCartes = () => {
         scrollY: 0,
       });
 
-      // La maquette officielle est 1023 × 1444 px : l'export reprend exactement
-      // cette définition, au lieu du 3840 × 5424 px précédent.
+      // La nouvelle carte est au ratio portrait d'une carte bancaire (54 × 85,6 mm).
+      // L'export 1080 × 1712 px conserve ce ratio avec une définition élevée.
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
       a.download = `${nom}.png`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      toast.success(`${nom}.png exporté en 1023 × 1444 px.`);
+      toast.success(`${nom}.png exporté en 1080 × 1712 px.`);
     } catch (e: any) {
       toast.error(e?.message || "Échec de l'export de la carte.");
     }
@@ -339,7 +339,7 @@ const GestionCartes = () => {
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <CardTitle className="flex items-center gap-2"><IdCard className="h-5 w-5" />Cartes du personnel</CardTitle>
-            <CardDescription>Génération, validation et impression des cartes professionnelles — maquette 1023 × 1444 px (ratio 0,708).</CardDescription>
+            <CardDescription>Génération, validation et impression des cartes professionnelles — nouveau format portrait 54 × 85,6 mm, haute résolution 1080 × 1712 px.</CardDescription>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-48">
