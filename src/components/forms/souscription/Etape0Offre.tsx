@@ -100,21 +100,21 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     if (promotionActive) {
       promoCible = (promotionActive as any).cible ?? 'paiement_initial';
       promoReduction = promotionActive.pourcentage_reduction;
-      if (promoCible === 'depot_initial') {
+      if (promoCible === 'paiement_initial') {
         piUnitaireFinal = piUnitaire - (piUnitaire * promoReduction / 100);
       } else if (promoCible === 'cout_global') {
         totalFinal = totalFinal - (totalFinal * promoReduction / 100);
       }
     }
 
-    const totalDI = piUnitaireFinal * ha;
+    const totalPI = piUnitaireFinal * ha;
     const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
 
     return {
       ha,
       piUnitaire,
       piUnitaireFinal,
-      totalDI,
+      totalPI,
       totalUnitaire,
       totalFinal,
       totalNormal: totalUnitaire * ha,
@@ -144,7 +144,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
             <span>🎉 Promotion en cours: {promotionActive.nom}</span>
           </div>
           <p className="text-sm text-amber-600">
-             {(promotionActive as any).cible === 'special' ? `${(promotionActive as any).montant_fixe_reduction || 0} F de remise spéciale` : `-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'total_contrat' ? 'le total du contrat (35 mois)' : 'le Paiement Initial'}`}
+             {`-${promotionActive.pourcentage_reduction}% sur ${(promotionActive as any).cible === 'cout_global' ? 'le Coût Global' : 'le Paiement Initial'}`}
           </p>
         </div>
       )}
@@ -255,8 +255,8 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 <span className="font-medium">{calculs.ha} ha</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Dépôt Initial{calculs.promoCible === 'depot_initial' ? ' (promo)' : ''}:</span>
-                <span className="font-bold text-primary">{formatMontant(calculs.totalDI)} F</span>
+                <span>Dépôt Initial{calculs.promoCible === 'paiement_initial' ? ' (promo)' : ''}:</span>
+                <span className="font-bold text-primary">{formatMontant(calculs.totalPI)} F</span>
               </div>
               {calculs.tranches.length > 0 && (
                 <div className="border-t pt-2 space-y-1 text-sm">
@@ -270,7 +270,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between">
-                 <span className="font-semibold">Total contrat (35 mois){calculs.promoCible === 'total_contrat' ? ' (promo)' : ''}:</span>
+                 <span className="font-semibold">Total contrat (35 mois){calculs.promoCible === 'cout_global' ? ' (promo)' : ''}:</span>
                 <span className="text-lg font-bold text-primary">{formatMontant(calculs.totalFinal)} F</span>
               </div>
               {calculs.promotionAppliquee && (
