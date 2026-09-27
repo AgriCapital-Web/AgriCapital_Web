@@ -136,6 +136,22 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
   }, [formData.departement_id]);
 
 
+  // Charger les villages actifs après la sous-préfecture.
+  useEffect(() => {
+    setVillages([]);
+    if (!formData.sous_prefecture_id) return;
+    const fetchVillages = async () => {
+      const { data } = await (supabase as any)
+        .from("villages")
+        .select("id, nom, sous_prefecture_id")
+        .eq("sous_prefecture_id", formData.sous_prefecture_id)
+        .eq("est_actif", true)
+        .order("nom");
+      setVillages(data || []);
+    };
+    fetchVillages();
+  }, [formData.sous_prefecture_id]);
+
   const [parcelles, setParcelles] = useState<any[]>([]);
   const [parcelleSearch, setParcelleSearch] = useState("");
   const [loadingParcelles, setLoadingParcelles] = useState(false);
