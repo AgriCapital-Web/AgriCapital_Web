@@ -27,7 +27,15 @@ jobs:
       run: bun install --frozen-lockfile
 
     - name: Build
-      run: bun run build
+      run: |
+        set -o pipefail
+        bun run build 2>&1 | tee build-error.log
+
+    - name: Publish build log to PR for diagnosis
+      if: ${{ failure() }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh pr comment ${{ github.event.pull_request.number }} --body-file build-error.log
 
     - name: Typecheck
       run: bun run typecheck
