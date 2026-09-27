@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Crown, TrendingUp, Leaf, Check, Sparkles, Loader2 } from "lucide-react";
 import { usePromotionActive } from "@/hooks/usePromotionActive";
+import { calculPrixEffectif } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -45,7 +46,7 @@ const getCouleur = (code: string) => {
 };
 
 export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
-  const { data: promotionActive } = usePromotionActive();
+  const { data: promotionActive } = usePromotionActive(formData.offre_id);
   
   // Les offres sont pilotées par leur configuration métier. Aucun montant n'est saisi manuellement ici.
   
@@ -79,69 +80,42 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     return [];
   };
 
-  // Calculer PI + total contrat avec application de la promo selon cible
+  // Prix de l'offre et promotion applicables au client sélectionné.
   const calculs = useMemo(() => {
     if (!formData.offre_id || !formData.superficie_prevue || !offres) return null;
-    
     const offre = offres.find(o => o.id === formData.offre_id);
     if (!offre) return null;
 
     const ha = Number(formData.superficie_prevue);
     const o = offre as any;
     const tranches = Array.isArray(o.tranches_paiement) ? o.tranches_paiement : [];
-    const piUnitaire = Number(o.montant_pi_par_ha ?? 0);
+    const isCashEligible = ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(o.code || "").toLowerCase());
+    const modePaiement = isCashEligible && formData.mode_paiement === "comptant" ? "comptant" : "echeancier";
 
-    // PalmTerroir : le total est toujours recalculé depuis la formule sélectionnée
-    // (PI + somme des mensualités de la formule × nombre de mois).
-    const isPalmTerroir = String(o.code || '').startsWith('palm-terroir');
-    const isCashEligible = ['palm-invest','palm-invest-plus','terra-palm','terra-palm-plus'].includes(String(o.code || '').toLowerCase());
-    const modePaiement = isCashEligible && formData.mode_paiement === 'comptant' ? 'comptant' : 'echeancier';
-    const mensualitesFormule = tranches.filter((t: any) =>
-      Number(t.mensualite_par_ha) > 0 && t.type !== 'paiement_initial'
-    );
-    const totalMensualitesParHa = mensualitesFormule.reduce(
-      (sum: number, t: any) => sum + Number(t.mensualite_par_ha) * Number(t.mois || 0),
-      0,
-    );
-    const cashUnitaire = Number(o.montant_cash_par_ha ?? 0);
-    const totalUnitaire = modePaiement === 'comptant' && isCashEligible && cashUnitaire > 0
-      ? cashUnitaire
-      : isPalmTerroir
-        ? piUnitaire + totalMensualitesParHa
-        : Number(o.montant_total_par_ha ?? 0);
+    const prix = calculPrixEffectif(o, promotionActive ? [promotionActive as any] : [], { modePaiement });
 
-    let piUnitaireFinal = modePaiement === 'comptant' ? totalUnitaire : piUnitaire;
-    let totalFinal = totalUnitaire * ha;
-    let promoCible: string | null = null;
-    let promoReduction = 0;
-
-    if (promotionActive) {
-      promoCible = (promotionActive as any).cible ?? 'paiement_initial';
-      promoReduction = promotionActive.pourcentage_reduction;
-      if (promoCible === 'paiement_initial') {
-        piUnitaireFinal = piUnitaire - (piUnitaire * promoReduction / 100);
-      } else if (promoCible === 'cout_global') {
-        totalFinal = totalFinal - (totalFinal * promoReduction / 100);
-      }
-    }
-
-    const totalPI = piUnitaireFinal * ha;
+    const piUnitaireBase = Number(prix.depot_initial_base || 0);
+    const piUnitaireFinal = Number(prix.depot_initial_effectif || 0);
+    const totalUnitaire = Number(prix.montant_total_base || 0);
+    const totalFinal = Number(prix.montant_total_effectif || 0);
+    const mensualiteEffective = Number(prix.mensualite_effective || 0);
 
     return {
       ha,
-      piUnitaire,
+      piUnitaire: piUnitaireBase,
       piUnitaireFinal,
-      totalPI,
+      totalPI: piUnitaireFinal * ha,
       totalUnitaire,
-      totalFinal,
+      totalFinal: totalFinal * ha,
       totalNormal: totalUnitaire * ha,
-      cashUnitaire,
+      cashUnitaire: Number(o.montant_cash_par_ha || 0),
       modePaiement,
       tranches,
-      duree: modePaiement === 'comptant' ? 1 : (o.duree_paiement_mois ?? 0),
-      promoCible,
-      promoReduction,
-      promotionAppliquee: !!promotionActive,
+      duree: modePaiement === "comptant" ? 1 : Number(o.duree_paiement_mois || 0),
+      mensualiteEffective,
+      promoCible: prix.promotion_cible,
+      promoReduction: Number(prix.reduction_pct || 0),
+      promotionAppliquee: !!prix.promotion_id,
     };
   }, [formData.offre_id, formData.superficie_prevue, formData.mode_paiement, promotionActive, offres]);
 
