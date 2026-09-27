@@ -232,14 +232,21 @@ async function runCampaign(id: string) {
 }
 
 async function runScheduled() {
-  const { data: autos } = await admin.from("notification_automations").select("*").eq("actif", true).in("evenement", ["payment_due","contract_expiry","lead_followup"]);
+  const today = new Date().toISOString().slice(0,10);
+  const inThreeDays = new Date(Date.now() + 3 * 86400000).toISOString().slice(0,10);
+  const { data: autos } = await admin.from("notification_automations").select("*").eq("actif", true).in("evenement", ["paiement_echeance","paiement_retard"]);
   const results = [];
   for (const automation of autos || []) {
-    const list = await contacts(automation.criteres || {});
+    if (automation.derniere_execution_at && Date.now() - new Date(automation.derniere_execution_at).getTime() < automation.cooldown_minutes * 60000) continue;
+    const { data: rows } = automation.evenement === "paiement_retard"
+      ? await admin.from("souscripteurs").select("id").gt("jours_retard", 0).eq("compte_actif", true).limit(1000)
+      : await admin.from("souscripteurs").select("id").gte("prochaine_echeance", today).lte("prochaine_echeance", inThreeDays).eq("compte_actif", true).limit(1000);
+    const ids = new Set((rows || []).map((r: any) => r.id));
+    const list = (await contacts(automation.criteres || {})).filter((c) => c.source_type === "client" && ids.has(c.source_id));
     for (const contact of list) {
-      const body = render(automation.contenu, contact);
+      const body = render(automation.contenu, contact, { date_echeance: automation.evenement === "paiement_echeance" ? inThreeDays : today });
       const subject = render(automation.sujet || "Information AgriCapital", contact);
-      results.push(await deliver(contact, automation.canal, subject, body, automation.id + ":" + automation.evenement + ":" + new Date().toISOString().slice(0,10), { automationId: automation.id, eventKey: automation.evenement }));
+      results.push(await deliver(contact, automation.canal, subject, body, automation.id + ":" + automation.evenement + ":" + today + ":" + contact.source_id, { automationId: automation.id, eventKey: automation.evenement }));
     }
     await admin.from("notification_automations").update({ derniere_execution_at: new Date().toISOString() }).eq("id", automation.id);
   }
