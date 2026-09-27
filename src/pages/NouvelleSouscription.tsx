@@ -28,8 +28,7 @@ const NouvelleSouscription = () => {
   const [searchParams] = useSearchParams();
   const [syncState, setSyncState] = useState<SyncState>("draft");
 
-  // Étapes du contrat V1 — Parcours client uniquement (sans parcelle, sans enquête)
-  // La conversion en plantation se fait depuis la page Plantations.
+  // Parcours client : identité → co-titulaire → offre → foncier → documents → confirmation.
   const etapes = useMemo(() => {
     return [
       { num: 1, titre: "Client", component: Etape1Souscripteur },
@@ -158,11 +157,13 @@ const NouvelleSouscription = () => {
         throw new Error("Veuillez remplir tous les champs obligatoires (identité, coordonnées et offre)");
       }
 
-      // Validation V1 — type_souscripteur_foncier (EXT/OWN) + cohérence convention/lot
-      const typeFoncier = formData.type_souscripteur_foncier || (formData.type_souscripteur === "avec_terre" ? "OWN" : "EXT");
+      // Le foncier dépend exclusivement de l'offre sélectionnée.
+      const offreCode = String(formData.offre_code || formData.offre?.code || "").toLowerCase();
+      const isPalmInvest = offreCode === "palm-invest" || offreCode === "palm-invest-plus";
+      const typeFoncier = isPalmInvest ? "EXT" : "OWN";
       if (typeFoncier === "EXT") {
         if (!formData.convention_id || !formData.lot_id) {
-          throw new Error("Client externe : convention Planter-Partager et lot Hxx obligatoires");
+          throw new Error("PalmInvest : convention foncière et lot disponible obligatoires");
         }
         // Vérifier que le lot appartient bien à la convention sélectionnée et est disponible
         const { data: lot, error: lotErr } = await (supabase as any)
@@ -179,13 +180,41 @@ const NouvelleSouscription = () => {
         }
       }
 
-      // Créer le souscripteur
+      // Créer le client et, pour TerraPalm/PalmTerroir, créer automatiquement sa parcelle propre.
+      let parcelleId = formData.parcelle_id || null;
+      if (typeFoncier === "OWN" && !parcelleId) {
+        const surface = Number(formData.surface_propre_ha || formData.superficie_prevue || 0);
+        if (surface <= 0) throw new Error("La surface de la parcelle du client est obligatoire");
+        const { data: parcelle, error: parcelleError } = await (supabase as any)
+          .from("parcelles")
+          .insert({
+            surface_totale_ha: surface,
+            surface_proprietaire_ha: surface,
+            surface_agricapital_ha: 0,
+            surface_attribuee_ha: 0,
+            surface_disponible_ha: surface,
+            village: formData.village_propre || null,
+            region_id: formData.region_id || null,
+            departement_id: formData.departement_id || null,
+            sous_prefecture_id: formData.sous_prefecture_id || null,
+            reference_convention: formData.reference_cadastrale || null,
+            statut: "active",
+            notes: formData.statut_foncier ? "Statut foncier : " + formData.statut_foncier : null,
+            created_by: user.id,
+            updated_by: user.id,
+          })
+          .select("id")
+          .single();
+        if (parcelleError || !parcelle) throw parcelleError || new Error("Parcelle client non créée");
+        parcelleId = parcelle.id;
+      }
+
       const nomComplet = `${formData.nom_famille || ''} ${formData.prenoms || ''}`.trim();
       
-      const { data: souscripteur, error: errorSous, offline } = await offlineInsert("souscripteurs", {
+      const { data: client, error: errorSous, offline } = await offlineInsert("souscripteurs", {
           offre_id: formData.offre_id,
-          parcelle_id: formData.parcelle_id || null,
-          type_souscripteur: formData.type_souscripteur || "sans_terre",
+          parcelle_id: parcelleId,
+          type_souscripteur: isPalmInvest ? "sans_terre" : "avec_terre",
           type_souscripteur_foncier: typeFoncier,
           nom: formData.nom_famille || "",
           prenoms: formData.prenoms || "",
@@ -219,7 +248,7 @@ const NouvelleSouscription = () => {
         });
 
       if (errorSous) throw errorSous;
-      if (!souscripteur) throw new Error("Client non créé");
+      if (!client) throw new Error("Client non créé");
       setSyncState(offline ? "queued" : "syncing");
 
       const requiredMissing = ANNEXES_SOUSCRIPTION.find((a) => a.condition(formData) && formData[`${a.field}_status`] === "joint" && !formData[`${a.field}_file`]);
@@ -227,28 +256,28 @@ const NouvelleSouscription = () => {
 
       const documentsPayload: any[] = [];
       if (formData.contrat_file) {
-        const uploaded = await uploadFile("documents", formData.contrat_file, `${user.id}/souscriptions/${souscripteur.id}`);
+        const uploaded = await uploadFile("documents", formData.contrat_file, `${user.id}/souscriptions/${client.id}`);
         if (!uploaded) throw new Error("Upload impossible du contrat signé");
-        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: "contrat_souscription_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+        documentsPayload.push({ souscripteur_id: client.id, type_document: "contrat_souscription_signe", fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
       }
       for (const annexe of ANNEXES_SOUSCRIPTION.filter((a) => a.condition(formData))) {
         const file = formData[`${annexe.field}_file`];
         if (!file) continue;
-        const uploaded = await uploadFile("documents", file, `${user.id}/souscriptions/${souscripteur.id}/annexes`);
+        const uploaded = await uploadFile("documents", file, `${user.id}/souscriptions/${client.id}/annexes`);
         if (!uploaded) throw new Error(`Upload impossible: ${annexe.label}`);
-        documentsPayload.push({ souscripteur_id: souscripteur.id, type_document: annexe.field, fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
+        documentsPayload.push({ souscripteur_id: client.id, type_document: annexe.field, fichier_url: uploaded.url, statut: "soumis", uploaded_by: user.id });
       }
       if (documentsPayload.length > 0) {
         const { error: docsError } = await (supabase as any).from("documents_souscription").insert(documentsPayload);
         if (docsError) throw docsError;
       }
 
-      // Attribution du lot Hxx au souscripteur (EXT)
+      // Attribution du lot au client PalmInvest
       if (typeFoncier === "EXT" && formData.lot_id) {
         await (supabase as any)
           .from("lots_hectares")
           .update({
-            souscripteur_id: souscripteur.id,
+            souscripteur_id: client.id,
             statut: "attribue",
             date_attribution: new Date().toISOString().slice(0, 10),
           })
@@ -258,7 +287,7 @@ const NouvelleSouscription = () => {
       if (formData.lead_id && !offline) {
         const { error: leadError } = await (supabase as any)
           .from("leads")
-          .update({ statut: "converti", souscripteur_id: souscripteur.id, converti_at: new Date().toISOString() })
+          .update({ statut: "converti", souscripteur_id: client.id, converti_at: new Date().toISOString() })
           .eq("id", formData.lead_id);
         if (leadError) throw leadError;
       }
@@ -270,7 +299,7 @@ const NouvelleSouscription = () => {
 
       toast({
         title: "✅ Parcours client enregistré",
-        description: `N° Contrat: ${souscripteur.numero_contrat || souscripteur.id_unique || souscripteur.id}`,
+        description: `N° Contrat: ${souscripteur.numero_contrat || client.id_unique || client.id}`,
       });
       setSyncState(offline ? "queued" : "synced");
 
@@ -299,7 +328,7 @@ const NouvelleSouscription = () => {
         <div>
           <h1 className="text-3xl font-bold">Nouveau parcours client</h1>
           <p className="text-muted-foreground">
-            Contrat client V1 — Sauvegarde automatique
+            Contrat client — Sauvegarde automatique
           </p>
           <SyncStatusBadge state={syncState} className="mt-2" />
         </div>
