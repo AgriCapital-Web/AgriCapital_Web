@@ -32,6 +32,7 @@ import SyncQueue from "./pages/SyncQueue";
 import PublicLead from "./pages/PublicLead";
 import DevCarteApercu from "./pages/__DevCarteApercu";
 import VerificationCarte from "./pages/VerificationCarte";
+import BeneficiaireParticulier from "./pages/BeneficiaireParticulier";
 
 const LegacyVerificationRedirect = () => {
   const path = window.location.pathname;
@@ -89,6 +90,7 @@ const DomainRouter = () => {
       <Route path="/parcelles" element={<Parcelles />} />
       <Route path="/documents" element={<Documents />} />
       <Route path="/nouvelle-acquisition" element={<NouvelleAcquisition />} />
+      <Route path="/beneficiaire-particulier" element={<BeneficiaireParticulier />} />
       <Route path="/profil" element={<Profil />} />
       
       {/* Paiements */}
