@@ -146,7 +146,7 @@ serve(async (req) => {
 
 
     // Profil inactif jusqu'à validation
-    await admin.from("profiles").upsert({
+    const { error: profErr } = await admin.from("profiles").upsert({
       id: userId,
       user_id: userId,
       email: cleanEmail,
