@@ -268,6 +268,54 @@ All colors MUST be HSL.
     display: none;
   }
 
+  /* AgriCapital UI polish — shared across every page */
+  ::selection {
+    background: hsl(var(--primary) / 0.16);
+    color: hsl(var(--foreground));
+  }
+
+  .page-section {
+    @apply space-y-5 sm:space-y-6;
+  }
+
+  .page-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between;
+  }
+
+  .page-header > div:first-child {
+    @apply min-w-0;
+  }
+
+  .surface {
+    @apply rounded-2xl border bg-card shadow-sm;
+  }
+
+  .surface-interactive {
+    @apply surface transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  .data-toolbar {
+    @apply flex flex-col gap-3 rounded-2xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 767px) {
+    .page-section {
+      @apply space-y-4;
+    }
+
+    .responsive-table table {
+      min-width: 760px;
+    }
+
+    .surface {
+      @apply rounded-xl;
+    }
+  }
+
   /* Gradient & accent utilities */
   .gradient-primary { background: var(--gradient-primary); }
   .gradient-accent { background: var(--gradient-accent); }
