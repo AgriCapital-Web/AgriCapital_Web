@@ -61,7 +61,7 @@ import { getCachedItems, STORES } from "@/lib/offlineDb";
 
 interface Paiement {
   id: string;
-  souscripteur_id: string;
+  client_id: string;
   plantation_id: string;
   montant: number;
   montant_paye: number | null;
@@ -71,7 +71,7 @@ interface Paiement {
   date_paiement: string | null;
   created_at: string;
   metadata: any;
-  souscripteurs?: { nom_complet: string; telephone: string };
+  clients?: { nom_complet: string; telephone: string };
   plantations?: { id_unique: string; nom_plantation: string };
 }
 
@@ -176,8 +176,8 @@ const GestionPaiements = () => {
     // Open the widget
     const success = openPayment({
       amount: paiement.montant,
-      name: paiement.souscripteurs?.nom_complet || 'Client AgriCapital',
-      phone: paiement.souscripteurs?.telephone || '',
+      name: paiement.clients?.nom_complet || 'Client AgriCapital',
+      phone: paiement.clients?.telephone || '',
       data: {
         paiement_id: paiement.id,
         reference: paiement.reference,
@@ -201,7 +201,7 @@ const GestionPaiements = () => {
     event: '*',
     onChange: () => {
       queryClient.invalidateQueries({ queryKey: ['gestion-paiements'] });
-      queryClient.invalidateQueries({ queryKey: ['souscripteurs-monnaie'] });
+      queryClient.invalidateQueries({ queryKey: ['clients-monnaie'] });
     }
   });
 
@@ -212,7 +212,7 @@ const GestionPaiements = () => {
         .from('paiements')
         .select(`
           *,
-          souscripteurs (nom_complet, telephone),
+          clients (nom_complet, telephone),
           plantations (id_unique, nom_plantation)
         `)
         .order('created_at', { ascending: false })
@@ -223,13 +223,13 @@ const GestionPaiements = () => {
     }
   });
 
-  // Fetch souscripteurs with monnaie (solde positif)
-  const { data: souscripteursMonnaie = [] } = useQuery({
-    queryKey: ['souscripteurs-monnaie'],
+  // Fetch clients with monnaie (solde positif)
+  const { data: clientsMonnaie = [] } = useQuery({
+    queryKey: ['clients-monnaie'],
     queryFn: async () => {
       // Calculer la monnaie pour chaque souscripteur
-      const { data: souscripteurs, error: sError } = await supabase
-        .from('souscripteurs')
+      const { data: clients, error: sError } = await supabase
+        .from('clients')
         .select(`
           id, nom_complet, telephone,
           plantations (id, superficie_activee, date_activation, montant_contribution_mensuelle)
@@ -240,7 +240,7 @@ const GestionPaiements = () => {
       if (sError) throw sError;
 
       // Pour chaque souscripteur, calculer le solde
-      const result = await Promise.all((souscripteurs || []).map(async (sous: any) => {
+      const result = await Promise.all((clients || []).map(async (sous: any) => {
         const plantationIds = sous.plantations?.map((p: any) => p.id) || [];
         if (plantationIds.length === 0) return null;
 
@@ -285,7 +285,7 @@ const GestionPaiements = () => {
     const valides = paiements.filter(p => p.statut === 'valide');
     const enAttente = paiements.filter(p => p.statut === 'en_attente');
     const totalValide = valides.reduce((sum, p) => sum + (p.montant_paye || p.montant), 0);
-    const totalMonnaie = souscripteursMonnaie.reduce((sum, s: any) => sum + (s?.monnaie || 0), 0);
+    const totalMonnaie = clientsMonnaie.reduce((sum, s: any) => sum + (s?.monnaie || 0), 0);
 
     return {
       totalPaiements: paiements.length,
@@ -294,7 +294,7 @@ const GestionPaiements = () => {
       montantTotal: totalValide,
       monnaieDisponible: totalMonnaie
     };
-  }, [paiements, souscripteursMonnaie]);
+  }, [paiements, clientsMonnaie]);
 
   // Filtered paiements
   const filteredPaiements = useMemo(() => {
@@ -302,8 +302,8 @@ const GestionPaiements = () => {
     const term = searchTerm.toLowerCase();
     return paiements.filter(p => 
       p.reference?.toLowerCase().includes(term) ||
-      p.souscripteurs?.nom_complet?.toLowerCase().includes(term) ||
-      p.souscripteurs?.telephone?.includes(term) ||
+      p.clients?.nom_complet?.toLowerCase().includes(term) ||
+      p.clients?.telephone?.includes(term) ||
       p.plantations?.id_unique?.toLowerCase().includes(term)
     );
   }, [paiements, searchTerm]);
@@ -330,7 +330,7 @@ const GestionPaiements = () => {
   const searchSouscripteur = async (phone: string, target: 'source' | 'target') => {
     if (phone.length < 8) return;
     const { data } = await supabase
-      .from('souscripteurs')
+      .from('clients')
       .select('id, nom_complet, telephone, id_unique')
       .or(`telephone.ilike.%${phone}%,id_unique.ilike.%${phone}%`)
       .eq('statut', 'actif')
@@ -343,7 +343,7 @@ const GestionPaiements = () => {
         const { data: paiements } = await supabase
           .from('paiements')
           .select('*')
-          .eq('souscripteur_id', data[0].id)
+          .eq('client_id', data[0].id)
           .eq('statut', 'valide')
           .order('created_at', { ascending: false })
           .limit(10);
@@ -381,7 +381,7 @@ const GestionPaiements = () => {
       const { error: insertError } = await supabase
         .from('paiements')
         .insert({
-          souscripteur_id: targetSouscripteur.id,
+          client_id: targetSouscripteur.id,
           montant: amount,
           montant_paye: amount,
           type_paiement: 'REDEVANCE',
@@ -440,7 +440,7 @@ const GestionPaiements = () => {
         .from('remboursements')
         .insert({
           paiement_id: refundPaiementId,
-          souscripteur_id: sourceSouscripteur.id,
+          client_id: sourceSouscripteur.id,
           montant: amount,
           motif: refundNotes,
           mode_remboursement: refundMode,
@@ -492,7 +492,7 @@ const GestionPaiements = () => {
     setLoading(true);
 
     try {
-      const souscripteur = souscripteursMonnaie.find((s: any) => s?.id === selectedSouscripteurId);
+      const souscripteur = clientsMonnaie.find((s: any) => s?.id === selectedSouscripteurId);
       if (!souscripteur) throw new Error('Client non trouvé');
 
       // Calculate amount based on period
@@ -513,7 +513,7 @@ const GestionPaiements = () => {
       const { error } = await supabase
         .from('paiements')
         .insert({
-          souscripteur_id: selectedSouscripteurId,
+          client_id: selectedSouscripteurId,
           montant: montant,
           montant_paye: montant,
           type_paiement: 'REDEVANCE',
@@ -541,7 +541,7 @@ const GestionPaiements = () => {
       setIsConvertDialogOpen(false);
       resetForms();
       refetch();
-      queryClient.invalidateQueries({ queryKey: ['souscripteurs-monnaie'] });
+      queryClient.invalidateQueries({ queryKey: ['clients-monnaie'] });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -729,8 +729,8 @@ const GestionPaiements = () => {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{paiement.souscripteurs?.nom_complet || '-'}</p>
-                              <p className="text-xs text-muted-foreground">{paiement.souscripteurs?.telephone}</p>
+                              <p className="font-medium">{paiement.clients?.nom_complet || '-'}</p>
+                              <p className="text-xs text-muted-foreground">{paiement.clients?.telephone}</p>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -817,7 +817,7 @@ const GestionPaiements = () => {
                     Clients avec solde disponible
                   </CardTitle>
                   <CardDescription>
-                    Les montants excédentaires payés par les souscripteurs peuvent être convertis en jours/mois de redevance
+                    Les montants excédentaires payés par les clients peuvent être convertis en jours/mois de redevance
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -834,14 +834,14 @@ const GestionPaiements = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {souscripteursMonnaie.length === 0 ? (
+                        {clientsMonnaie.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                               Aucun souscripteur avec monnaie disponible
                             </TableCell>
                           </TableRow>
                         ) : (
-                          souscripteursMonnaie.map((sous: any) => (
+                          clientsMonnaie.map((sous: any) => (
                             <TableRow key={sous?.id}>
                               <TableCell className="font-medium">{sous?.nom_complet}</TableCell>
                               <TableCell>{sous?.telephone}</TableCell>
@@ -946,7 +946,7 @@ const GestionPaiements = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Souscripteur</p>
-                      <p>{selectedPaiement.souscripteurs?.nom_complet}</p>
+                      <p>{selectedPaiement.clients?.nom_complet}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Plantation</p>
@@ -1184,7 +1184,7 @@ const GestionPaiements = () => {
                         <SelectValue placeholder="Choisir un souscripteur" />
                       </SelectTrigger>
                       <SelectContent>
-                        {souscripteursMonnaie.map((sous: any) => (
+                        {clientsMonnaie.map((sous: any) => (
                           <SelectItem key={sous?.id} value={sous?.id}>
                             {sous?.nom_complet} - {formatMontant(sous?.monnaie || 0)}
                           </SelectItem>
@@ -1199,7 +1199,7 @@ const GestionPaiements = () => {
                     <div className="bg-amber-50 p-3 rounded-lg">
                       <p className="text-sm">
                         Monnaie disponible: <strong className="text-amber-800">
-                          {formatMontant(souscripteursMonnaie.find((s: any) => s?.id === selectedSouscripteurId)?.monnaie || 0)}
+                          {formatMontant(clientsMonnaie.find((s: any) => s?.id === selectedSouscripteurId)?.monnaie || 0)}
                         </strong>
                       </p>
                     </div>
