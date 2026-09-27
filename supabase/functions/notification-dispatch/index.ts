@@ -288,26 +288,15 @@ serve(async (req) => {
     }
     if (mode === "event") {
       if (!body.event_code) return json({ error: "event_code requis" }, 400);
-      const { data: automations, error } = await admin.from("notification_automations")
-        .select("*").eq("evenement", body.event_code).eq("actif", true);
-      if (error) throw error;
-      const results = [];
-      for (const automation of automations || []) {
-        let list = await contacts(automation.criteres || {});
-        const ctx = body.context || {};
-        if (ctx.souscripteur_id) list = list.filter((x: any) => x.source_id === ctx.souscripteur_id && x.source_type === "client");
-        if (ctx.user_id) list = list.filter((x: any) => x.user_id === ctx.user_id);
-        results.push(await deliver({
-          id: automation.id, automation_id: automation.id, canal: automation.canal,
-          sujet: automation.sujet, contenu: automation.contenu, contacts: list,
-          event: body.event_code + ":" + (ctx.paiement_id || ctx.user_id || "global"), context: ctx,
-        }));
-        await admin.from("notification_automations").update({ derniere_execution_at: new Date().toISOString() }).eq("id", automation.id);
-      }
-      return json({ ok: true, results });
+      return json({ ok: true, results: await runEvent(body.event_code, body.context || {}) });
     }
     if (mode === "campaign") {
       if (!body.campaign_id) return json({ error: "campaign_id requis" }, 400);
       return json({ ok: true, result: await runCampaign(body.campaign_id) });
     }
-
+    return json({ error: "Mode non reconnu" }, 400);
+  } catch (error) {
+    console.error("notification-dispatch error", error);
+    return json({ error: error instanceof Error ? error.message : String(error) }, 500);
+  }
+});
