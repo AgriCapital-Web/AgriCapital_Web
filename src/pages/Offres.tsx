@@ -715,7 +715,7 @@ const Offres = () => {
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
               ) : promotions && promotions.length > 0 ? (
-                <Table>
+                <div className="overflow-x-auto"><Table className="min-w-[760px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nom</TableHead>
