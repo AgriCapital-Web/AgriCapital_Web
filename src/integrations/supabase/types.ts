@@ -2431,6 +2431,337 @@ export type Database = {
           },
         ]
       }
+      notification_automations: {
+        Row: {
+          actif: boolean
+          canal: string
+          code: string
+          conditions: Json
+          contenu: string
+          cooldown_minutes: number
+          created_at: string
+          created_by: string | null
+          criteres: Json
+          derniere_execution_at: string | null
+          description: string | null
+          evenement: string
+          id: string
+          nom: string
+          sujet: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          actif?: boolean
+          canal?: string
+          code: string
+          conditions?: Json
+          contenu: string
+          cooldown_minutes?: number
+          created_at?: string
+          created_by?: string | null
+          criteres?: Json
+          derniere_execution_at?: string | null
+          description?: string | null
+          evenement: string
+          id?: string
+          nom: string
+          sujet?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          actif?: boolean
+          canal?: string
+          code?: string
+          conditions?: Json
+          contenu?: string
+          cooldown_minutes?: number
+          created_at?: string
+          created_by?: string | null
+          criteres?: Json
+          derniere_execution_at?: string | null
+          description?: string | null
+          evenement?: string
+          id?: string
+          nom?: string
+          sujet?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_automations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_automations_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_campaigns: {
+        Row: {
+          canal: string
+          contenu: string
+          created_at: string
+          created_by: string | null
+          criteres: Json
+          demarre_le: string | null
+          description: string | null
+          id: string
+          nom: string
+          programme_le: string | null
+          segment_id: string | null
+          statut: string
+          sujet: string | null
+          termine_le: string | null
+          total_destinataires: number
+          total_echecs: number
+          total_envoyes: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          canal?: string
+          contenu: string
+          created_at?: string
+          created_by?: string | null
+          criteres?: Json
+          demarre_le?: string | null
+          description?: string | null
+          id?: string
+          nom: string
+          programme_le?: string | null
+          segment_id?: string | null
+          statut?: string
+          sujet?: string | null
+          termine_le?: string | null
+          total_destinataires?: number
+          total_echecs?: number
+          total_envoyes?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          canal?: string
+          contenu?: string
+          created_at?: string
+          created_by?: string | null
+          criteres?: Json
+          demarre_le?: string | null
+          description?: string | null
+          id?: string
+          nom?: string
+          programme_le?: string | null
+          segment_id?: string | null
+          statut?: string
+          sujet?: string | null
+          termine_le?: string | null
+          total_destinataires?: number
+          total_echecs?: number
+          total_envoyes?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_campaigns_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "notification_segments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_campaigns_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_deliveries: {
+        Row: {
+          automation_id: string | null
+          campaign_id: string | null
+          canal: string
+          contenu: string | null
+          created_at: string
+          dedupe_key: string
+          erreur: string | null
+          fournisseur: string | null
+          id: string
+          metadata: Json
+          provider_message_id: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
+          sent_at: string | null
+          source_id: string | null
+          source_type: string | null
+          statut: string
+          user_id: string | null
+        }
+        Insert: {
+          automation_id?: string | null
+          campaign_id?: string | null
+          canal: string
+          contenu?: string | null
+          created_at?: string
+          dedupe_key: string
+          erreur?: string | null
+          fournisseur?: string | null
+          id?: string
+          metadata?: Json
+          provider_message_id?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          statut?: string
+          user_id?: string | null
+        }
+        Update: {
+          automation_id?: string | null
+          campaign_id?: string | null
+          canal?: string
+          contenu?: string | null
+          created_at?: string
+          dedupe_key?: string
+          erreur?: string | null
+          fournisseur?: string | null
+          id?: string
+          metadata?: Json
+          provider_message_id?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          sent_at?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          statut?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "notification_automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "notification_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_provider_events: {
+        Row: {
+          canal: string | null
+          created_at: string
+          event_type: string
+          fournisseur: string
+          id: string
+          payload: Json
+          processed: boolean
+          provider_message_id: string | null
+        }
+        Insert: {
+          canal?: string | null
+          created_at?: string
+          event_type: string
+          fournisseur: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          provider_message_id?: string | null
+        }
+        Update: {
+          canal?: string | null
+          created_at?: string
+          event_type?: string
+          fournisseur?: string
+          id?: string
+          payload?: Json
+          processed?: boolean
+          provider_message_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_segments: {
+        Row: {
+          actif: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          criteres: Json
+          description: string | null
+          id: string
+          nom: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          actif?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          criteres?: Json
+          description?: string | null
+          id?: string
+          nom: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          actif?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          criteres?: Json
+          description?: string | null
+          id?: string
+          nom?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_segments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_segments_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_templates: {
         Row: {
           actif: boolean
@@ -4678,6 +5009,22 @@ export type Database = {
       is_rh: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       mark_overdue_payments: { Args: never; Returns: undefined }
+      notification_get_internal_secret: { Args: never; Returns: string }
+      notification_resolve_recipients: {
+        Args: { _criteres?: Json }
+        Returns: {
+          email: string
+          nom_complet: string
+          offre_code: string
+          offre_id: string
+          offre_nom: string
+          role_code: string
+          source_id: string
+          source_type: string
+          telephone: string
+          user_id: string
+        }[]
+      }
       notify_hierarchy: {
         Args: {
           p_data?: Json
