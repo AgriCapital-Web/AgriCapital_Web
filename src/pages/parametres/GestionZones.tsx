@@ -36,7 +36,6 @@ const ROLE_ZONE_MAP: Record<string, string> = {
   chef_equipe_commercial: "departement",
   chef_equipe_technique: "departement",
   commercial: "sous_prefecture",
-  technicien: "sous_prefecture",
 };
 
 const GestionZones = () => {
