@@ -89,7 +89,7 @@ const Tickets = () => {
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedTicket ? "Modifier le Ticket" : "Créer un Ticket"}
+                    {selectedTicket ? (canUpdate ? "Modifier le Ticket" : "Voir le Ticket") : "Créer un Ticket"}
                   </DialogTitle>
                 </DialogHeader>
                 <TicketForm
@@ -100,6 +100,7 @@ const Tickets = () => {
                     fetchTickets();
                   }}
                   onCancel={() => setDialogOpen(false)}
+                  readOnly={!!selectedTicket && !canUpdate}
                 />
               </DialogContent>
             </Dialog>
