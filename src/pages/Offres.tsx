@@ -372,9 +372,8 @@ const Offres = () => {
               const IconComponent = getIcone(offre.code);
               const couleurs = getCouleur(offre.code, offre.couleur);
               const avantagesList = parseAvantages(offre.avantages);
-              const montantPromo = activePromo 
-                ? calculateReducedAmount(offre.montant_pi_par_ha, activePromo.pourcentage_reduction)
-                : offre.montant_pi_par_ha;
+              const prix = parOffre(offre.id);
+              const promoApplicable = !!prix?.promotion_id;
               
               return (
                 <Card 
@@ -403,26 +402,18 @@ const Offres = () => {
 
                   <CardContent className="pt-4 space-y-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Droit d'accès :</p>
+                      <p className="text-sm text-muted-foreground">Paiement Initial (PI) / ha :</p>
                       <div className="flex items-baseline gap-2">
-                        {activePromo ? (
-                          <>
-                            <span className="text-lg text-muted-foreground line-through">
-                              {formatMontant(offre.montant_pi_par_ha)}F
-                            </span>
-                            <span className="text-2xl font-bold text-green-600">
-                              {formatMontant(montantPromo)}F
-                            </span>
-                            <Badge className="bg-green-500">-{activePromo.pourcentage_reduction}%</Badge>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-2xl font-bold text-primary">
-                              {formatMontant(offre.montant_pi_par_ha)}F
-                            </span>
-                            <span className="text-sm">/ha</span>
-                          </>
+                        {promoApplicable && prix && prix.depot_initial_effectif !== prix.depot_initial_base && (
+                          <span className="text-lg text-muted-foreground line-through">
+                            {formatMontant(prix.depot_initial_base)}F
+                          </span>
                         )}
+                        <span className="text-2xl font-bold text-primary">
+                          {formatMontant(prix?.depot_initial_effectif ?? offre.montant_pi_par_ha)}F
+                        </span>
+                        <span className="text-sm">/ha</span>
+                        {promoApplicable && prix && <Badge className="bg-green-500">-{prix.reduction_pct}%</Badge>}
                       </div>
                     </div>
 
