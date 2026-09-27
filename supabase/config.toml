@@ -46,3 +46,9 @@ verify_jwt = false
 
 [functions.resolve-username]
 verify_jwt = false
+
+[functions.kkiapay-verify-transaction]
+verify_jwt = true
+
+[functions.seed-demo-account]
+verify_jwt = true
