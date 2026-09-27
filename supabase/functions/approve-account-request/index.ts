@@ -42,8 +42,16 @@ serve(async (req) => {
     if (reqErr) return json({ error: reqErr.message, step, logs }, 400);
     if (!reqRow) return json({ error: "Demande introuvable", step, logs }, 404);
 
+    const removeRequestPhoto = async () => {
+      const photo = String(reqRow.photo_url || "");
+      if (!photo) return;
+      const bucket = photo.startsWith("profiles/") ? "photos-profils" : photo.startsWith("pending/") ? "account-request-photos" : "documents";
+      await admin.storage.from(bucket).remove([photo]).catch(() => {});
+    };
+
     if (action === "delete") {
       step = "delete";
+      await removeRequestPhoto();
       if (reqRow.auth_user_id && reqRow.statut !== "approuve") {
         await admin.auth.admin.deleteUser(reqRow.auth_user_id).catch(() => {});
       }
@@ -54,6 +62,7 @@ serve(async (req) => {
 
     if (action === "reject") {
       step = "reject";
+      await removeRequestPhoto();
       if (reqRow.auth_user_id) {
         await admin.auth.admin.deleteUser(reqRow.auth_user_id).catch(() => {});
         await admin.from("profiles").delete().eq("id", reqRow.auth_user_id);
