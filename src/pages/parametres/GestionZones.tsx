@@ -32,8 +32,7 @@ const ZONE_TYPE_LABELS: Record<string, string> = {
 };
 
 const ROLE_ZONE_MAP: Record<string, string> = {
-  responsable_zone: "region",
-  chef_equipe: "departement",
+  responsable_commercial: "region",
   chef_equipe_commercial: "departement",
   chef_equipe_technique: "departement",
   commercial: "sous_prefecture",
@@ -50,6 +49,7 @@ const GestionZones = () => {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedZone, setSelectedZone] = useState<string>("");
+  const [editingAssignment, setEditingAssignment] = useState<ZoneAssignment | null>(null);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -68,7 +68,7 @@ const GestionZones = () => {
       const { data: rolesData } = await (supabase as any)
         .from("user_roles")
         .select("user_id, role")
-        .in("role", ["responsable_zone", "chef_equipe", "chef_equipe_commercial", "chef_equipe_technique", "commercial", "technicien"]);
+        .in("role", ["responsable_commercial", "chef_equipe_commercial", "chef_equipe_technique", "commercial"]);
 
       // Fetch all zone names
       const [{ data: districts }, { data: regions }, { data: depts }, { data: sps }] = await Promise.all([
@@ -150,14 +150,16 @@ const GestionZones = () => {
     if (!selectedUser || !selectedZone || !selectedRole) return;
     const zoneType = ROLE_ZONE_MAP[selectedRole];
     try {
-      const { error } = await (supabase as any)
-        .from("zone_assignments")
-        .insert({ user_id: selectedUser, zone_type: zoneType, zone_id: selectedZone });
+      const payload = { user_id: selectedUser, zone_type: zoneType, zone_id: selectedZone };
+      const { error } = editingAssignment
+        ? await (supabase as any).from("zone_assignments").update(payload).eq("id", editingAssignment.id)
+        : await (supabase as any).from("zone_assignments").insert(payload);
       if (error) throw error;
-      toast({ title: "Succès", description: "Zone assignée avec succès" });
+      toast({ title: "Succès", description: editingAssignment ? "Assignation mise à jour" : "Zone assignée avec succès" });
       setIsFormOpen(false);
       setSelectedUser("");
       setSelectedZone("");
+      setEditingAssignment(null);
       fetchAll();
     } catch (error: any) {
       if (error.message?.includes("duplicate")) {
@@ -203,25 +205,24 @@ const GestionZones = () => {
                 <SelectValue placeholder="Filtrer par rôle" />
               </SelectTrigger>
               <SelectContent>
-                 <SelectItem value="responsable_zone">Responsable de zone</SelectItem>
-                <SelectItem value="chef_equipe">Chef d'Équipe</SelectItem>
+                 <SelectItem value="responsable_commercial">Responsable Commercial</SelectItem>
                  <SelectItem value="chef_equipe_commercial">Chef d'Équipe Commercial</SelectItem>
                  <SelectItem value="chef_equipe_technique">Chef d'Équipe Technique</SelectItem>
                 <SelectItem value="commercial">Commercial</SelectItem>
-                 <SelectItem value="technicien">Technicien</SelectItem>
+                 <SelectItem value="chef_equipe_technique">Chef d'Équipe Technique</SelectItem>
               </SelectContent>
             </Select>
 
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <Dialog open={isFormOpen} onOpenChange={(open) => { setIsFormOpen(open); if (!open) setEditingAssignment(null); }}>
               <DialogTrigger asChild>
-                <Button disabled={!selectedRole}>
+                <Button disabled={!selectedRole} onClick={() => setEditingAssignment(null)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Assigner une zone
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Assigner une zone</DialogTitle>
+                  <DialogTitle>{editingAssignment ? "Modifier l'assignation" : "Assigner une zone"}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
@@ -251,7 +252,7 @@ const GestionZones = () => {
                     </Select>
                   </div>
                   <Button onClick={handleAssign} disabled={!selectedUser || !selectedZone} className="w-full">
-                    Assigner
+                    {editingAssignment ? "Enregistrer" : "Assigner"}
                   </Button>
                 </div>
               </DialogContent>
@@ -289,9 +290,19 @@ const GestionZones = () => {
                         <TableCell>{ZONE_TYPE_LABELS[a.zone_type]}</TableCell>
                         <TableCell>{a.zone_name}</TableCell>
                         <TableCell>
+                          <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => {
+                            setEditingAssignment(a);
+                            setSelectedRole(a.role || "");
+                            setSelectedUser(a.user_id);
+                            setSelectedZone(a.zone_id);
+                            fetchZonesForRole(a.role || "");
+                            setIsFormOpen(true);
+                          }}>Modifier</Button>
                           <Button variant="ghost" size="icon" onClick={() => handleRemove(a.id)} className="text-destructive hover:text-destructive">
                             <Trash2 className="h-4 w-4" />
                           </Button>
+                        </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -303,7 +314,7 @@ const GestionZones = () => {
 
           <div className="mt-4 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              💡 {assignments.length} assignation(s) au total • {assignments.filter(a => a.role === "responsable_zone").length} RCom • {assignments.filter(a => a.role === "chef_equipe").length} Chef(s) d'équipe • {assignments.filter(a => a.role === "commercial").length} Commercial(aux)
+              💡 {assignments.length} assignation(s) au total • {assignments.filter(a => a.role === "responsable_commercial").length} RCom • {assignments.filter(a => a.role === "chef_equipe").length} Chef(s) d'équipe • {assignments.filter(a => a.role === "commercial").length} Commercial(aux)
             </p>
           </div>
         </CardContent>
