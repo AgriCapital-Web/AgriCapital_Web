@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Sprout, CreditCard, TrendingUp, MapPin, Target, Wrench, DollarSign } from "lucide-react";
 
 interface ZoneStats {
-  totalSouscripteurs: number;
+  totalClients: number;
   totalPlantations: number;
   totalHectares: number;
   totalPaiements: number;
@@ -19,17 +19,17 @@ interface ZoneStats {
 export const RoleDashboard = () => {
   const { userRoles, user } = useAuth();
   const [stats, setStats] = useState<ZoneStats>({
-    totalSouscripteurs: 0, totalPlantations: 0, totalHectares: 0,
+    totalClients: 0, totalPlantations: 0, totalHectares: 0,
     totalPaiements: 0, paiementsEnAttente: 0, plantationsEnProduction: 0,
     equipes: 0, zoneName: "",
   });
   const [loading, setLoading] = useState(true);
 
   const isAdmin = userRoles.some(r => ["super_admin", "directeur_tc"].includes(r));
-  const isSTC = userRoles.some(r => ["superviseur_tc", "responsable_zone", "responsable_commercial"].includes(r));
-  const isChefEquipe = userRoles.some(r => ["chef_equipe", "chef_equipe_commercial", "chef_equipe_technique"].includes(r));
+  const isSTC = userRoles.some(r => ["responsable_commercial", "responsable_commercial", "responsable_commercial"].includes(r));
+  const isChefEquipe = userRoles.some(r => ["chef_equipe_commercial", "chef_equipe_commercial_commercial", "chef_equipe_commercial_technique"].includes(r));
   const isCommercial = userRoles.includes("commercial");
-  const isTechnicien = userRoles.includes("technicien");
+  const isTechnique = userRoles.includes("agent_technique");
 
   useEffect(() => {
     if (!user) return;
@@ -40,14 +40,14 @@ export const RoleDashboard = () => {
     try {
       if (isAdmin) {
         const [{ count: sc }, { data: pl }, { data: pa }, { count: eq }] = await Promise.all([
-          (supabase as any).from("souscripteurs").select("*", { count: "exact", head: true }),
+          (supabase as any).from("clients").select("*", { count: "exact", head: true }),
           (supabase as any).from("plantations").select("superficie_ha, statut_global"),
           (supabase as any).from("paiements").select("montant, statut"),
           (supabase as any).from("equipes").select("*", { count: "exact", head: true }),
         ]);
 
         setStats({
-          totalSouscripteurs: sc || 0,
+          totalClients: sc || 0,
           totalPlantations: pl?.length || 0,
           totalHectares: pl?.reduce((s: number, p: any) => s + (p.superficie_ha || 0), 0) || 0,
           totalPaiements: pa?.filter((p: any) => p.statut === "valide").reduce((s: number, p: any) => s + (p.montant || 0), 0) || 0,
@@ -56,12 +56,12 @@ export const RoleDashboard = () => {
           equipes: eq || 0,
           zoneName: "Vue globale — Toutes les zones",
         });
-      } else if (isSTC || isChefEquipe || isCommercial || isTechnicien) {
+      } else if (isSTC || isChefEquipe || isCommercial || isTechnique) {
         const { data: zones } = await (supabase as any)
           .from("zone_assignments").select("zone_id, zone_type").eq("user_id", user!.id);
 
         if (!zones || zones.length === 0) {
-          setStats({ totalSouscripteurs: 0, totalPlantations: 0, totalHectares: 0,
+          setStats({ totalClients: 0, totalPlantations: 0, totalHectares: 0,
             totalPaiements: 0, paiementsEnAttente: 0, plantationsEnProduction: 0,
             equipes: 0, zoneName: "Aucune zone assignée" });
           setLoading(false);
@@ -82,14 +82,14 @@ export const RoleDashboard = () => {
         const colMap: Record<string, string> = { district: "district_id", region: "region_id", departement: "departement_id", sous_prefecture: "sous_prefecture_id" };
         const col = colMap[zoneType] || "district_id";
 
-        const [{ data: souscripteurs }, { data: plantations }, { data: paiements }] = await Promise.all([
-          (supabase as any).from("souscripteurs").select("id").in(col, zoneIds),
+        const [{ data: clients }, { data: plantations }, { data: paiements }] = await Promise.all([
+          (supabase as any).from("clients").select("id").in(col, zoneIds),
           (supabase as any).from("plantations").select("superficie_ha, statut_global").in(col, zoneIds),
           (supabase as any).from("paiements").select("montant, statut"),
         ]);
 
         setStats({
-          totalSouscripteurs: souscripteurs?.length || 0,
+          totalClients: clients?.length || 0,
           totalPlantations: plantations?.length || 0,
           totalHectares: plantations?.reduce((s: number, p: any) => s + (p.superficie_ha || 0), 0) || 0,
           totalPaiements: paiements?.filter((p: any) => p.statut === "valide").reduce((s: number, p: any) => s + (p.montant || 0), 0) || 0,
@@ -111,11 +111,11 @@ export const RoleDashboard = () => {
 
   if (loading) return null;
 
-  const roleLabel = isAdmin ? "Administrateur" : isSTC ? "Superviseur TC" : isChefEquipe ? "Chef d'Équipe" : isTechnicien ? "Technicien" : "Commercial";
+  const roleLabel = isAdmin ? "Administrateur" : isSTC ? "Superviseur TC" : isChefEquipe ? "Chef d'Équipe" : isTechnique ? "Technicien" : "Commercial";
   const zoneLevel = isAdmin ? "Global" : isSTC ? "Districts" : isChefEquipe ? "Départements" : "Sous-préfectures";
 
   const showCommercialKPIs = isCommercial || isSTC || isAdmin;
-  const showTechKPIs = isTechnicien || isSTC || isAdmin;
+  const showTechKPIs = isTechnique || isSTC || isAdmin;
 
   return (
     <Card className="border-primary/20 bg-primary/5">
@@ -137,8 +137,8 @@ export const RoleDashboard = () => {
             <>
               <div className="text-center p-2 bg-background rounded-lg">
                 <Users className="h-4 w-4 mx-auto text-primary mb-1" />
-                <div className="text-lg font-bold">{stats.totalSouscripteurs}</div>
-                <div className="text-xs text-muted-foreground">Souscripteurs</div>
+                <div className="text-lg font-bold">{stats.totalClients}</div>
+                <div className="text-xs text-muted-foreground">Clients</div>
               </div>
               <div className="text-center p-2 bg-background rounded-lg">
                 <DollarSign className="h-4 w-4 mx-auto text-amber-600 mb-1" />
@@ -165,8 +165,8 @@ export const RoleDashboard = () => {
             <>
               <div className="text-center p-2 bg-background rounded-lg">
                 <Users className="h-4 w-4 mx-auto text-primary mb-1" />
-                <div className="text-lg font-bold">{stats.totalSouscripteurs}</div>
-                <div className="text-xs text-muted-foreground">Souscripteurs</div>
+                <div className="text-lg font-bold">{stats.totalClients}</div>
+                <div className="text-xs text-muted-foreground">Clients</div>
               </div>
               <div className="text-center p-2 bg-background rounded-lg">
                 <Sprout className="h-4 w-4 mx-auto text-green-600 mb-1" />
