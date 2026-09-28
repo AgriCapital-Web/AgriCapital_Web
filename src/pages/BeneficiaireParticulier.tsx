@@ -48,7 +48,7 @@ const BeneficiaireParticulier = () => {
   });
   const [parcelle, setParcelle] = useState({
     nom: "",
-    surface_totale_ha: "2",
+    surface_totale_ha: "4",
     village: "Zakaria",
     code_parc: "",
     region_id: "d7738144-14cf-43f6-be4d-500f21a9cee5",
@@ -204,16 +204,16 @@ const BeneficiaireParticulier = () => {
           <CardHeader><CardTitle className="flex items-center gap-2"><LandPlot className="h-5 w-5" /> Parcelle</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div><Label>Référence parcelle *</Label><Input value={parcelle.code_parc} onChange={e=>setParcelle({...parcelle,code_parc:e.target.value})}/></div>
-            <div><Label>Superficie (ha) *</Label><Input type="number" step="0.01" min="0" value={parcelle.surface_totale_ha} onChange={e=>setParcelle({...parcelle,surface_totale_ha:e.target.value})}/></div>
+            <div><Label>Superficie physique de la parcelle (ha) *</Label><Input type="number" step="0.01" min="0" value={parcelle.surface_totale_ha} onChange={e=>setParcelle({...parcelle,surface_totale_ha:e.target.value})}/></div>
             <div><Label>Village / localité</Label><Input value={parcelle.village} onChange={e=>setParcelle({...parcelle,village:e.target.value})}/></div>
-            <div className="md:col-span-3"><p className="text-sm text-muted-foreground">La parcelle est enregistrée avec le mode « actif agricole » pour que les 2 ha de plantation puissent être comptabilisés dans le portefeuille agricole sans les confondre avec une souscription client.</p></div>
+            <div className="md:col-span-3"><p className="text-sm text-muted-foreground">La parcelle reste une parcelle foncière physique. Le système calcule automatiquement la quote-part propriétaire (50 %) et la quote-part bénéficiaire, sans paiement ni activation manuelle du propriétaire.</p></div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Sprout className="h-5 w-5" /> Actif agricole</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><Label>Superficie de l’actif (ha)</Label><Input type="number" step="0.01" value={plantation.superficie_ha} onChange={e=>setPlantation({...plantation,superficie_ha:e.target.value})}/></div>
+            <div><Label>Quote-part du bénéficiaire (ha)</Label><Input type="number" step="0.01" value={plantation.superficie_ha} onChange={e=>setPlantation({...plantation,superficie_ha:e.target.value})}/></div>
             <div><Label>Date de plantation / engagement</Label><Input type="date" value={plantation.date_plantation} onChange={e=>setPlantation({...plantation,date_plantation:e.target.value})}/></div>
             <div><Label>Date d’activation</Label><Input type="date" value={plantation.date_activation} onChange={e=>setPlantation({...plantation,date_activation:e.target.value})}/></div>
           </CardContent>
