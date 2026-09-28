@@ -85,10 +85,28 @@ const ClientDetail = () => {
         .eq("client_id", id);
 
       if (plantationsError) throw plantationsError;
-      setPlantations(plantationsData || []);
+
+      // Une plantation partagée peut ne pas avoir de client_id :
+      // elle est alors reliée au Client par beneficiaire_attributions.
+      const attributionPlantationIds = (attributionsData || [])
+        .map((a: any) => a.plantation_id)
+        .filter(Boolean);
+      let sharedPlantations: any[] = [];
+      if (attributionPlantationIds.length > 0) {
+        const { data: sharedData } = await (supabase as any)
+          .from("plantations")
+          .select(`*, regions (nom), departements (nom)`)
+          .in("id", attributionPlantationIds);
+        sharedPlantations = sharedData || [];
+      }
+      const allPlantations = [...(plantationsData || [])];
+      for (const plantation of sharedPlantations) {
+        if (!allPlantations.some((p: any) => p.id === plantation.id)) allPlantations.push(plantation);
+      }
+      setPlantations(allPlantations);
 
       // Fetch paiements
-      const plantationIds = plantationsData?.map((p: any) => p.id) || [];
+      const plantationIds = allPlantations.map((p: any) => p.id);
       if (plantationIds.length > 0) {
         const { data: paiementsData } = await (supabase as any)
           .from("paiements")
@@ -174,7 +192,7 @@ const ClientDetail = () => {
         <MainLayout>
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
             <p>Client non trouvé</p>
-            <Button onClick={() => navigate("/portefeuille-clients")}>
+            <Button onClick={() => navigate("/acquisitions")}>
               Retour au portefeuille
             </Button>
           </div>
