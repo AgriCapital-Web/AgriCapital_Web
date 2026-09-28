@@ -178,8 +178,8 @@ const BeneficiaireParticulier = () => {
             <div><Label>Nationalité</Label><Input value={beneficiaire.nationalite} onChange={e=>setBeneficiaire({...beneficiaire,nationalite:e.target.value})}/></div>
             <div><Label>N° CNI / pièce *</Label><Input value={beneficiaire.numero_piece} onChange={e=>setBeneficiaire({...beneficiaire,numero_piece:e.target.value})}/></div>
             <div><Label>Date d’émission</Label><Input type="date" value={beneficiaire.date_delivrance_piece} onChange={e=>setBeneficiaire({...beneficiaire,date_delivrance_piece:e.target.value})}/></div>
-            <div><Label>Téléphone</Label><Input value={beneficiaire.telephone} onChange={e=>setBeneficiaire({...beneficiaire,telephone:e.target.value})}/></div>
-            <div><Label>WhatsApp</Label><Input value={beneficiaire.whatsapp} onChange={e=>setBeneficiaire({...beneficiaire,whatsapp:e.target.value})}/></div>
+            <CountryPhoneInput label="Téléphone" countryCode={beneficiaire.telephone_indicatif||"+225"} localValue={beneficiaire.telephone_local||""} onChange={v=>setBeneficiaire(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
+            <CountryPhoneInput label="WhatsApp" countryCode={beneficiaire.whatsapp_indicatif||"+225"} localValue={beneficiaire.whatsapp_local||""} onChange={v=>setBeneficiaire(x=>({...x,whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue}))}/>
             <div className="md:col-span-2"><Label>Adresse</Label><Input value={beneficiaire.domicile} onChange={e=>setBeneficiaire({...beneficiaire,domicile:e.target.value})}/></div>
           </CardContent>
         </Card>
@@ -190,7 +190,7 @@ const BeneficiaireParticulier = () => {
             <div><Label>Nom complet *</Label><Input value={proprietaire.nom_complet} onChange={e=>setProprietaire({...proprietaire,nom_complet:e.target.value})}/></div>
             <div><Label>Nom</Label><Input value={proprietaire.nom} onChange={e=>setProprietaire({...proprietaire,nom:e.target.value})}/></div>
             <div><Label>Prénoms</Label><Input value={proprietaire.prenoms} onChange={e=>setProprietaire({...proprietaire,prenoms:e.target.value})}/></div>
-            <div><Label>Téléphone</Label><Input value={proprietaire.telephone} onChange={e=>setProprietaire({...proprietaire,telephone:e.target.value})}/></div>
+            <CountryPhoneInput label="Téléphone du propriétaire" countryCode={proprietaire.telephone_indicatif||"+225"} localValue={proprietaire.telephone_local||""} onChange={v=>setProprietaire(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
             <div className="md:col-span-3"><Label>Localisation administrative</Label><GeographieCascade districtId={proprietaire.district_id} regionId={proprietaire.region_id} departementId={proprietaire.departement_id} sousPrefectureId={proprietaire.sous_prefecture_id} villageId={proprietaire.village_id} required onChange={(g)=>setProprietaire((x:any)=>({...x,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village_id:g.villageId||"",village:g.villageName||""}))}/></div>
             <div><Label>Statut foncier</Label><Input value={proprietaire.statut_foncier} onChange={e=>setProprietaire({...proprietaire,statut_foncier:e.target.value})}/></div>
           </CardContent>
@@ -218,7 +218,7 @@ const BeneficiaireParticulier = () => {
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><FileCheck2 className="h-5 w-5" /> Documents disponibles</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <FileUploadVisual label="CNI — recto" field="cni_recto" accept="image/jpeg,image/png" currentFile={files.cni_recto.file} currentPreview={files.cni_recto.preview} onFileChange={setFile}/>
+            <FileUploadVisual label="CNI — recto" field="cni_recto" accept="image/jpeg,image/png" currentFile={files.cni_recto.file} currentPreview={files.cni_recto.preview} onFileChange={setFile} onIdentityNumberDetected={n=>setBeneficiaire(x=>({...x,numero_piece:n}))} identityDocumentType={beneficiaire.type_piece}/>
             <FileUploadVisual label="CNI — verso" field="cni_verso" accept="image/jpeg,image/png" currentFile={files.cni_verso.file} currentPreview={files.cni_verso.preview} onFileChange={setFile}/>
             <FileUploadVisual label="Photo officielle" field="photo_officielle" accept="image/jpeg,image/png" currentFile={files.photo_officielle.file} currentPreview={files.photo_officielle.preview} onFileChange={setFile}/>
             <FileUploadVisual label="Acte de remise" field="acte_remise" accept="application/pdf,image/jpeg,image/png" currentFile={files.acte_remise.file} currentPreview={files.acte_remise.preview} onFileChange={setFile}/>
