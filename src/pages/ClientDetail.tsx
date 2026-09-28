@@ -436,8 +436,8 @@ const ClientDetail = () => {
               </Card>
             </TabsContent>
 
-            {client.type_client === "beneficiaire_particulier" && (
-              <TabsContent value="dossier">
+            <TabsContent value="dossier">
+              {client.type_client === "beneficiaire_particulier" && (
               <div className="grid gap-4">
                 <Card>
                   <CardHeader><CardTitle>Attributions agricoles</CardTitle></CardHeader>
@@ -523,8 +523,8 @@ const ClientDetail = () => {
                     </CardContent>
                   </Card>
                 </div>
-              </TabsContent>
-            )}
+              )}
+            </TabsContent>
 
             <TabsContent value="photos">
               <Card>
