@@ -86,7 +86,7 @@ const AccountRequest = () => {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await (supabase as any).from("districts").select("*").eq("est_actif", true).order("nom");
+      const { data } = await (supabase as any).from("districts").select("*").eq("est_actif_effectif", true).order("nom");
       setDistricts(data || []);
     })();
   }, []);
@@ -94,8 +94,8 @@ const AccountRequest = () => {
   useEffect(() => {
     void (async () => {
       if (!formData.district) { setRegions([]); return; }
-      const { data } = await (supabase as any).from("regions").select("*")
-        .eq("district_id", formData.district).eq("est_active", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_regions").select("*")
+        .eq("district_id", formData.district).eq("est_active_effectif", true).order("nom");
       setRegions(data || []);
       setFormData((prev) => ({ ...prev, region: "", departement: "" }));
       setDepartements([]);
@@ -105,7 +105,7 @@ const AccountRequest = () => {
   useEffect(() => {
     void (async () => {
       if (!formData.region) { setDepartements([]); return; }
-      const { data } = await (supabase as any).from("departements").select("*")
+      const { data } = await (supabase as any).from("v_geo_departements").select("*")
         .eq("region_id", formData.region).eq("est_actif", true).order("nom");
       setDepartements(data || []);
       setFormData((prev) => ({ ...prev, departement: "" }));
