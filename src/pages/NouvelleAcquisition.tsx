@@ -91,14 +91,17 @@ const NouvelleAcquisition = () => {
       if(fields.some(f=>!formData[f])||!formData.photo_piece_recto_file||!formData.photo_piece_verso_file||!formData.photo_profil_file){
         toast({variant:"destructive",title:"Client incomplet",description:"L’identité, les coordonnées, la photo et les deux faces de la pièce sont obligatoires."}); return false;
       }
-    }
-    if(step.code==="representant"&&formData.offre?.necessite_cotitulaire&&!formData.has_representant){
-      toast({variant:"destructive",title:"Cotitulaire / mandataire requis",description:"Cette offre exige de renseigner un cotitulaire ou mandataire."}); return false;
-    }
-    if(step.code==="representant"&&formData.has_representant){
-      const fields=["representant_type","representant_nom","representant_prenoms","representant_type_piece","representant_numero_piece"];
-      if(fields.some(f=>!formData[f])||!formData.representant_piece_recto_file||!formData.representant_piece_verso_file||!formData.representant_photo_profil_file){
-        toast({variant:"destructive",title:"Représentant incomplet",description:"Renseignez l’identité et les pièces/photos du cotitulaire ou mandataire."}); return false;
+      if(!formData.enquete_objectif){
+        toast({variant:"destructive",title:"Enquête client incomplète",description:"L’objectif du Client est obligatoire."}); return false;
+      }
+      if(formData.offre?.necessite_cotitulaire&&!formData.has_representant){
+        toast({variant:"destructive",title:"Cotitulaire / mandataire requis",description:"Cette offre exige de renseigner un cotitulaire ou mandataire."}); return false;
+      }
+      if(formData.has_representant){
+        const repFields=["representant_type","representant_nom","representant_prenoms","representant_type_piece","representant_numero_piece"];
+        if(repFields.some(f=>!formData[f])||!formData.representant_piece_recto_file||!formData.representant_piece_verso_file||!formData.representant_photo_profil_file){
+          toast({variant:"destructive",title:"Représentant incomplet",description:"Renseignez l’identité et les pièces/photos du cotitulaire ou mandataire."}); return false;
+        }
       }
     }
     if(step.code==="parcelle"){
@@ -158,8 +161,7 @@ const NouvelleAcquisition = () => {
       const {data:offer,error:offerError}=await (supabase as any).from("offres").select("*").eq("id",formData.offre_id).single();
       if(offerError||!offer)throw new Error("Offre sélectionnée introuvable");
       const ha=Number(formData.superficie_prevue);
-      const prix=calculPrixEffectif(offer,promotionActive?[promotionActive as any]:[],{modePaiement:formData.mode_paiement==="comptant"?"comptant":"echeancier"});
-      const paiementInitial=Number(prix.depot_initial_effectif||0)*ha;
+      const prix=calculPrixEffectif(offer,promotionActive?[promotionActive as any]:[],{modePaiement:"echeancier"});
       const total=Number(prix.montant_total_effectif||prix.montant_total_base||0)*ha;
       const external=!Boolean(offer.necessite_foncier_client);
 
@@ -177,7 +179,7 @@ const NouvelleAcquisition = () => {
         telephone:formData.telephone||"",telephone_indicatif:formData.telephone_indicatif||null,telephone_local:formData.telephone_local||null,whatsapp:formData.whatsapp||null,
         whatsapp_indicatif:formData.whatsapp_indicatif||null,whatsapp_local:formData.whatsapp_local||null,email:formData.email||null,domicile:formData.domicile||null,
         district_id:formData.district_id||null,region_id:formData.region_id||null,departement_id:formData.departement_id||null,sous_prefecture_id:formData.sous_prefecture_id||null,
-        localite:formData.domicile||null,mode_paiement:formData.mode_paiement==="comptant"?"comptant":"echeancier",paiement_initial_montant:paiementInitial,montant_total_contrat:total,
+        localite:formData.domicile||null,montant_total_contrat:total,
         famille_offre:offer.famille_offre||null,formule_code:offer.formule_code||offer.code,formule_nom:offer.formule_nom||offer.nom,parcours_code:offer.parcours_code||offer.code,
         statut:"actif",statut_global:"actif",contrat_acquisition_statut:offer.contrat_acquisition_requis?"a_signer":"non_requis",contrat_accompagnement_statut:offer.contrat_accompagnement_requis?"a_signer":"non_requis",
         created_by:user.id,updated_by:user.id,compte_actif:false,phase_actuelle:"pre_activation",total_hectares:ha
@@ -244,17 +246,6 @@ const NouvelleAcquisition = () => {
         statut:"complete",created_by:user.id,updated_by:user.id
       });
 
-      const declare=Number(formData.paiement_initial_declare||0);
-      if(declare>0){
-        const preuve=formData.paiement_initial_preuve_file?await uploadFile("documents",formData.paiement_initial_preuve_file,user.id+"/clients/"+client.id+"/paiements"):null;
-        await (supabase as any).from("paiements").insert({
-          client_id:client.id,montant:declare,montant_paye:declare,montant_theorique:paiementInitial,type_paiement:"paiement_initial",
-          mode_paiement:formData.paiement_initial_mode||"non_paye",statut:"en_attente",reference:formData.paiement_initial_reference||null,
-          preuve_paiement_url:preuve?.url||null,fichier_preuve_url:preuve?.url||null,est_depot_initial:true,est_paiement_initial:true,
-          parcours:offer.parcours_code||offer.code,created_by:user.id,jours_couverts:0,jours_retard:0
-        });
-      }
-
       if(brouillonId)await (supabase as any).from("acquisitions_brouillon").delete().eq("id",brouillonId);
       toast({title:"Client enregistré",description:"Le dossier Client et son parcours ont été enregistrés."});
       setSyncState("synced");
@@ -268,13 +259,9 @@ const NouvelleAcquisition = () => {
     if(!step)return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
     switch(step.code){
       case "offre":return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
-      case "client":return <EtapeClientDynamique formData={formData} updateFormData={updateFormData}/>;
-      case "representant":return <EtapeRepresentantDynamique formData={formData} updateFormData={updateFormData}/>;
+      case "client":return <div className="space-y-6"><EtapeClientDynamique formData={formData} updateFormData={updateFormData}/><EtapeEnqueteClient formData={formData} updateFormData={updateFormData}/><EtapeRepresentantDynamique formData={formData} updateFormData={updateFormData}/></div>;
       case "parcelle":return <EtapeParcelleDynamique formData={formData} updateFormData={updateFormData}/>;
-      case "enquete":return <EtapeEnqueteClient formData={formData} updateFormData={updateFormData}/>;
       case "documents":return <EtapeDocumentsContratsDynamiques formData={formData} updateFormData={updateFormData}/>;
-      case "contrats":return <EtapeContratsDynamiques formData={formData} updateFormData={updateFormData}/>;
-      case "paiement_initial":return <EtapePaiementInitial formData={formData} updateFormData={updateFormData}/>;
       case "confirmation":return <EtapePaiementConfirmation formData={formData} updateFormData={updateFormData}/>;
       default:return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
     }
@@ -282,7 +269,7 @@ const NouvelleAcquisition = () => {
 
   const last=current===activeSteps.length-1&&activeSteps.length>0;
   return <ProtectedRoute><MainLayout><div className="max-w-7xl mx-auto page-section space-y-5">
-    <div><h1 className="text-3xl font-bold">Nouveau Client</h1><p className="text-muted-foreground">Parcours Client dynamique piloté par l’offre, le contrat et les pièces applicables.</p><SyncStatusBadge state={syncState} className="mt-2"/></div>
+    <div><h1 className="text-3xl font-bold">Nouveau Client</h1><p className="text-muted-foreground">Parcours Client simplifié : offre, Client et enquête, foncier, dossier documentaire et confirmation.</p><SyncStatusBadge state={syncState} className="mt-2"/></div>
     <div className="flex gap-2 overflow-x-auto pb-2">{activeSteps.map((s,i)=><Button key={s.code} size="sm" variant={i===current?"default":"outline"} onClick={()=>i<=current&&setCurrent(i)}>{i+1}. {s.titre}</Button>)}</div>
     <Card className="p-4 sm:p-6 rounded-2xl shadow-sm">{loadingSteps?<div className="p-8 text-center"><Loader2 className="mx-auto animate-spin"/></div>:renderStep()}</Card>
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
