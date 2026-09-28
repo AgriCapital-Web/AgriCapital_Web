@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import FileUpload from "@/components/ui/file-upload";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, LandPlot, UserRound } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
@@ -151,10 +153,7 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
     }
   };
 
-  const fileUpload = (label: string, file: File | null, current: string | null, onSelect: (f: File) => void, onPreview: (s: string) => void) => (
-    <FileUpload onFileSelect={(f) => handleFileSelect(f, onSelect, onPreview)} accept="image/*,.pdf" currentFile={file?.name || current || undefined} label={label} onRemove={() => {}} />
-  );
-
+  const fileUpload = (label: string, field: string, file: File | null, current: string | null, onSelect: (f: File) => void, onPreview: (s: string) => void, ocr=false) => (<FileUploadVisual label={label} field={field} accept="image/*,.pdf" currentFile={file} currentPreview={ocr ? pieceRectoPreview : undefined} onFileChange={(_,f,p)=>{if(f)onSelect(f);onPreview(p)}} onIdentityNumberDetected={ocr ? n=>setField("numero_piece",n) : undefined} identityDocumentType={form.type_piece}/>);
   return (
     <div className="space-y-5">
       <div className="rounded-lg border bg-muted/30 p-3 flex flex-wrap items-center justify-between gap-3">
@@ -182,8 +181,8 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
       <Card>
         <CardHeader><CardTitle>Coordonnées et résidence</CardTitle><CardDescription>Coordonnées utilisées pour le dossier et le portail.</CardDescription></CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
-          <div><Label>Téléphone *</Label><Input value={form.telephone || ""} onChange={e=>setField("telephone",e.target.value)}/></div>
-          <div><Label>WhatsApp</Label><Input value={form.whatsapp || ""} onChange={e=>setField("whatsapp",e.target.value)}/></div>
+          <CountryPhoneInput label="Téléphone" required countryCode={form.telephone_indicatif||"+225"} localValue={form.telephone_local||form.telephone||""} onChange={v=>{setField("telephone_indicatif",v.callingCode);setField("telephone_local",v.localValue);setField("telephone",v.internationalValue)}}/>
+          <CountryPhoneInput label="WhatsApp" countryCode={form.whatsapp_indicatif||"+225"} localValue={form.whatsapp_local||form.whatsapp||""} onChange={v=>{setField("whatsapp_indicatif",v.callingCode);setField("whatsapp_local",v.localValue);setField("whatsapp",v.internationalValue)}}/>
           <div><Label>Email</Label><Input type="email" value={form.email || ""} onChange={e=>setField("email",e.target.value)}/></div>
           <div><Label>Domicile / résidence</Label><Input value={form.domicile_residence || form.domicile || ""} onChange={e=>{setField("domicile_residence",e.target.value);setField("domicile",e.target.value);}}/></div>
           <div className="md:col-span-2"><Label>Localisation administrative</Label><GeographieCascade districtId={form.district_id} regionId={form.region_id} departementId={form.departement_id} sousPrefectureId={form.sous_prefecture_id} villageId={form.village_id} required onChange={(g)=>setForm((x:any)=>({...x,district_id:g.districtId||null,region_id:g.regionId||null,departement_id:g.departementId||null,sous_prefecture_id:g.sousPrefectureId||null,village_id:g.villageId||null,localite:g.villageName||x.localite||""}))}/></div>
@@ -193,7 +192,7 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
       <Card>
         <CardHeader><CardTitle>Pièce d’identité</CardTitle><CardDescription>Informations d’identification du Client.</CardDescription></CardHeader>
         <CardContent className="grid md:grid-cols-3 gap-4">
-          <div><Label>Type de pièce</Label><Select value={form.type_piece || ""} onValueChange={v=>setField("type_piece",v)}><SelectTrigger><SelectValue placeholder="Sélectionner"/></SelectTrigger><SelectContent><SelectItem value="cni">CNI</SelectItem><SelectItem value="cni_cedeao">CNI CEDEAO</SelectItem><SelectItem value="passeport">Passeport</SelectItem><SelectItem value="permis">Permis</SelectItem><SelectItem value="attestation">Attestation d'identité</SelectItem><SelectItem value="autre">Autre</SelectItem></SelectContent></Select></div>
+          <div><Label>Type de pièce</Label><PieceTypeSelect value={form.type_piece||""} onChange={v=>setField("type_piece",v)}/></div>
           <div><Label>Numéro de pièce</Label><Input value={form.numero_piece || ""} onChange={e=>setField("numero_piece",e.target.value)}/></div>
           <div><Label>Date de délivrance</Label><Input type="date" value={form.date_delivrance_piece || ""} onChange={e=>setField("date_delivrance_piece",e.target.value)}/></div>
         </CardContent>
@@ -241,9 +240,9 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
       <Card>
         <CardHeader><CardTitle>Documents d’identité</CardTitle><CardDescription>Remplacez uniquement les fichiers nécessaires.</CardDescription></CardHeader>
         <CardContent className="grid md:grid-cols-3 gap-4">
-          <div><Label>Photo profil</Label>{fileUpload("Choisir une photo",photoFile,form.photo_profil_url,setPhotoFile,setPhotoPreview)}</div>
-          <div><Label>Pièce recto</Label>{fileUpload("Choisir recto",pieceRectoFile,form.fichier_piece_recto_url,setPieceRectoFile,setPieceRectoPreview)}</div>
-          <div><Label>Pièce verso</Label>{fileUpload("Choisir verso",pieceVersoFile,form.fichier_piece_verso_url,setPieceVersoFile,setPieceVersoPreview)}</div>
+          <div><Label>Photo profil</Label>{fileUpload("Choisir une photo","photo_profil",photoFile,form.photo_profil_url,setPhotoFile,setPhotoPreview)}</div>
+          <div><Label>Pièce recto</Label>{fileUpload("Choisir recto","piece_recto",pieceRectoFile,form.fichier_piece_recto_url,setPieceRectoFile,setPieceRectoPreview,true)}</div>
+          <div><Label>Pièce verso</Label>{fileUpload("Choisir verso","piece_verso",pieceVersoFile,form.fichier_piece_verso_url,setPieceVersoFile,setPieceVersoPreview)}</div>
         </CardContent>
       </Card>
 
