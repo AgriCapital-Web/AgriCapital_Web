@@ -120,15 +120,6 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
   };
 
 
-  const handlePhotoChange = (file: File | null) => { if (!file) return; setPhotoFile(file); const reader=new FileReader(); reader.onload=()=>setPhotoPreview(String(reader.result||"")); reader.readAsDataURL(file); };\n\n  const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const onSubmit = async (data: any) => {
     if (selectedRoles.length === 0) {
