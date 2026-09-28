@@ -1,0 +1,4 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+const TYPES=[["cni","CNI"],["cni_cedeao","CNI / Carte nationale CEDEAO"],["passeport","Passeport"],["attestation","Attestation d’identité"],["carte_consulaire","Carte consulaire"],["permis","Permis de conduire"],["carte_sejour","Carte de séjour"],["titre_sejour","Titre de séjour"],["autre","Autre document d’identité"]] as const;
+export const PieceTypeSelect=({value,onChange}:{value?:string;onChange:(v:string)=>void})=><Select value={value||""} onValueChange={onChange}><SelectTrigger><SelectValue placeholder="Sélectionner le type de pièce"/></SelectTrigger><SelectContent>{TYPES.map(([v,l])=><SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent></Select>;
+export default PieceTypeSelect;
