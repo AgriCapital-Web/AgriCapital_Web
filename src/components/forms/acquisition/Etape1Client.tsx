@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SearchableSelect from "@/components/common/SearchableSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
@@ -149,7 +150,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
   }, [formData.departement_id]);
 
 
-  const [parcelles, setParcelles] = useState<any[]>([]);
+  useEffect(() => { if (!formData.sous_prefecture_id) { setVillages([]); return; } (async()=>{const {data}=await (supabase as any).from("v_geo_villages").select("id,nom").eq("sous_prefecture_id",formData.sous_prefecture_id).eq("est_actif_effectif",true).order("nom");setVillages(data||[]);})(); }, [formData.sous_prefecture_id]);\n\n  const [parcelles, setParcelles] = useState<any[]>([]);
   const [parcelleSearch, setParcelleSearch] = useState("");
   const [loadingParcelles, setLoadingParcelles] = useState(false);
 
@@ -425,29 +426,12 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
         <CardContent className="space-y-4">
           {/* Structure administrative */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="district">District *</Label>
-              <Select
-                value={formData.district_id}
-                onValueChange={(value) => {
-                  updateFormData({ district_id: value, region_id: null, departement_id: null, sous_prefecture_id: null, village_id: null });
-                  setRegions([]);
-                  setDepartements([]);
-                  setSousPrefectures([]);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner le district" />
-                </SelectTrigger>
-                <SelectContent>
-                  {districts.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>{d.nom}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
+            <div className="space-y-2"><Label>District *</Label><SearchableSelect value={formData.district_id} onValueChange={(v)=>{updateFormData({district_id:v,region_id:null,departement_id:null,sous_prefecture_id:null,village_id:null});setRegions([]);setDepartements([]);setSousPrefectures([]);}} options={districts.map(x=>({value:x.id,label:x.nom}))} placeholder="Sélectionner le district" searchPlaceholder="Rechercher un district..." /></div>
+            <div className="space-y-2"><Label>Région *</Label><SearchableSelect value={formData.region_id} onValueChange={(v)=>{updateFormData({region_id:v,departement_id:null,sous_prefecture_id:null,village_id:null});setDepartements([]);setSousPrefectures([]);}} disabled={!formData.district_id} options={regions.map(x=>({value:x.id,label:x.nom}))} placeholder="Sélectionner la région" searchPlaceholder="Rechercher une région..." /></div>
+            <div className="space-y-2"><Label>Département *</Label><SearchableSelect value={formData.departement_id} onValueChange={(v)=>{updateFormData({departement_id:v,sous_prefecture_id:null,village_id:null});setSousPrefectures([]);}} disabled={!formData.region_id} options={departements.map(x=>({value:x.id,label:x.nom}))} placeholder="Sélectionner le département" searchPlaceholder="Rechercher un département..." /></div>
+            <div className="space-y-2"><Label>Sous-préfecture *</Label><SearchableSelect value={formData.sous_prefecture_id} onValueChange={(v)=>updateFormData({sous_prefecture_id:v,village_id:null})} disabled={!formData.departement_id} options={sousPrefectures.map(x=>({value:x.id,label:x.nom}))} placeholder="Sélectionner la sous-préfecture" searchPlaceholder="Rechercher une sous-préfecture..." /></div>
+            <div className="space-y-2"><Label>Village / localité *</Label><SearchableSelect value={formData.village_id} onValueChange={(v)=>updateFormData({village_id:v})} disabled={!formData.sous_prefecture_id} options={villages.map(x=>({value:x.id,label:x.nom}))} placeholder="Sélectionner le village / la localité" searchPlaceholder="Rechercher un village..." /></div>
+          <div className="space-y-2">
               <Label htmlFor="region">Région *</Label>
               <Select
                 value={formData.region_id}
