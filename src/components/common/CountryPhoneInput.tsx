@@ -1,0 +1,16 @@
+import { useEffect, useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { SearchableSelect } from "@/components/common/SearchableSelect";
+type Country={code:string;name:string;callingCode:string;flag:string};
+const FALLBACK:Country[]=[["CI","Côte d’Ivoire","+225","🇨🇮"],["FR","France","+33","🇫🇷"],["US","États-Unis","+1","🇺🇸"],["CA","Canada","+1","🇨🇦"],["BE","Belgique","+32","🇧🇪"],["CH","Suisse","+41","🇨🇭"],["GB","Royaume-Uni","+44","🇬🇧"],["SN","Sénégal","+221","🇸🇳"],["GN","Guinée","+224","🇬🇳"],["BF","Burkina Faso","+226","🇧🇫"],["ML","Mali","+223","🇲🇱"],["CM","Cameroun","+237","🇨🇲"],["TG","Togo","+228","🇹🇬"],["BJ","Bénin","+229","🇧🇯"]].map(([code,name,callingCode,flag])=>({code,name,callingCode,flag})) as Country[];
+const flag=(code:string)=>code.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
+export interface CountryPhoneInputProps{label:string;countryCode?:string;localValue?:string;required?:boolean;disabled?:boolean;onChange:(v:{countryCode:string;callingCode:string;localValue:string;internationalValue:string})=>void}
+export const CountryPhoneInput=({label,countryCode="CI",localValue="",required,disabled,onChange}:CountryPhoneInputProps)=>{
+ const [countries,setCountries]=useState<Country[]>(FALLBACK);
+ useEffect(()=>{const cached=localStorage.getItem("agricapital:countries:v1");if(cached){try{const p=JSON.parse(cached);if(Array.isArray(p)&&p.length>150)setCountries(p)}catch{}}
+ fetch("https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags").then(r=>r.ok?r.json():Promise.reject()).then((rows:any[])=>{const mapped=rows.map(r=>({code:r.cca2,name:r.name?.common||r.cca2,callingCode:r.idd?.root?(r.idd.root+(r.idd.suffixes?.[0]||"")):"",flag:r.flags?.emoji||flag(r.cca2)})).filter((c:Country)=>c.callingCode).sort((a,b)=>a.name.localeCompare(b.name,"fr"));if(mapped.length>150){setCountries(mapped);localStorage.setItem("agricapital:countries:v1",JSON.stringify(mapped))}}).catch(()=>undefined)},[]);
+ const selected=countries.find(c=>c.code===countryCode)||countries.find(c=>c.code==="CI")||countries[0];
+ const options=useMemo(()=>countries.map(c=>({value:c.code,label:c.flag+" "+c.name+" "+c.callingCode})),[countries]);
+ return <div className="space-y-2"><label className="text-sm font-medium">{label}{required&&" *"}</label><div className="flex gap-2"><SearchableSelect value={selected?.code||countryCode} onValueChange={code=>{const c=countries.find(x=>x.code===code)||selected;onChange({countryCode:c.code,callingCode:c.callingCode,localValue,internationalValue:c.callingCode+localValue.replace(/\D/g,"")})}} options={options} placeholder="Pays" searchPlaceholder="Rechercher un pays..." disabled={disabled} className="w-[230px] shrink-0"/><Input type="tel" inputMode="tel" value={localValue} disabled={disabled} required={required} placeholder="Numéro local" onChange={e=>{const local=e.target.value.replace(/\D/g,"");onChange({countryCode:selected.code,callingCode:selected.callingCode,localValue:local,internationalValue:selected.callingCode+local})}}/></div></div>
+};
+export default CountryPhoneInput;
