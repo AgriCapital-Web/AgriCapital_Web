@@ -77,7 +77,7 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
     [offers, form.offre_id, form.formule_code, form.formule_nom]
   );
 
-  const ownLand = Boolean(offer?.necessite_foncier_client);
+  const ownLand = Boolean(offer?.necessite_foncier_client) || form.type_client_foncier === "OWN" || form.type_client === "avec_terre";
   const isBeneficiary = form.type_client === "beneficiaire_particulier";
   const hasActivity = Number(form.nombre_plantations || 0) > 0 || Boolean(form.pi_paye_at || form.paiement_initial_paye_at);
 
