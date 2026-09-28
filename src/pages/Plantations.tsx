@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import PlantationForm from "@/components/forms/PlantationForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSafeErrorMessage } from "@/lib/safeError";
@@ -35,8 +34,6 @@ const Plantations = () => {
   const [plantations, setPlantations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPlantation, setSelectedPlantation] = useState<any>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [plantationToDelete, setPlantationToDelete] = useState<any>(null);
   const { toast } = useToast();
