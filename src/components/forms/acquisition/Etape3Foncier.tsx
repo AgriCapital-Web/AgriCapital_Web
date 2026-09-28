@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import GeographieCascade from "@/components/common/GeographieCascade";
 
 /**
  * Identification du foncier client.
@@ -199,13 +200,7 @@ export const Etape3Foncier = ({ formData, updateFormData }: Props) => {
                   onChange={(e) => updateFormData({ surface_propre_ha: e.target.value })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Village / Localité</Label>
-                <Input
-                  value={formData.village_propre || ""}
-                  onChange={(e) => updateFormData({ village_propre: e.target.value })}
-                />
-              </div>
+              <div className="md:col-span-2"><Label>Localisation administrative</Label><GeographieCascade districtId={formData.district_id} regionId={formData.region_id} departementId={formData.departement_id} sousPrefectureId={formData.sous_prefecture_id} villageId={formData.village_id} required onChange={(g)=>updateFormData({district_id:g.districtId||null,region_id:g.regionId||null,departement_id:g.departementId||null,sous_prefecture_id:g.sousPrefectureId||null,village_id:g.villageId||null,village_propre:g.villageName||""})}/></div>
             </div>
           </CardContent>
         </Card>
