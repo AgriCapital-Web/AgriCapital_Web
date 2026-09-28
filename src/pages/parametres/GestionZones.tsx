@@ -61,16 +61,13 @@ const GestionZones = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      // Fetch profiles and roles for assigned users
-      const { data: profilesData } = await (supabase as any)
-        .from("profiles")
-        .select("id, user_id, nom_complet")
-        .eq("actif", true);
-
-      const { data: rolesData } = await (supabase as any)
-        .from("user_roles")
-        .select("user_id, role")
-        .in("role", ["responsable_commercial", "chef_equipe_commercial", "chef_equipe_technique", "commercial", "technicien"]);
+      // Fetch profiles and roles for assignable field staff.
+      const [{ data: profilesData, error: profilesError }, { data: rolesData, error: rolesError }] = await Promise.all([
+        (supabase as any).from("profiles").select("id, user_id, nom_complet, actif").eq("actif", true),
+        (supabase as any).from("user_roles").select("user_id, role").in("role", ["responsable_commercial", "chef_equipe_commercial", "chef_equipe_technique", "commercial", "technicien"]),
+      ]);
+      if (profilesError) throw profilesError;
+      if (rolesError) throw rolesError;
 
       // Fetch all zone names
       const [{ data: districts }, { data: regions }, { data: depts }, { data: sps }] = await Promise.all([
@@ -105,11 +102,14 @@ const GestionZones = () => {
       setAssignments(enriched);
 
       // Build user list with their roles
-      const usersWithRoles = (rolesData || []).map((r: any) => ({
-        user_id: r.user_id,
-        role: r.role,
-        nom_complet: profileMap[r.user_id] || "Inconnu",
-      }));
+      const usersWithRoles = (rolesData || [])
+        .filter((r: any) => r.user_id && profileMap[r.user_id])
+        .map((r: any) => ({
+          user_id: r.user_id, role: r.role, nom_complet: profileMap[r.user_id],
+        }))
+        .filter((item: any, index: number, arr: any[]) =>
+          arr.findIndex((x) => x.user_id === item.user_id && x.role === item.role) === index
+        );
       setUsers(usersWithRoles);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(error) });
@@ -209,7 +209,6 @@ const GestionZones = () => {
               <SelectContent>
                  <SelectItem value="responsable_commercial">Responsable Commercial</SelectItem>
                  <SelectItem value="chef_equipe_commercial">Chef d'Équipe Commercial</SelectItem>
-                 <SelectItem value="chef_equipe_technique">Chef d'Équipe Technique</SelectItem>
                 <SelectItem value="commercial">Commercial</SelectItem>
                 <SelectItem value="technicien">Technicien</SelectItem>
                  <SelectItem value="chef_equipe_technique">Chef d'Équipe Technique</SelectItem>
