@@ -25,7 +25,7 @@ export default function PublicLead() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [f, setF] = useState({
-    nom: "", prenoms: "", telephone: "", whatsapp: "", email: "",
+    nom: "", prenoms: "", telephone: "", telephone_indicatif: "+225", telephone_local: "", whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "", email: "",
     region_residence: "", est_diaspora: false, pays_diaspora: "",
     dispose_terrain: false,
     superficie_disponible_ha: "", superficie_a_valoriser_ha: "", superficie_souhaitee_ha: "",
