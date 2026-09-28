@@ -71,7 +71,7 @@ const compressPhoto = async (file: File): Promise<{ data: string; mime: string }
 
 const AccountRequest = () => {
   const [formData, setFormData] = useState({
-    nom_complet: "", email: "", telephone: "", poste: "",
+    nom_complet: "", email: "", telephone: "", telephone_indicatif: "+225", telephone_local: "", poste: "",
     region: "", departement: "", district: "", message: "",
     username: "", password: "", password_confirm: "",
   });
@@ -170,7 +170,7 @@ const AccountRequest = () => {
         body: {
           nom_complet: formData.nom_complet.trim(),
           email: formData.email.trim(),
-          telephone: formData.telephone.trim(),
+          telephone: formData.telephone.trim(),\n          telephone_indicatif: formData.telephone_indicatif,\n          telephone_local: formData.telephone_local,
           username: formData.username,
           password: formData.password,
           poste_souhaite: ROLES.find((role) => role.value === formData.poste)?.label || formData.poste,
