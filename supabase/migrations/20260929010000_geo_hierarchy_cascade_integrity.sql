@@ -105,6 +105,17 @@ join public.regions r on r.id = dep.region_id
 join public.districts d on d.id = r.district_id;
 
 -- Repair duplicate/orphan department rows before enforcing the unique hierarchy.
+-- Remove six orphan sub-prefecture duplicates attached to the orphan department rows.
+delete from public.sous_prefectures
+where id in (
+ 'd3f3b407-569e-446e-97f6-54a9f811b04b',
+ '0a0ac80f-b365-444e-9a35-2e4999341f44',
+ '5c17c2d0-708e-4938-97f7-9f76f76ffa47',
+ '1318afbb-8ac3-4ac9-b90b-e85b2da5b459',
+ 'd3132fe8-b29b-4f3b-bfe6-11b95985ae7e',
+ '0e9cd15b-935a-4108-b3b6-9f74747b2771'
+);
+
 -- Dabakala and Katiola had orphan duplicates with NULL region_id.
 update public.account_requests set departement_geo_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
 where departement_geo_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
