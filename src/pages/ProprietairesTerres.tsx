@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Plus, Users, MapPin, Layers, Upload, FileText } from "lucide-react";
 import { useUserZones } from "@/hooks/useUserZones";
+import GeographieCascade from "@/components/common/GeographieCascade";
 import { uploadFile as uploadToStorage } from "@/utils/storage";
 import { offlineInsert } from "@/lib/offlineWrite";
 import { getCachedItems, STORES, addToSyncQueue } from "@/lib/offlineDb";
