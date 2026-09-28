@@ -1,0 +1,176 @@
+import { useEffect, useMemo, useState } from "react";
+import MainLayout from "@/components/layout/MainLayout";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { offlineInsert } from "@/lib/offlineWrite";
+import { uploadOrQueueFile } from "@/lib/offlineFiles";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","directeur_tc","super_admin"];
+const STAGES=[
+  ["defrichage","Défrichage"],
+  ["piquetage","Piquetage"],
+  ["trouaison","Trouaison"],
+  ["mise_en_terre","Planting / mise en terre"],
+  ["remplacement","Remplacement"],
+  ["entretien","Entretien"],
+  ["fertilisation","Fertilisation"],
+  ["mise_en_production","Mise en production"],
+  ["remise","Remise de plantation"],
+  ["suivi_mensuel","Suivi mensuel"],
+  ["autre","Autre"],
+];
+
+const TechnicienTerrain=()=>{
+  const {user,userRoles}=useAuth();
+  const {toast}=useToast();
+  const allowed=userRoles.some(r=>TECH_ROLES.includes(r));
+  const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","directeur_tc","super_admin"].includes(r));
+  const [plantations,setPlantations]=useState<any[]>([]);
+  const [reports,setReports]=useState<any[]>([]);
+  const [interventions,setInterventions]=useState<any[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [report,setReport]=useState<any>({
+    plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",
+    constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",
+    prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""
+  });
+  const [media,setMedia]=useState<File[]>([]);
+  const [intervention,setIntervention]=useState<any>({
+    plantation_id:"",type_intervention:"suivi_mensuel",date_intervention:new Date().toISOString().slice(0,10),
+    observations:"",recommandations:"",statut:"planifiee"
+  });
+
+  const profileId=async()=>{
+    const uid=user?.id;
+    if(!uid)return null;
+    const {data}=await (supabase as any).from("profiles").select("id").eq("user_id",uid).maybeSingle();
+    return data?.id||null;
+  };
+
+  const load=async()=>{
+    if(!allowed)return;
+    setLoading(true);
+    const [{data:p},{data:r},{data:i}]=await Promise.all([
+      (supabase as any).from("plantations").select("id,id_unique,nom_plantation,nom,superficie_ha,client_id,statut_global,prochaine_visite").order("nom_plantation"),
+      (supabase as any).from("rapports_visites_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!rapports_visites_techniques_agent_technique_id_fkey(nom_complet)").order("date_visite",{ascending:false}).limit(100),
+      (supabase as any).from("interventions_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!interventions_techniques_agent_technique_id_fkey(nom_complet)").order("date_intervention",{ascending:false}).limit(100)
+    ]);
+    setPlantations(p||[]);setReports(r||[]);setInterventions(i||[]);setLoading(false);
+  };
+
+  useEffect(()=>{load();},[allowed]);
+
+  const plantation=useMemo(()=>plantations.find(p=>p.id===report.plantation_id),[plantations,report.plantation_id]);
+
+  const saveReport=async(submit:boolean)=>{
+    if(!report.plantation_id){toast({variant:"destructive",title:"Plantation requise"});return;}
+    if(!report.constat&&!report.travaux_realises&&!report.observations){toast({variant:"destructive",title:"Rapport incomplet",description:"Renseignez au moins le constat ou les travaux réalisés."});return;}
+    setSaving(true);
+    try{
+      const pid=await profileId(); if(!pid)throw new Error("Profil technicien introuvable");
+      const id=crypto.randomUUID();
+      const payload={
+        id,plantation_id:report.plantation_id,client_id:plantation?.client_id||null,agent_technique_id:pid,
+        date_visite:new Date(report.date_visite).toISOString(),type_visite:report.type_visite,
+        constat:report.constat||null,travaux_realises:report.travaux_realises||null,etat_plantation:report.etat_plantation||null,
+        observations:report.observations||null,recommandations:report.recommandations||null,
+        prochaine_intervention:report.prochaine_intervention||null,
+        localisation_gps_lat:report.localisation_gps_lat?Number(report.localisation_gps_lat):null,
+        localisation_gps_lng:report.localisation_gps_lng?Number(report.localisation_gps_lng):null,
+        statut:submit?"soumis":"brouillon",client_visible:false,created_by:pid
+      };
+      const {error}=await offlineInsert("rapports_visites_techniques",payload);
+      if(error)throw error;
+      for(const file of media){
+        const path=`plantations/${report.plantation_id}/rapports/${id}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+        const uploaded=await uploadOrQueueFile({bucket:"rapports-techniques",path,file});
+        await offlineInsert("rapports_visites_medias",{
+          id:crypto.randomUUID(),rapport_id:id,plantation_id:report.plantation_id,
+          media_type:file.type.startsWith("video/")?"video":"photo",storage_path:uploaded.path,
+          mime_type:file.type,nom_fichier:file.name,client_visible:false,created_by:pid
+        });
+      }
+      toast({title:submit?"Rapport soumis":"Brouillon enregistré",description:media.length?`${media.length} média(s) rattaché(s).`:undefined});
+      setMedia([]);
+      setReport({plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""});
+      load();
+    }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
+    finally{setSaving(false);}
+  };
+
+  const saveIntervention=async()=>{
+    if(!intervention.plantation_id){toast({variant:"destructive",title:"Plantation requise"});return;}
+    setSaving(true);
+    try{
+      const pid=await profileId(); if(!pid)throw new Error("Profil technicien introuvable");
+      const {error}=await offlineInsert("interventions_techniques",{...intervention,id:crypto.randomUUID(),agent_technique_id:pid});
+      if(error)throw error;
+      toast({title:"Intervention enregistrée"});
+      setIntervention({plantation_id:"",type_intervention:"suivi_mensuel",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee"});
+      load();
+    }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
+    finally{setSaving(false);}
+  };
+
+  const validateReport=async(r:any,publish:boolean)=>{
+    if(!manager)return;
+    const {error}=await (supabase as any).from("rapports_visites_techniques").update({statut:publish?"valide":"rejete",client_visible:publish}).eq("id",r.id);
+    if(error)toast({variant:"destructive",title:"Validation impossible",description:error.message});
+    else{toast({title:publish?"Rapport validé et publié":"Rapport refusé"});load();}
+  };
+
+  if(!allowed)return <ProtectedRoute><MainLayout><Card><CardHeader><CardTitle>Accès technicien</CardTitle><CardDescription>Cette interface est réservée aux accès techniques autorisés.</CardDescription></CardHeader></Card></MainLayout></ProtectedRoute>;
+
+  return <ProtectedRoute><MainLayout><div className="space-y-6">
+    <div><h1 className="text-3xl font-bold">Terrain & suivi technique</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
+
+    <Tabs defaultValue="rapport">
+      <TabsList><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList>
+
+      <TabsContent value="rapport" className="space-y-5">
+        <Card><CardHeader><CardTitle>Nouveau rapport terrain</CardTitle><CardDescription>Le rapport reste privé jusqu’à validation technique.</CardDescription></CardHeader><CardContent className="space-y-5">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div><Label>Plantation *</Label><Select value={report.plantation_id} onValueChange={v=>setReport((x:any)=>({...x,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une plantation"/></SelectTrigger><SelectContent>{plantations.map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>Date et heure *</Label><Input type="datetime-local" value={report.date_visite} onChange={e=>setReport((x:any)=>({...x,date_visite:e.target.value}))}/></div>
+            <div><Label>Type de visite</Label><Select value={report.type_visite} onValueChange={v=>setReport((x:any)=>({...x,type_visite:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="suivi">Suivi</SelectItem><SelectItem value="installation">Installation</SelectItem><SelectItem value="controle">Contrôle</SelectItem><SelectItem value="incident">Incident</SelectItem><SelectItem value="remise">Remise de plantation</SelectItem></SelectContent></Select></div>
+            <div><Label>État de la plantation</Label><Input value={report.etat_plantation} onChange={e=>setReport((x:any)=>({...x,etat_plantation:e.target.value}))} placeholder="Bon, à surveiller, intervention urgente…"/></div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat</Label><Textarea value={report.constat} onChange={e=>setReport((x:any)=>({...x,constat:e.target.value}))}/></div><div><Label>Travaux réalisés</Label><Textarea value={report.travaux_realises} onChange={e=>setReport((x:any)=>({...x,travaux_realises:e.target.value}))}/></div></div>
+          <div className="grid md:grid-cols-2 gap-4"><div><Label>Observations</Label><Textarea value={report.observations} onChange={e=>setReport((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations</Label><Textarea value={report.recommandations} onChange={e=>setReport((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
+          <div className="grid md:grid-cols-3 gap-4"><div><Label>Prochaine intervention</Label><Input type="date" value={report.prochaine_intervention} onChange={e=>setReport((x:any)=>({...x,prochaine_intervention:e.target.value}))}/></div><div><Label>Latitude</Label><Input value={report.localisation_gps_lat} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lat:e.target.value}))}/></div><div><Label>Longitude</Label><Input value={report.localisation_gps_lng} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lng:e.target.value}))}/></div></div>
+          <div><Label>Photos / vidéos</Label><Input type="file" accept="image/*,video/*" multiple onChange={e=>setMedia(Array.from(e.target.files||[]))}/><p className="text-xs text-muted-foreground mt-1">Les médias restent privés jusqu’à validation du rapport.</p></div>
+          <div className="flex gap-3 justify-end"><Button variant="outline" disabled={saving} onClick={()=>saveReport(false)}>Enregistrer brouillon</Button><Button disabled={saving} onClick={()=>saveReport(true)}>Soumettre le rapport</Button></div>
+        </CardContent></Card>
+      </TabsContent>
+
+      <TabsContent value="intervention" className="space-y-5">
+        <Card><CardHeader><CardTitle>Intervention technique</CardTitle><CardDescription>Tracer les opérations réalisées ou planifiées sur la plantation.</CardDescription></CardHeader><CardContent className="space-y-5">
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="md:col-span-2"><Label>Plantation *</Label><Select value={intervention.plantation_id} onValueChange={v=>setIntervention((x:any)=>({...x,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner"/></SelectTrigger><SelectContent>{plantations.map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>Date *</Label><Input type="date" value={intervention.date_intervention} onChange={e=>setIntervention((x:any)=>({...x,date_intervention:e.target.value}))}/></div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4"><div><Label>Étape technique</Label><Select value={intervention.type_intervention} onValueChange={v=>setIntervention((x:any)=>({...x,type_intervention:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{STAGES.map(([v,l])=><SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent></Select></div><div><Label>Statut</Label><Select value={intervention.statut} onValueChange={v=>setIntervention((x:any)=>({...x,statut:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="planifiee">Planifiée</SelectItem><SelectItem value="en_cours">En cours</SelectItem><SelectItem value="realisee">Réalisée</SelectItem><SelectItem value="annulee">Annulée</SelectItem></SelectContent></Select></div></div>
+          <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat / observations</Label><Textarea value={intervention.observations} onChange={e=>setIntervention((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations</Label><Textarea value={intervention.recommandations} onChange={e=>setIntervention((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
+          <div className="flex justify-end"><Button disabled={saving} onClick={saveIntervention}>Enregistrer l’intervention</Button></div>
+        </CardContent></Card>
+      </TabsContent>
+
+      <TabsContent value="historique"><div className="grid lg:grid-cols-2 gap-5">
+        <Card><CardHeader><CardTitle>Rapports récents</CardTitle></CardHeader><CardContent className="space-y-3">{loading?"Chargement…":reports.length===0?"Aucun rapport.":reports.map(r=><div key={r.id} className="border rounded-lg p-3"><div className="flex justify-between gap-3"><div><p className="font-medium">{r.plantation?.nom_plantation||r.plantation?.id_unique}</p><p className="text-xs text-muted-foreground">{new Date(r.date_visite).toLocaleString("fr-FR")}</p></div><Badge variant={r.client_visible?"default":"outline"}>{r.client_visible?"Publié":"Privé · "+r.statut}</Badge></div><p className="text-sm mt-2">{r.constat||r.observations||"—"}</p>{manager&&r.statut==="soumis"&&<div className="flex gap-2 mt-3"><Button size="sm" onClick={()=>validateReport(r,true)}>Valider & publier</Button><Button size="sm" variant="outline" onClick={()=>validateReport(r,false)}>Refuser</Button></div>}</div>)}</CardContent></Card>
+        <Card><CardHeader><CardTitle>Interventions récentes</CardTitle></CardHeader><CardContent className="space-y-3">{interventions.length===0?"Aucune intervention.":interventions.map(i=><div key={i.id} className="border rounded-lg p-3"><div className="flex justify-between"><p className="font-medium">{i.plantation?.nom_plantation||i.plantation?.id_unique}</p><Badge variant="outline">{i.type_intervention}</Badge></div><p className="text-xs text-muted-foreground mt-1">{new Date(i.date_intervention).toLocaleDateString("fr-FR")} · {i.statut}</p><p className="text-sm mt-2">{i.observations||"—"}</p></div>)}</CardContent></Card>
+      </div></TabsContent>
+    </Tabs>
+  </div></MainLayout></ProtectedRoute>;
+};
+export default TechnicienTerrain;
