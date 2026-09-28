@@ -44,7 +44,7 @@ const TechnicienTerrain=()=>{
   const [saving,setSaving]=useState(false);
   const [report,setReport]=useState<any>({
     plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",
-    constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",
+    constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",contenu_client:"",
     prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""
   });
   const [media,setMedia]=useState<File[]>([]);
@@ -87,7 +87,7 @@ const TechnicienTerrain=()=>{
         id,plantation_id:report.plantation_id,client_id:plantation?.client_id||null,agent_technique_id:profile.id,equipe_id:profile.equipe_id||null,ticket_id:report.ticket_id||null,
         date_visite:new Date(report.date_visite).toISOString(),type_visite:report.type_visite,
         constat:report.constat||null,travaux_realises:report.travaux_realises||null,etat_plantation:report.etat_plantation||null,
-        observations:report.observations||null,recommandations:report.recommandations||null,
+        observations:report.observations||null,recommandations:report.recommandations||null,contenu_client:report.contenu_client||null,
         prochaine_intervention:report.prochaine_intervention||null,
         localisation_gps_lat:report.localisation_gps_lat?Number(report.localisation_gps_lat):null,
         localisation_gps_lng:report.localisation_gps_lng?Number(report.localisation_gps_lng):null,
@@ -160,7 +160,8 @@ const TechnicienTerrain=()=>{
             <div><Label>État de la plantation</Label><Input value={report.etat_plantation} onChange={e=>setReport((x:any)=>({...x,etat_plantation:e.target.value}))} placeholder="Bon, à surveiller, intervention urgente…"/></div>
           </div>
           <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat</Label><Textarea value={report.constat} onChange={e=>setReport((x:any)=>({...x,constat:e.target.value}))}/></div><div><Label>Travaux réalisés</Label><Textarea value={report.travaux_realises} onChange={e=>setReport((x:any)=>({...x,travaux_realises:e.target.value}))}/></div></div>
-          <div className="grid md:grid-cols-2 gap-4"><div><Label>Observations</Label><Textarea value={report.observations} onChange={e=>setReport((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations</Label><Textarea value={report.recommandations} onChange={e=>setReport((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
+          <div className="grid md:grid-cols-2 gap-4"><div><Label>Observations internes</Label><Textarea value={report.observations} onChange={e=>setReport((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations internes</Label><Textarea value={report.recommandations} onChange={e=>setReport((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
+          <div><Label>Message destiné au client</Label><Textarea value={report.contenu_client} onChange={e=>setReport((x:any)=>({...x,contenu_client:e.target.value}))} placeholder="Ce message pourra être publié dans l’espace client après validation technique."/><p className="text-xs text-muted-foreground mt-1">Seul ce contenu est destiné à être présenté au client.</p></div>
           <div className="grid md:grid-cols-3 gap-4"><div><Label>Prochaine intervention</Label><Input type="date" value={report.prochaine_intervention} onChange={e=>setReport((x:any)=>({...x,prochaine_intervention:e.target.value}))}/></div><div><Label>Latitude</Label><Input value={report.localisation_gps_lat} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lat:e.target.value}))}/></div><div><Label>Longitude</Label><Input value={report.localisation_gps_lng} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lng:e.target.value}))}/></div></div>
           <div><Label>Photos / vidéos</Label><Input type="file" accept="image/*,video/*" multiple onChange={e=>setMedia(Array.from(e.target.files||[]))}/><p className="text-xs text-muted-foreground mt-1">Les médias restent privés jusqu’à validation du rapport.</p></div>
           <div className="flex gap-3 justify-end"><Button variant="outline" disabled={saving} onClick={()=>saveReport(false)}>Enregistrer brouillon</Button><Button disabled={saving} onClick={()=>saveReport(true)}>Soumettre le rapport</Button></div>
