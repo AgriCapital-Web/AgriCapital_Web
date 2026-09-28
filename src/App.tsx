@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import Plantations from "./pages/Plantations";
+import PlantationDetail from "./pages/PlantationDetail";
 import GestionPaiements from "./pages/GestionPaiements";
 import RapportsFinanciers from "./pages/RapportsFinanciers";
 import RapportsTechniques from "./pages/RapportsTechniques";
@@ -87,6 +88,7 @@ const DomainRouter = () => {
       <Route path="/client/:id" element={<ClientDetail />} />
       <Route path="/client/:id/historique" element={<HistoriqueComplet />} />
       <Route path="/plantations" element={<Plantations />} />
+      <Route path="/plantations/:id" element={<PlantationDetail />} />
       <Route path="/proprietaires-terres" element={<ProprietairesTerres />} />
       <Route path="/parcelles" element={<Parcelles />} />
       <Route path="/documents" element={<Documents />} />
