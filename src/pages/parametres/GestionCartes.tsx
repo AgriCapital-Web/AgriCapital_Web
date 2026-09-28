@@ -61,7 +61,7 @@ const GestionCartes = () => {
   const load = useCallback(async () => {
     setLoading(true);
     const [p, c, r] = await Promise.all([
-      (supabase as any).from("profils_annuaire").select("id, user_id, nom_complet, email, telephone, poste, departement, photo_url, actif").order("nom_complet"),
+      (supabase as any).from("profiles").select("id, user_id, nom_complet, email, telephone, poste, departement, photo_url, actif").order("nom_complet"),
       (supabase as any).from("cartes_personnel").select("*"),
       (supabase as any).from("user_roles").select("user_id, role"),
     ]);
