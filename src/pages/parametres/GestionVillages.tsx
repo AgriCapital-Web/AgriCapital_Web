@@ -92,7 +92,7 @@ const GestionVillages = () => {
           ) : (
             <div className="space-y-2">
               {filtered.map((village) => {
-                const spInactive = village.sous_prefectures?.est_active === false;
+                const spInactive = village.sous_prefectures?.est_active !== true;
                 return (
                   <div key={village.id} className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${spInactive ? 'opacity-50 bg-muted/30' : 'hover:bg-muted/50'}`}>
                     <div className="flex-1">
@@ -107,7 +107,7 @@ const GestionVillages = () => {
                       <p className="text-xs text-muted-foreground">S/Préfecture: {village.sous_prefectures?.nom || "—"}</p>
                     </div>
                     <Switch
-                      checked={village.est_actif ?? false}
+                      checked={!spInactive && village.est_actif === true}
                       disabled={spInactive}
                       onCheckedChange={() => toggleVillage(village.id, village.est_actif ?? false)}
                     />
@@ -120,7 +120,7 @@ const GestionVillages = () => {
 
           <div className="mt-6 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              💡 {filtered.length} village(s) • {filtered.filter(v => v.est_actif).length} actif(s)
+              💡 {filtered.length} village(s) • {filtered.filter(v => v.sous_prefectures?.est_active === true && v.est_actif === true).length} actif(s)
             </p>
           </div>
         </CardContent>
