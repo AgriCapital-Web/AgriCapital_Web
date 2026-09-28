@@ -55,7 +55,7 @@ export default function Leads() {
   const [selected, setSelected] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const emptyLead = {
-    nom: "", prenoms: "", telephone: "", whatsapp: "", email: "", region_residence: "",
+    nom: "", prenoms: "", telephone: "", telephone_indicatif: "+225", telephone_local: "", whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "", email: "", region_residence: "",
     est_diaspora: "non", pays_diaspora: "",
     dispose_terrain: "non", superficie_disponible_ha: "", superficie_a_valoriser_ha: "", superficie_souhaitee_ha: "",
     delai_demarrage: "", date_contact_souhaitee: "", creneau_prefere: "", mode_contact_prefere: "appel",
