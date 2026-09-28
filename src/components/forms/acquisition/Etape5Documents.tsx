@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import MediaUploadVisual from "@/components/ui/media-upload-visual";
 
 interface Etape5Props {
   formData: any;
@@ -103,16 +104,7 @@ export const Etape5Documents = ({ formData, updateFormData }: Etape5Props) => {
         <CardContent>
           <div className="space-y-2">
             <Label htmlFor="docs_complementaires">Autres documents</Label>
-            <Input
-              id="docs_complementaires"
-              type="file"
-              multiple
-              accept=".pdf,image/jpeg,image/png"
-              onChange={(e) => {
-                const files = Array.from(e.target.files || []);
-                if (files.length > 0) updateFormData({ docs_complementaires_files: files });
-              }}
-            />
+<MediaUploadVisual label="Autres documents" files={formData.docs_complementaires_files||[]} onChange={files=>updateFormData({docs_complementaires_files:files})} accept=".pdf,image/jpeg,image/png"/>
             <p className="text-xs text-muted-foreground">
               Maximum 5 fichiers. Formats: PDF, JPEG, PNG.
             </p>
