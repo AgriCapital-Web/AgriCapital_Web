@@ -14,6 +14,9 @@ const conditionActive = (doc: any, formData: any) => {
   if (condition.when === "representant_active") return Boolean(formData.has_representant);
   if (condition.when === "offre_plus") return String(formData.offre_code || "").endsWith("-plus");
   if (condition.when === "necessaire") return Boolean(formData.document_securisation_necessaire);
+  if (condition.when === "client_land") return Boolean(formData.offre?.necessite_foncier_client);
+  if (condition.when === "acquisition") return Boolean(formData.offre?.contrat_acquisition_requis);
+  if (condition.relation === "mandataire") return formData.representant_type === "mandataire";
   return true;
 };
 
