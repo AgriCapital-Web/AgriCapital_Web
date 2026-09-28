@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import FileUploadVisual from "@/components/ui/file-upload-visual";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { ArrowLeft, FileCheck2, LandPlot, UserRound, Sprout, Upload } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
