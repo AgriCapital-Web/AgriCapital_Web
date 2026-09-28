@@ -158,12 +158,9 @@ where departement_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
 delete from public.departements where id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
 
 -- Repair known hierarchy defects found in the live database.
-update public.regions r
-set district_id = d.id
-from public.districts d
-where lower(r.nom) = 'moronou'
-  and lower(d.nom) = 'district de la comoé'
-  and r.district_id <> d.id;
+-- Moronou is already normalized by the ANStat RGPH 2021 migration.
+-- Do not re-parent the legacy duplicate here: the canonical coded row must remain
+-- the active reference while legacy rows are preserved for FK safety.
 
 update public.departements dep
 set region_id = r.id
