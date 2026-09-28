@@ -70,7 +70,18 @@ export const EtapeParcelleDynamique = ({ formData, updateFormData }: Props) => {
           {external && <div className="space-y-4 rounded-xl border p-4">
             <div><Label>Convention foncière active *</Label><Select value={formData.convention_id || ""} onValueChange={(v) => updateFormData({convention_id:v,lot_id:null})}><SelectTrigger><SelectValue placeholder="Sélectionner une convention" /></SelectTrigger><SelectContent>{conventions.map(c => <SelectItem key={c.id} value={c.id}>{c.reference} — {c.proprietaire?.nom_complet || "Propriétaire non renseigné"}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Lot disponible *</Label><Select value={formData.lot_id || ""} onValueChange={(v) => updateFormData({lot_id:v})} disabled={!formData.convention_id}><SelectTrigger><SelectValue placeholder="Sélectionner un lot" /></SelectTrigger><SelectContent>{lots.map(l => <SelectItem key={l.id} value={l.id}>H{String(l.numero_h).padStart(2,"0")} — {l.surface_ha} ha {l.certifie_geometre ? "· certifié" : ""}</SelectItem>)}</SelectContent></Select></div>
-            {formData.lot_id && <Badge variant="outline">Lot sélectionné : {lots.find(l => l.id === formData.lot_id)?.reference || formData.lot_id}</Badge>}
+            {formData.lot_id && (
+              <>
+                <Badge variant="outline">Lot sélectionné : {lots.find(l => l.id === formData.lot_id)?.reference || formData.lot_id}</Badge>
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
+                  <p className="font-medium">Activation Planté-Partagé</p>
+                  <p className="text-muted-foreground mt-1">
+                    Pour un lot client de {lots.find(l => l.id === formData.lot_id)?.surface_ha || formData.superficie_prevue || 1} ha, AgriCapital active la plantation correspondante avec une quote-part équivalente pour le propriétaire foncier.
+                  </p>
+                  <p className="mt-1 font-medium">Exemple : 1 ha client = 2 ha de plantation activée (1 ha bénéficiaire + 1 ha propriétaire).</p>
+                </div>
+              </>
+            )}
           </div>}
 
           {!external && <div className="grid md:grid-cols-2 gap-4">
