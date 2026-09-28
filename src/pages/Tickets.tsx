@@ -75,14 +75,14 @@ const Tickets = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <AlertCircle className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Tickets Techniques</h1>
+              <h1 className="text-3xl font-bold">Support</h1>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               {canCreate && (
                 <DialogTrigger asChild>
                   <Button onClick={() => setSelectedTicket(null)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Nouveau Ticket
+                    Nouvelle demande
                   </Button>
                 </DialogTrigger>
               )}
@@ -108,7 +108,7 @@ const Tickets = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Liste des Tickets</CardTitle>
+              <CardTitle>Demandes clients</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
