@@ -66,22 +66,21 @@ const GestionRoles = () => {
   const canManageRoles = isSuperAdmin || can("roles.manage_permissions");
 
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const { data: profilesData } = await supabase
-        .from("profiles")
-        .select("id, user_id, nom_complet, email, actif, departement")
-        .eq("actif", true)
-        .order("nom_complet");
-
-      const { data: rolesData } = await supabase.from("user_roles").select("*");
-
+      const [{ data: profilesData, error: profilesError }, { data: rolesData, error: rolesError }] = await Promise.all([
+        supabase.from("profiles").select("id, user_id, nom_complet, email, actif, departement").eq("actif", true).order("nom_complet"),
+        supabase.from("user_roles").select("*"),
+      ]);
+      if (profilesError) throw profilesError;
+      if (rolesError) throw rolesError;
       setProfiles((profilesData || []).map((p: any) => ({ ...p, user_id: p.user_id || p.id })));
       setUserRoles(rolesData || []);
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(error) });
-    } finally {
-      setLoading(false);
-    }
+      console.error("[GestionRoles] chargement impossible", error);
+      setProfiles([]); setUserRoles([]);
+      toast({ variant: "destructive", title: "Erreur de chargement", description: getSafeErrorMessage(error) });
+    } finally { setLoading(false); }
   };
 
   useEffect(() => {
