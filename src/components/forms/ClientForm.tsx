@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import FileUpload from "@/components/ui/file-upload";
+import FileUploadVisual from "@/components/ui/file-upload-visual";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { Badge } from "@/components/ui/badge";
