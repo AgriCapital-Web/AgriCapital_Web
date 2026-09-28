@@ -170,7 +170,9 @@ const AccountRequest = () => {
         body: {
           nom_complet: formData.nom_complet.trim(),
           email: formData.email.trim(),
-          telephone: formData.telephone.trim(),\n          telephone_indicatif: formData.telephone_indicatif,\n          telephone_local: formData.telephone_local,
+          telephone: formData.telephone.trim(),
+          telephone_indicatif: formData.telephone_indicatif,
+          telephone_local: formData.telephone_local,
           username: formData.username,
           password: formData.password,
           poste_souhaite: ROLES.find((role) => role.value === formData.poste)?.label || formData.poste,
