@@ -12,7 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
 export const NotificationCenter = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, openNotification } = useNotifications();
 
   return (
     <Popover>
@@ -56,7 +56,7 @@ export const NotificationCenter = () => {
                   className={`p-4 hover:bg-muted/50 cursor-pointer transition-colors ${
                     !notification.read ? 'bg-primary/5' : ''
                   }`}
-                  onClick={() => !notification.read && markAsRead(notification.id)}
+                  onClick={() => openNotification(notification)}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`mt-1 h-2 w-2 rounded-full ${!notification.read ? 'bg-primary' : 'bg-transparent'}`} />
