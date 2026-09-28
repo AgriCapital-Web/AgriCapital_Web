@@ -443,28 +443,9 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
               required
             />
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(["telephone","whatsapp"] as const).map((field) => {
-              const isPhone = field === "telephone";
-              const country = isPhone ? phoneCountry : whatsappCountry;
-              const setCountry = isPhone ? setPhoneCountry : setWhatsappCountry;
-              const local = formData[field + "_local"] || String(formData[field] || "").replace(/^\+\d{1,4}/, "");
-              return (
-                <div className="space-y-2" key={field}>
-                  <Label htmlFor={field}>{isPhone ? "Téléphone *" : "WhatsApp *"}</Label>
-                  <div className="flex gap-2">
-                    <Select value={country} onValueChange={(v) => { setCountry(v); handlePhoneChange(field, local, v); }}>
-                      <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>{COUNTRY_CODES.map(c => <SelectItem key={c.code} value={c.code}>{c.code} · {c.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                    <Input id={field} type="tel" value={local} onChange={(e) => handlePhoneChange(field, e.target.value, country)} placeholder="Numéro local" required />
-                  </div>
-                  <p className="text-xs text-muted-foreground">Enregistré au format international : {country}{local || "…"}</p>
-                  {validationErrors[field] && <p className="text-sm text-destructive mt-1">{validationErrors[field]}</p>}
-                </div>
-              );
-            })}
+            <CountryPhoneInput label="Téléphone" required countryCode={formData.telephone_indicatif||"+225"} localValue={formData.telephone_local||formData.telephone||""} onChange={v=>updateFormData({telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue})}/>
+            <CountryPhoneInput label="WhatsApp" countryCode={formData.whatsapp_indicatif||"+225"} localValue={formData.whatsapp_local||formData.whatsapp||""} onChange={v=>updateFormData({whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue})}/>
           </div>
 
           <div className="space-y-2">
@@ -486,10 +467,6 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
           <CardTitle>Informations Financières</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CountryPhoneInput label="Téléphone" required countryCode={formData.telephone_indicatif||"+225"} localValue={formData.telephone_local||""} onChange={v=>updateFormData({telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue})}/>
-            <CountryPhoneInput label="WhatsApp" countryCode={formData.whatsapp_indicatif||"+225"} localValue={formData.whatsapp_local||""} onChange={v=>updateFormData({whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue})}/>
-          </div>
 
           <div className="space-y-2">
               <Label htmlFor="type_compte">Type de compte *</Label>
