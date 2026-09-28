@@ -74,7 +74,8 @@ const ClientDetail = () => {
         .order("created_at", { ascending: true });
       setAttributions(attributionsData || []);
 
-      // Fetch plantations
+      // Une plantation appartient toujours à un client/dossier.
+      // La parcelle peut, elle, rattacher plusieurs personnes/dossiers.
       const { data: plantationsData, error: plantationsError } = await (supabase as any)
         .from("plantations")
         .select(`
@@ -86,23 +87,7 @@ const ClientDetail = () => {
 
       if (plantationsError) throw plantationsError;
 
-      // Une plantation partagée peut ne pas avoir de client_id :
-      // elle est alors reliée au Client par beneficiaire_attributions.
-      const attributionPlantationIds = (attributionsData || [])
-        .map((a: any) => a.plantation_id)
-        .filter(Boolean);
-      let sharedPlantations: any[] = [];
-      if (attributionPlantationIds.length > 0) {
-        const { data: sharedData } = await (supabase as any)
-          .from("plantations")
-          .select(`*, regions (nom), departements (nom)`)
-          .in("id", attributionPlantationIds);
-        sharedPlantations = sharedData || [];
-      }
-      const allPlantations = [...(plantationsData || [])];
-      for (const plantation of sharedPlantations) {
-        if (!allPlantations.some((p: any) => p.id === plantation.id)) allPlantations.push(plantation);
-      }
+      const allPlantations = plantationsData || [];
       setPlantations(allPlantations);
 
       // Fetch paiements
@@ -193,7 +178,7 @@ const ClientDetail = () => {
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
             <p>Client non trouvé</p>
             <Button onClick={() => navigate("/acquisitions")}>
-              Retour au portefeuille
+              Retour aux acquisitions
             </Button>
           </div>
         </MainLayout>
@@ -210,7 +195,7 @@ const ClientDetail = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/portefeuille-clients")}
+                onClick={() => navigate("/acquisitions")}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Retour
@@ -463,7 +448,7 @@ const ClientDetail = () => {
                           <TableHead>Parcelle</TableHead>
                           <TableHead>Rôle</TableHead>
                           <TableHead>Quote-part</TableHead>
-                          <TableHead>Plantation partagée</TableHead>
+                          <TableHead>Plantation liée</TableHead>
                           <TableHead>Référence acte</TableHead>
                         </TableRow>
                       </TableHeader>
