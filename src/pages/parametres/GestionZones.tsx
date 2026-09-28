@@ -37,6 +37,7 @@ const ROLE_ZONE_MAP: Record<string, string> = {
   chef_equipe_commercial: "departement",
   chef_equipe_technique: "departement",
   commercial: "sous_prefecture",
+  technicien: "sous_prefecture",
 };
 
 const GestionZones = () => {
@@ -62,13 +63,14 @@ const GestionZones = () => {
 
       // Fetch profiles and roles for assigned users
       const { data: profilesData } = await (supabase as any)
-        .from("profils_annuaire")
-        .select("id, nom_complet, user_id");
+        .from("profiles")
+        .select("id, user_id, nom_complet")
+        .eq("actif", true);
 
       const { data: rolesData } = await (supabase as any)
         .from("user_roles")
         .select("user_id, role")
-        .in("role", ["responsable_commercial", "chef_equipe_commercial", "chef_equipe_technique", "commercial"]);
+        .in("role", ["responsable_commercial", "chef_equipe_commercial", "chef_equipe_technique", "commercial", "technicien"]);
 
       // Fetch all zone names
       const [{ data: districts }, { data: regions }, { data: depts }, { data: sps }] = await Promise.all([
@@ -209,6 +211,7 @@ const GestionZones = () => {
                  <SelectItem value="chef_equipe_commercial">Chef d'Équipe Commercial</SelectItem>
                  <SelectItem value="chef_equipe_technique">Chef d'Équipe Technique</SelectItem>
                 <SelectItem value="commercial">Commercial</SelectItem>
+                <SelectItem value="technicien">Technicien</SelectItem>
                  <SelectItem value="chef_equipe_technique">Chef d'Équipe Technique</SelectItem>
               </SelectContent>
             </Select>
