@@ -37,11 +37,11 @@ begin
         join public.departements d on d.id = s.departement_id
         where d.region_id = new.id
       );
-  elsif tg_table_name = 'departements' and new.est_actif = false and old.est_actif is distinct from false then
+  elsif tg_table_name = 'departements' and (to_jsonb(new)->>'est_actif')::boolean = false and (to_jsonb(old)->>'est_actif')::boolean is distinct from false then
     update public.sous_prefectures set est_active = false where departement_id = new.id;
     update public.villages v set est_actif = false
       where v.sous_prefecture_id in (select s.id from public.sous_prefectures s where s.departement_id = new.id);
-  elsif tg_table_name = 'sous_prefectures' and new.est_active = false and old.est_active is distinct from false then
+  elsif tg_table_name = 'sous_prefectures' and (to_jsonb(new)->>'est_active')::boolean = false and (to_jsonb(old)->>'est_active')::boolean is distinct from false then
     update public.villages set est_actif = false where sous_prefecture_id = new.id;
   end if;
   return new;
