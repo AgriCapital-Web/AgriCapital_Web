@@ -1,101 +1,44 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect,useState } from "react";
+import { Card,CardContent,CardDescription,CardHeader,CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Props { formData: any; updateFormData: (data: any) => void; }
+interface Props{formData:any;updateFormData:(data:any)=>void;}
+const CODES=[["+225","Côte d’Ivoire"],["+33","France"],["+1","USA / Canada"],["+32","Belgique"],["+41","Suisse"],["+44","Royaume-Uni"],["+221","Sénégal"],["+224","Guinée"],["+226","Burkina Faso"],["+223","Mali"],["+237","Cameroun"],["+228","Togo"],["+229","Bénin"]];
 
-const CODES = [
-  ["+225","Côte d’Ivoire"],["+33","France"],["+1","USA / Canada"],["+32","Belgique"],
-  ["+41","Suisse"],["+44","Royaume-Uni"],["+221","Sénégal"],["+224","Guinée"],
-  ["+226","Burkina Faso"],["+223","Mali"],["+237","Cameroun"],["+228","Togo"],["+229","Bénin"]
-];
+export const EtapeClientDynamique=({formData,updateFormData}:Props)=>{
+ const [districts,setDistricts]=useState<any[]>([]),[regions,setRegions]=useState<any[]>([]),[departements,setDepartements]=useState<any[]>([]),[sps,setSps]=useState<any[]>([]);
+ useEffect(()=>{(async()=>{const {data}=await (supabase as any).from("districts").select("id,nom").eq("est_actif",true).order("nom");setDistricts(data||[]);})();},[]);
+ useEffect(()=>{if(!formData.district_id){setRegions([]);return;} (async()=>{const {data}=await (supabase as any).from("regions").select("id,nom").eq("district_id",formData.district_id).eq("est_active",true).order("nom");setRegions(data||[]);})();},[formData.district_id]);
+ useEffect(()=>{if(!formData.region_id){setDepartements([]);return;} (async()=>{const {data}=await (supabase as any).from("departements").select("id,nom").eq("region_id",formData.region_id).eq("est_actif",true).order("nom");setDepartements(data||[]);})();},[formData.region_id]);
+ useEffect(()=>{if(!formData.departement_id){setSps([]);return;} (async()=>{const {data}=await (supabase as any).from("sous_prefectures").select("id,nom").eq("departement_id",formData.departement_id).eq("est_active",true).order("nom");setSps(data||[]);})();},[formData.departement_id]);
+ const file=(field:string,label:string,accept=".pdf,image/jpeg,image/png")=><FileUploadVisual label={label} field={field} accept={accept} required currentFile={formData[field+"_file"]||null} currentPreview={formData[field+"_preview"]||""} onFileChange={(f,value,preview)=>updateFormData({[field+"_file"]:value,[field+"_preview"]:preview})}/>;
+ const phone=(field:"telephone"|"whatsapp",label:string)=>{const codeKey=field+"_indicatif",localKey=field+"_local",code=formData[codeKey]||"+225",local=formData[localKey]||"";return <div className="space-y-2"><Label>{label}</Label><div className="flex gap-2"><Select value={code} onValueChange={v=>updateFormData({[codeKey]:v,[field]:v+local})}><SelectTrigger className="w-[145px]"><SelectValue/></SelectTrigger><SelectContent>{CODES.map(([v,n])=><SelectItem key={v} value={v}>{v} · {n}</SelectItem>)}</SelectContent></Select><Input type="tel" value={local} onChange={e=>{const next=e.target.value.replace(/\D/g,"");updateFormData({[localKey]:next,[field]:code+next});}} placeholder="Numéro local" required={field==="telephone"}/></div></div>};
+ return <div className="space-y-6">
+  <Card><CardHeader><CardTitle>Identité du Client</CardTitle><CardDescription>Informations utilisées dans le dossier et les documents contractuels.</CardDescription></CardHeader><CardContent className="space-y-4">
+   <div className="grid md:grid-cols-3 gap-4"><div><Label>Civilité *</Label><Select value={formData.civilite||""} onValueChange={v=>updateFormData({civilite:v})}><SelectTrigger><SelectValue placeholder="Sélectionner"/></SelectTrigger><SelectContent><SelectItem value="M">M.</SelectItem><SelectItem value="Mme">Mme</SelectItem><SelectItem value="Mlle">Mlle</SelectItem></SelectContent></Select></div><div><Label>Nom de famille *</Label><Input value={formData.nom_famille||""} onChange={e=>updateFormData({nom_famille:e.target.value})}/></div><div><Label>Prénoms *</Label><Input value={formData.prenoms||""} onChange={e=>updateFormData({prenoms:e.target.value})}/></div></div>
+   <div className="grid md:grid-cols-3 gap-4"><div><Label>Date de naissance *</Label><Input type="date" value={formData.date_naissance||""} onChange={e=>updateFormData({date_naissance:e.target.value})}/></div><div><Label>Lieu de naissance *</Label><Input value={formData.lieu_naissance||""} onChange={e=>updateFormData({lieu_naissance:e.target.value})}/></div><div><Label>Nationalité *</Label><Input value={formData.nationalite||""} onChange={e=>updateFormData({nationalite:e.target.value})} placeholder="Ivoirienne"/></div></div>
+   <div><Label>Situation matrimoniale</Label><Select value={formData.statut_marital||""} onValueChange={v=>updateFormData({statut_marital:v})}><SelectTrigger><SelectValue placeholder="Sélectionner"/></SelectTrigger><SelectContent><SelectItem value="celibataire">Célibataire</SelectItem><SelectItem value="marie">Marié(e)</SelectItem><SelectItem value="divorce">Divorcé(e)</SelectItem><SelectItem value="veuf">Veuf(ve)</SelectItem></SelectContent></Select></div>
+  </CardContent></Card>
 
-export const EtapeClientDynamique = ({ formData, updateFormData }: Props) => {
-  const file = (field: string, label: string, accept = ".pdf,image/jpeg,image/png") => (
-    <FileUploadVisual
-      label={label}
-      field={field}
-      accept={accept}
-      required
-      currentFile={formData[field + "_file"] || null}
-      currentPreview={formData[field + "_preview"] || ""}
-      onFileChange={(f, value, preview) => updateFormData({ [field + "_file"]: value, [field + "_preview"]: preview })}
-    />
-  );
+  <Card><CardHeader><CardTitle>Pièce d’identité et photos</CardTitle><CardDescription>La pièce recto/verso et la photo du Client font partie du dossier.</CardDescription></CardHeader><CardContent className="space-y-4">
+   <div className="grid md:grid-cols-3 gap-4"><div><Label>Type de pièce *</Label><Select value={formData.type_piece||""} onValueChange={v=>updateFormData({type_piece:v})}><SelectTrigger><SelectValue placeholder="Sélectionner"/></SelectTrigger><SelectContent><SelectItem value="cni">CNI</SelectItem><SelectItem value="passeport">Passeport</SelectItem><SelectItem value="cni_cedeao">CNI CEDEAO</SelectItem><SelectItem value="permis">Permis</SelectItem><SelectItem value="autre">Autre</SelectItem></SelectContent></Select></div><div><Label>Numéro de pièce *</Label><Input value={formData.numero_piece||""} onChange={e=>updateFormData({numero_piece:e.target.value})}/></div><div><Label>Date de délivrance</Label><Input type="date" value={formData.date_delivrance_piece||""} onChange={e=>updateFormData({date_delivrance_piece:e.target.value})}/></div></div>
+   <div className="grid md:grid-cols-2 gap-4">{file("photo_piece_recto","Pièce d’identité — recto *")}{file("photo_piece_verso","Pièce d’identité — verso *")}</div>{file("photo_profil","Photo du Client *","image/*")}
+  </CardContent></Card>
 
-  const phone = (field: "telephone" | "whatsapp", label: string) => {
-    const codeKey = field + "_indicatif";
-    const localKey = field + "_local";
-    const code = formData[codeKey] || "+225";
-    const local = formData[localKey] || "";
-    return (
-      <div className="space-y-2">
-        <Label>{label}</Label>
-        <div className="flex gap-2">
-          <Select value={code} onValueChange={(v) => updateFormData({ [codeKey]: v, [field]: v + local })}>
-            <SelectTrigger className="w-[145px]"><SelectValue /></SelectTrigger>
-            <SelectContent>{CODES.map(([v,n]) => <SelectItem key={v} value={v}>{v} · {n}</SelectItem>)}</SelectContent>
-          </Select>
-          <Input
-            type="tel"
-            value={local}
-            onChange={(e) => {
-              const next = e.target.value.replace(/\D/g, "");
-              updateFormData({ [localKey]: next, [field]: code + next });
-            }}
-            placeholder="Numéro local"
-            required={field === "telephone"}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader><CardTitle>Identité du Client</CardTitle><CardDescription>Informations utilisées dans le dossier et les documents contractuels.</CardDescription></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-4">
-            <div><Label>Civilité *</Label><Select value={formData.civilite || ""} onValueChange={(v) => updateFormData({civilite:v})}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent><SelectItem value="M">M.</SelectItem><SelectItem value="Mme">Mme</SelectItem><SelectItem value="Mlle">Mlle</SelectItem></SelectContent></Select></div>
-            <div><Label>Nom de famille *</Label><Input value={formData.nom_famille || ""} onChange={(e) => updateFormData({nom_famille:e.target.value})} /></div>
-            <div><Label>Prénoms *</Label><Input value={formData.prenoms || ""} onChange={(e) => updateFormData({prenoms:e.target.value})} /></div>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div><Label>Date de naissance *</Label><Input type="date" value={formData.date_naissance || ""} onChange={(e) => updateFormData({date_naissance:e.target.value})} /></div>
-            <div><Label>Lieu de naissance *</Label><Input value={formData.lieu_naissance || ""} onChange={(e) => updateFormData({lieu_naissance:e.target.value})} /></div>
-            <div><Label>Nationalité *</Label><Input value={formData.nationalite || ""} onChange={(e) => updateFormData({nationalite:e.target.value})} placeholder="Ivoirienne" /></div>
-          </div>
-          <div><Label>Situation matrimoniale</Label><Select value={formData.statut_marital || ""} onValueChange={(v) => updateFormData({statut_marital:v})}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent><SelectItem value="celibataire">Célibataire</SelectItem><SelectItem value="marie">Marié(e)</SelectItem><SelectItem value="divorce">Divorcé(e)</SelectItem><SelectItem value="veuf">Veuf(ve)</SelectItem></SelectContent></Select></div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>Pièce d’identité et photos</CardTitle><CardDescription>Les photos sont conservées dans le dossier du Client.</CardDescription></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-4">
-            <div><Label>Type de pièce *</Label><Select value={formData.type_piece || ""} onValueChange={(v) => updateFormData({type_piece:v})}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent><SelectItem value="cni">CNI</SelectItem><SelectItem value="passeport">Passeport</SelectItem><SelectItem value="cni_cedeao">CNI CEDEAO</SelectItem><SelectItem value="permis">Permis</SelectItem><SelectItem value="autre">Autre</SelectItem></SelectContent></Select></div>
-            <div><Label>Numéro de pièce *</Label><Input value={formData.numero_piece || ""} onChange={(e) => updateFormData({numero_piece:e.target.value})} /></div>
-            <div><Label>Date de délivrance</Label><Input type="date" value={formData.date_delivrance_piece || ""} onChange={(e) => updateFormData({date_delivrance_piece:e.target.value})} /></div>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            {file("photo_piece_recto","Pièce d’identité — recto *")}
-            {file("photo_piece_verso","Pièce d’identité — verso *")}
-          </div>
-          {file("photo_profil","Photo du Client *")}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle>Coordonnées du Client</CardTitle><CardDescription>Téléphone avec indicatif international, WhatsApp et adresse.</CardDescription></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">{phone("telephone","Téléphone *")}{phone("whatsapp","WhatsApp")}</div>
-          <div><Label>Email</Label><Input type="email" value={formData.email || ""} onChange={(e) => updateFormData({email:e.target.value})} /></div>
-          <div><Label>Adresse complète *</Label><Input value={formData.domicile || ""} onChange={(e) => updateFormData({domicile:e.target.value})} placeholder="Quartier, rue, commune, ville..." /></div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  <Card><CardHeader><CardTitle>Coordonnées et résidence</CardTitle><CardDescription>Téléphone avec indicatif international, WhatsApp, adresse et localisation administrative.</CardDescription></CardHeader><CardContent className="space-y-4">
+   <div className="grid md:grid-cols-2 gap-4">{phone("telephone","Téléphone *")}{phone("whatsapp","WhatsApp")}</div>
+   <div><Label>Email</Label><Input type="email" value={formData.email||""} onChange={e=>updateFormData({email:e.target.value})}/></div>
+   <div><Label>Adresse complète *</Label><Input value={formData.domicile||""} onChange={e=>updateFormData({domicile:e.target.value})} placeholder="Quartier, rue, commune, ville..."/></div>
+   <div className="grid md:grid-cols-4 gap-4">
+    <div><Label>District</Label><Select value={formData.district_id||""} onValueChange={v=>updateFormData({district_id:v,region_id:null,departement_id:null,sous_prefecture_id:null})}><SelectTrigger><SelectValue placeholder="District"/></SelectTrigger><SelectContent>{districts.map(x=><SelectItem key={x.id} value={x.id}>{x.nom}</SelectItem>)}</SelectContent></Select></div>
+    <div><Label>Région</Label><Select value={formData.region_id||""} onValueChange={v=>updateFormData({region_id:v,departement_id:null,sous_prefecture_id:null})} disabled={!formData.district_id}><SelectTrigger><SelectValue placeholder="Région"/></SelectTrigger><SelectContent>{regions.map(x=><SelectItem key={x.id} value={x.id}>{x.nom}</SelectItem>)}</SelectContent></Select></div>
+    <div><Label>Département</Label><Select value={formData.departement_id||""} onValueChange={v=>updateFormData({departement_id:v,sous_prefecture_id:null})} disabled={!formData.region_id}><SelectTrigger><SelectValue placeholder="Département"/></SelectTrigger><SelectContent>{departements.map(x=><SelectItem key={x.id} value={x.id}>{x.nom}</SelectItem>)}</SelectContent></Select></div>
+    <div><Label>Sous-préfecture</Label><Select value={formData.sous_prefecture_id||""} onValueChange={v=>updateFormData({sous_prefecture_id:v})} disabled={!formData.departement_id}><SelectTrigger><SelectValue placeholder="Sous-préfecture"/></SelectTrigger><SelectContent>{sps.map(x=><SelectItem key={x.id} value={x.id}>{x.nom}</SelectItem>)}</SelectContent></Select></div>
+   </div>
+  </CardContent></Card>
+ </div>;
 };
