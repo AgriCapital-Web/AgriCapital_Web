@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Search, Plus, Layers, MapPin, BarChart3 } from "lucide-react";
 import { useUserZones } from "@/hooks/useUserZones";
 import GeographieCascade from "@/components/common/GeographieCascade";
+import GeographieCascade from "@/components/common/GeographieCascade";
 import { offlineInsert } from "@/lib/offlineWrite";
 import { getCachedItems, STORES } from "@/lib/offlineDb";
 import { getSafeErrorMessage } from "@/lib/safeError";
@@ -149,13 +150,13 @@ const Parcelles = () => {
                     </div>
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label>District</Label><Select value={formData.district_id} onValueChange={handleDistrictChange}><SelectTrigger><SelectValue placeholder="District" /></SelectTrigger><SelectContent>{districts.map(d => <SelectItem key={d.id} value={d.id}>{d.nom}</SelectItem>)}</SelectContent></Select></div>
-                    <div className="space-y-2"><Label>Région</Label><Select value={formData.region_id} onValueChange={handleRegionChange} disabled={!formData.district_id}><SelectTrigger><SelectValue placeholder="Région" /></SelectTrigger><SelectContent>{regions.map(r => <SelectItem key={r.id} value={r.id}>{r.nom}</SelectItem>)}</SelectContent></Select></div>
-                    <div className="space-y-2"><Label>Département</Label><Select value={formData.departement_id} onValueChange={handleDeptChange} disabled={!formData.region_id}><SelectTrigger><SelectValue placeholder="Département" /></SelectTrigger><SelectContent>{departements.map(d => <SelectItem key={d.id} value={d.id}>{d.nom}</SelectItem>)}</SelectContent></Select></div>
-                    <div className="space-y-2"><Label>Sous-préfecture</Label><Select value={formData.sous_prefecture_id} onValueChange={v => setFormData(f => ({ ...f, sous_prefecture_id: v }))} disabled={!formData.departement_id}><SelectTrigger><SelectValue placeholder="S/Préfecture" /></SelectTrigger><SelectContent>{sousPrefectures.map(sp => <SelectItem key={sp.id} value={sp.id}>{sp.nom}</SelectItem>)}</SelectContent></Select></div>
+                    <GeographieCascade districtId={formData.district_id} regionId={formData.region_id} departementId={formData.departement_id} sousPrefectureId={formData.sous_prefecture_id} required className="grid grid-cols-1 md:grid-cols-2 gap-4" onChange={(g)=>setFormData((x:any)=>({...x,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village:g.villageName||""}))}/>
+                    
+                    
+                    
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label>Village</Label><Input value={formData.village} onChange={e => setFormData(f => ({ ...f, village: e.target.value }))} /></div>
+                    
                     <div className="space-y-2"><Label>Date convention</Label><Input type="date" value={formData.date_convention} onChange={e => setFormData(f => ({ ...f, date_convention: e.target.value }))} /></div>
                   </div>
                   <div className="flex gap-2 justify-end">
