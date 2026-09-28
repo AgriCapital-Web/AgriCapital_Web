@@ -38,20 +38,18 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel, readOnly = fals
 
   useEffect(() => {
     const fetchData = async () => {
-      const [{ data: clientsData }, { data: plantsData }, { data: regionsData }, { data: techData }] = await Promise.all([
+      const [{ data: clientsData }, { data: plantsData }, { data: regionsData }, { data: profilesData }, { data: rolesData }] = await Promise.all([
         (supabase as any).from("clients").select("id,id_unique,nom_complet,nom_famille,prenoms,region_id").not("statut","in","(archive,supprime)").order("nom_complet"),
         (supabase as any).from("plantations").select("id,id_unique,nom_plantation,client_id").order("created_at", { ascending: false }),
         (supabase as any).from("regions").select("id,nom").order("nom"),
-        (supabase as any).from("profiles")
-          .select("id,user_id,nom_complet,region_id,equipe_id,actif,user_roles!inner(role)")
-          .eq("actif", true)
-          .eq("user_roles.role", "technicien")
-          .order("nom_complet"),
+        (supabase as any).from("profiles").select("id,user_id,nom_complet,region_id,equipe_id,actif").eq("actif", true).order("nom_complet"),
+        (supabase as any).from("user_roles").select("user_id,role").eq("role","technicien"),
       ]);
+      const techUserIds = new Set((rolesData || []).map((r:any) => r.user_id));
       setClients(clientsData || []);
       setPlantations(plantsData || []);
       setRegions(regionsData || []);
-      setTechniciens(techData || []);
+      setTechniciens((profilesData || []).filter((p:any) => techUserIds.has(p.user_id)));
     };
     fetchData();
   }, []);
