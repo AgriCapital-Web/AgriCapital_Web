@@ -65,6 +65,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
   const [regions, setRegions] = useState<any[]>([]);
   const [equipes, setEquipes] = useState<any[]>([]);
   const [photoPreview, setPhotoPreview] = useState<string>(utilisateur?.photo_url || "");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const relationRH = watch("relation_rh");
   const departementSelectionne = watch("departement") ?? utilisateur?.departement;
 
@@ -119,8 +120,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
   };
 
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handlePhotoChange = (file: File | null) => { if (!file) return; setPhotoFile(file); const reader=new FileReader(); reader.onload=()=>setPhotoPreview(String(reader.result||"")); reader.readAsDataURL(file); };\n\n  const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -149,9 +149,8 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
       let photoUrl = utilisateur?.photo_url;
 
       // Upload photo si présent
-      const photoInput = document.querySelector('input[name="photo"]') as HTMLInputElement;
-      if (photoInput?.files?.[0]) {
-        const file = photoInput.files[0];
+      const file = photoFile;
+      if (file) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
 
@@ -307,7 +306,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
           <div className="space-y-2 col-span-2">
             <Label>Photo de Profil</Label>
-            <FileUploadVisual label="Photo de Profil" field="photo" accept="image/*" currentPreview={photoPreview} onFileChange={(_,f,p)=>{if(f){setPhotoPreview(p);const input=document.querySelector('input[name="photo"]') as HTMLInputElement|null;if(input){const dt=new DataTransfer();dt.items.add(f);input.files=dt.files;}}}}/>
+            <FileUploadVisual label="Photo de Profil" field="photo" accept="image/*" currentPreview={photoPreview} onFileChange={(_,f,p)=>{setPhotoPreview(p);setPhotoFile(f)}}/>
             {photoPreview && (
               <div className="mt-2 relative inline-block">
                 <img
