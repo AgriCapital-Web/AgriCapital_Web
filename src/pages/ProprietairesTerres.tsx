@@ -406,47 +406,6 @@ const ProprietairesTerres = () => {
                               <Input value={formData.prenoms} onChange={e => update('prenoms', e.target.value)} />
                             </div>
                           </div>
-                          <Card className="border-primary/20 bg-primary/5">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Planté-Partagé — Activation des plantations</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between gap-4 rounded-lg border bg-background p-3">
-                          <div>
-                            <p className="font-medium">Activer le suivi des plantations</p>
-                            <p className="text-xs text-muted-foreground">
-                              Le dispositif est préparé dès l’enregistrement de la parcelle. L’activation physique se fera progressivement au rattachement des lots.
-                            </p>
-                          </div>
-                          <Checkbox checked={Boolean(formData.plantation_partagee_activee)} onCheckedChange={(v) => update("plantation_partagee_activee", Boolean(v))} />
-                        </div>
-                        {formData.plantation_partagee_activee && (
-                          <>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div>
-                                <Label>Superficie cible de plantation (ha)</Label>
-                                <Input type="number" min="0" step="0.01" value={formData.plantation_surface_cible_ha} onChange={e => update("plantation_surface_cible_ha", e.target.value)} placeholder="Par défaut : toute la parcelle" />
-                              </div>
-                              <div>
-                                <Label>Culture</Label>
-                                <Input value={formData.plantation_type_culture} onChange={e => update("plantation_type_culture", e.target.value)} />
-                              </div>
-                              <div>
-                                <Label>Densité (plants/ha)</Label>
-                                <Input type="number" min="1" step="1" value={formData.plantation_densite_plants} onChange={e => update("plantation_densite_plants", e.target.value)} />
-                              </div>
-                            </div>
-                            <div className="rounded-lg bg-background p-3 text-sm">
-                              <p><strong>Répartition économique :</strong> 50 % propriétaire / 50 % AgriCapital.</p>
-                              <p className="text-muted-foreground mt-1">
-                                Exemple : pour un lot client de 1 ha, AgriCapital active 2 ha de plantation : 1 ha pour le bénéficiaire et 1 ha pour le propriétaire.
-                              </p>
-                            </div>
-                          </>
-                        )}
-                      </CardContent>
-                    </Card>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label>Nom & Prénom(s) du père</Label>
