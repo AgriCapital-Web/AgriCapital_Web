@@ -8,7 +8,7 @@ import { useRealtime } from "@/hooks/useRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, MapPin, MoreVertical, Archive, Ban, Trash2, RotateCcw, Eye } from "lucide-react";
+import { Search, Edit, MapPin, MoreVertical, Archive, Ban, Trash2, RotateCcw } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -94,12 +94,6 @@ const Plantations = () => {
   const superficiePlantee = plantations.filter(p => ['en_cours', 'en_production'].includes(p.statut_global || p.statut)).reduce((sum, p) => sum + (Number(p.superficie_ha) || 0), 0);
   const superficieEnProduction = plantations.filter(p => p.statut_global === 'en_production' || p.statut === 'en_production').reduce((sum, p) => sum + (Number(p.superficie_ha) || 0), 0);
   const nombreEnProduction = plantations.filter(p => p.statut_global === 'en_production' || p.statut === 'en_production').length;
-
-  const handleSuccess = () => {
-    setIsFormOpen(false);
-    setSelectedPlantation(null);
-    fetchPlantations();
-  };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
@@ -314,16 +308,6 @@ const Plantations = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedPlantation(plantation);
-                              setIsFormOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">
@@ -331,14 +315,6 @@ const Plantations = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedPlantation(plantation);
-                                setIsFormOpen(true);
-                              }}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Modifier
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               {(plantation.statut_global || plantation.statut) !== 'en_production' && (
                                 <DropdownMenuItem onClick={() => handleStatusChange(plantation.id, 'en_production')}>
                                   <RotateCcw className="mr-2 h-4 w-4 text-green-500" />
@@ -386,7 +362,7 @@ const Plantations = () => {
           </div>
         </div>
 
-        {/* Dialog de confirmation de suppression */}
+        {/* Confirmation de suppression */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
