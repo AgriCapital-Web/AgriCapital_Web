@@ -136,7 +136,7 @@ const UtilisateurForm = ({ utilisateur, onSuccess, onCancel }: UtilisateurFormPr
 
           <div className="space-y-2">
             <Label>Téléphone</Label>
-            <Input {...register("telephone")} placeholder="0701020304" />
+            <CountryPhoneInput label="" countryCode={utilisateur?.telephone_indicatif||"+225"} localValue={utilisateur?.telephone_local||utilisateur?.telephone||""} onChange={v=>{setValue("telephone_indicatif",v.callingCode);setValue("telephone_local",v.localValue);setValue("telephone",v.internationalValue)}}/>
           </div>
 
           {!utilisateur && (
