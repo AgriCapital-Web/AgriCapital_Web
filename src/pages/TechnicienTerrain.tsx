@@ -40,6 +40,7 @@ const TechnicienTerrain=()=>{
   const [interventions,setInterventions]=useState<any[]>([]);
   const [tickets,setTickets]=useState<any[]>([]);
   const [loading,setLoading]=useState(true);
+  const [activeTab,setActiveTab]=useState("rapport");
   const [saving,setSaving]=useState(false);
   const [report,setReport]=useState<any>({
     plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",
@@ -137,7 +138,7 @@ const TechnicienTerrain=()=>{
   return <ProtectedRoute><MainLayout><div className="space-y-6">
     <div><h1 className="text-3xl font-bold">Terrain & suivi technique</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
 
-    <Tabs defaultValue="rapport">
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList><TabsTrigger value="demandes">Demandes à traiter {tickets.length>0&&<Badge className="ml-2">{tickets.length}</Badge>}</TabsTrigger><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList>
 
       <TabsContent value="demandes" className="space-y-4">
@@ -145,7 +146,7 @@ const TechnicienTerrain=()=>{
           {tickets.length===0?<p className="text-sm text-muted-foreground">Aucune demande en attente.</p>:tickets.map(t=><div key={t.id} className="border rounded-lg p-4">
             <div className="flex items-start justify-between gap-3"><div><p className="font-semibold">{t.titre}</p><p className="text-sm text-muted-foreground">{t.client?.nom_complet||"Client"} · {t.plantation?.nom_plantation||t.plantation?.id_unique||"Plantation"}</p></div><Badge>{t.priorite}</Badge></div>
             <p className="text-sm mt-2">{t.description}</p>{t.action_recommandee&&<p className="text-sm mt-1"><strong>Consigne :</strong> {t.action_recommandee}</p>}
-            <div className="flex justify-end mt-3"><Button onClick={()=>{setReport((x:any)=>({...x,ticket_id:t.id,plantation_id:t.plantation_id,type_visite:"incident",constat:t.description||"",recommandations:t.action_recommandee||""}));document.querySelector('[data-state="active"][value="rapport"]')?.dispatchEvent(new MouseEvent("click",{bubbles:true}));}}>Intervenir et faire le rapport</Button></div>
+            <div className="flex justify-end mt-3"><Button onClick={()=>{setReport((x:any)=>({...x,ticket_id:t.id,plantation_id:t.plantation_id,type_visite:"incident",constat:t.description||"",recommandations:t.action_recommandee||""}));setActiveTab("rapport");}}>Intervenir et faire le rapport</Button></div>
           </div>)}
         </CardContent></Card>
       </TabsContent>
