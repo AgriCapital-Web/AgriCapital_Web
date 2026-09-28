@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -18,6 +19,7 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -65,11 +67,18 @@ export const useNotifications = () => {
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
           
-          // Show toast for new notification
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-          });
+          // Notification native navigateur si l'utilisateur l'a déjà autorisée.
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            try {
+              new Notification(newNotification.title, {
+                body: newNotification.message,
+                icon: '/logo-agricapital.png',
+                tag: newNotification.id,
+                data: newNotification.data || {},
+              });
+            } catch {}
+          }
+          toast({ title: newNotification.title, description: newNotification.message });
         }
       )
       .on(
@@ -129,11 +138,19 @@ export const useNotifications = () => {
     setUnreadCount(0);
   };
 
+  const openNotification = (notification: Notification) => {
+    if (!notification.read) void markAsRead(notification.id);
+    const route = notification.data?.route;
+    const ticketId = notification.data?.ticket_id;
+    if (route) navigate(ticketId ? `${route}?ticket=${ticketId}` : route);
+  };
+
   return {
     notifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
+    openNotification,
     refetch: fetchNotifications
   };
 };
