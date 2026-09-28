@@ -524,40 +524,8 @@ const ProprietairesTerres = () => {
                     {/* TAB 2: LOCALISATION */}
                     <TabsContent value="localisation" className="space-y-4">
                       <h4 className="font-semibold">Localisation géographique</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>District</Label>
-                          <Select value={formData.district_id} onValueChange={handleDistrictChange}>
-                            <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                            <SelectContent>{districts.map(d => <SelectItem key={d.id} value={d.id}>{d.nom}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Région</Label>
-                          <Select value={formData.region_id} onValueChange={handleRegionChange} disabled={!formData.district_id}>
-                            <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                            <SelectContent>{regions.map(r => <SelectItem key={r.id} value={r.id}>{r.nom}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Département</Label>
-                          <Select value={formData.departement_id} onValueChange={handleDeptChange} disabled={!formData.region_id}>
-                            <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                            <SelectContent>{departements.map(d => <SelectItem key={d.id} value={d.id}>{d.nom}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Sous-préfecture</Label>
-                          <Select value={formData.sous_prefecture_id} onValueChange={v => update('sous_prefecture_id', v)} disabled={!formData.departement_id}>
-                            <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                            <SelectContent>{sousPrefectures.map(sp => <SelectItem key={sp.id} value={sp.id}>{sp.nom}</SelectItem>)}</SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Village / Lieu-dit</Label>
-                        <Input value={formData.village} onChange={e => update('village', e.target.value)} />
-                      </div>
+                      <GeographieCascade districtId={formData.district_id} regionId={formData.region_id} departementId={formData.departement_id} sousPrefectureId={formData.sous_prefecture_id} required onChange={(g)=>setFormData((x:any)=>({...x,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village:g.villageName||""}))}/>
+</div>
                     </TabsContent>
 
                     {/* TAB 3: PARCELLE */}
