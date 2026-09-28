@@ -201,8 +201,6 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel, readOnly = fals
 
       <div className="space-y-2"><Label>Titre *</Label><Input {...register("titre", { required: true })} disabled={readOnly} /></div>
       <div className="space-y-2"><Label>Constat / problème signalé *</Label><Textarea {...register("description", { required: true })} rows={4} disabled={readOnly} placeholder="Ex. Le client signale que des agoutis coupent les jeunes plants..." /></div>
-      <div className="space-y-2"><Label>Action / intervention recommandée</Label><Textarea {...register("action_recommandee")} rows={3} disabled={readOnly} placeholder="Ex. Vérifier les plants touchés, identifier la cause et proposer l'intervention adaptée." /></div>
-
       <div className="space-y-2"><Label>Technicien de la région *</Label>
         <Select defaultValue={ticket?.assigne_a} onValueChange={v => setValue("assigne_a", v)} disabled={readOnly || !regionId}>
           <SelectTrigger><SelectValue placeholder={regionId ? "Sélectionner un technicien" : "Sélectionner d'abord un client"} /></SelectTrigger>
