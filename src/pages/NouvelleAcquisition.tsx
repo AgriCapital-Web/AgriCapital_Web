@@ -191,10 +191,17 @@ const NouvelleAcquisition = () => {
         await (supabase as any).from("clients").update({[column]:uploaded.url}).eq("id",client.id);
       }
 
-      if(external&&formData.lot_id){
-        const {data:activation,error:activationError}=await (supabase as any).rpc("activate_shared_plantation_from_lot",{p_lot_id:formData.lot_id,p_client_id:client.id,p_date_activation:new Date().toISOString().slice(0,10)});
-        if(activationError||!activation)throw activationError||new Error("Activation Planté-Partagé impossible");
-      }
+       if(external&&formData.lot_id){
+         const {error}=await (supabase as any).from("lots_hectares").update({
+           client_id:client.id,
+           statut:"attribue",
+           date_attribution:new Date().toISOString().slice(0,10),
+         }).eq("id",formData.lot_id);
+         if(error) throw error;
+         // Le commercial s'arrête à l'attribution du lot.
+         // L'activation Planté-Partagé du propriétaire est déclenchée
+         // automatiquement après validation du paiement initial.
+       }
 
       if(formData.has_representant){
         const {data:rep,error:repError}=await (supabase as any).from("client_cotitulaires_mandataires").insert({
