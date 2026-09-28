@@ -8,7 +8,7 @@ import { useRealtime } from "@/hooks/useRealtime";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Edit, MapPin, MoreVertical, Archive, Ban, Trash2, RotateCcw } from "lucide-react";
+import { Search, MapPin, MoreVertical, Archive, Ban, Trash2, RotateCcw } from "lucide-react";
 import {
   Table,
   TableBody,
