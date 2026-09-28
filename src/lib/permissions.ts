@@ -126,11 +126,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "paiements.view", "paiements.record", "paiements.validate",
     "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit",
   ).filter((c) => !["utilisateurs.delete", "utilisateurs.manage_roles"].includes(c)),
-  [ROLES.DIRECTEUR_TC]: only(
-    "leads.", "clients.", "plantations.", "offres.view", "promotions.view",
-    "paiements.view", "commissions.", "rapports.", "documents.", "tickets.",
-    "utilisateurs.view", "roles.view", "parametres.view", "parametres.manage_teams",
-  ),
   [ROLES.RESPONSABLE_COMMERCIAL]: only(
     "leads.", "clients.view", "clients.create", "clients.update",
     "plantations.view", "offres.view", "promotions.view",
