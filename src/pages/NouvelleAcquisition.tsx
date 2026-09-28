@@ -218,8 +218,15 @@ const NouvelleAcquisition = () => {
       if (Object.keys(coreUrls).length) await (supabase as any).from("clients").update(coreUrls).eq("id",client.id);
 
       if (external && formData.lot_id) {
-        const { error } = await (supabase as any).from("lots_hectares").update({ client_id: client.id, statut: "attribue", date_attribution: new Date().toISOString().slice(0,10) }).eq("id",formData.lot_id);
-        if (error) throw error;
+        const { data: activation, error: activationError } = await (supabase as any)
+          .rpc("activate_shared_plantation_from_lot", {
+            p_lot_id: formData.lot_id,
+            p_client_id: client.id,
+            p_date_activation: new Date().toISOString().slice(0, 10),
+          });
+        if (activationError || !activation) {
+          throw activationError || new Error("Activation Planté-Partagé impossible");
+        }
       }
 
       if (formData.has_representant) {
