@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Eye, FileText, Image as ImageIcon, Video } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, File } from "lucide-react";
 import { cn } from "@/lib/utils";
