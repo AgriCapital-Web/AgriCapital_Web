@@ -103,7 +103,7 @@ export default function PublicLead() {
               <div><Label>Nom *</Label><Input value={f.nom} onChange={e=>set("nom",e.target.value)} required /></div>
               <div><Label>Prénom(s) *</Label><Input value={f.prenoms} onChange={e=>set("prenoms",e.target.value)} required /></div>
               <CountryPhoneInput label="Téléphone principal" required countryCode={f.telephone_indicatif||"+225"} localValue={f.telephone_local||""} onChange={v=>setForm(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
-              <div><Label>WhatsApp</Label><Input type="tel" value={f.whatsapp} onChange={e=>set("whatsapp",e.target.value)} /></div>
+              <CountryPhoneInput label="WhatsApp" countryCode={f.whatsapp_indicatif||"+225"} localValue={f.whatsapp_local||""} onChange={v=>setForm(x=>({...x,whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue}))}/>
               <div className="md:col-span-2"><Label>Email</Label><Input type="email" value={f.email} onChange={e=>set("email",e.target.value)} /></div>
             </CardContent>
           </Card>
