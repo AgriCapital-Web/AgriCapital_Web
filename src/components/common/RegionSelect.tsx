@@ -4,16 +4,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const DIASPORA_VALUE = "Diaspora";
 
-/** Repli statique utilisé uniquement si la table `regions` est indisponible */
-const REGIONS_FALLBACK = [
-  "Abidjan", "Agnéby-Tiassa", "Bafing", "Bagoué", "Bélier", "Béré", "Bounkani", "Cavally", "Folon",
-  "Gbêkê", "Gbôklé", "Gôh", "Gontougo", "Grands-Ponts", "Guémon", "Hambol", "Haut-Sassandra",
-  "Iffou", "Indénié-Djuablin", "Kabadougou", "La Mé", "Lôh-Djiboua", "Marahoué", "Moronou",
-  "Nawa", "N'Zi", "Poro", "San-Pédro", "Sud-Comoé", "Tchologo", "Tonkpi", "Worodougou", "Yamoussoukro",
-];
+/** Aucun fallback statique : l'application doit respecter le référentiel géographique actif de la base. */
 
 export function useRegions() {
-  const [regions, setRegions] = useState<string[]>(REGIONS_FALLBACK);
+  const [regions, setRegions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +18,7 @@ export function useRegions() {
           .select("nom")
           .eq("est_active_effectif", true)
           .order("nom", { ascending: true });
-        if (data && data.length > 0) setRegions(data.map((r: any) => r.nom));
+        setRegions((data || []).map((r: any) => r.nom));
       } catch {
         /* repli statique */
       } finally {
