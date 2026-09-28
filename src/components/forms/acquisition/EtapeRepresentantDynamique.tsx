@@ -13,7 +13,7 @@ export const EtapeRepresentantDynamique = ({ formData, updateFormData }: Props) 
     <FileUploadVisual
       label={label}
       field={field}
-      accept="image/*"
+      accept=".pdf,image/jpeg,image/png"
       required
       currentFile={formData[field + "_file"] || null}
       currentPreview={formData[field + "_preview"] || ""}
