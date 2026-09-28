@@ -60,17 +60,27 @@ const GestionCartes = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [p, c, r] = await Promise.all([
-      (supabase as any).from("profiles").select("id, user_id, nom_complet, email, telephone, poste, departement, photo_url, actif").order("nom_complet"),
-      (supabase as any).from("cartes_personnel").select("*"),
-      (supabase as any).from("user_roles").select("user_id, role"),
-    ]);
-    setProfiles((p.data || []) as Row[]);
-    setCartes((c.data || []) as Row[]);
-    const map: Record<string, string> = {};
-    ((r.data || []) as Row[]).forEach((x) => { if (!map[x.user_id]) map[x.user_id] = x.role; });
-    setRoles(map);
-    setLoading(false);
+    try {
+      const [p, c, r] = await Promise.all([
+        (supabase as any).from("profiles").select("id, user_id, nom_complet, email, telephone, poste, departement, photo_url, actif").eq("actif", true).order("nom_complet"),
+        (supabase as any).from("cartes_personnel").select("*"),
+        (supabase as any).from("user_roles").select("user_id, role"),
+      ]);
+      const firstError = p.error || c.error || r.error;
+      if (firstError) throw firstError;
+      const profileRows = (p.data || []) as Row[];
+      const cardRows = (c.data || []) as Row[];
+      const roleRows = (r.data || []) as Row[];
+      const map: Record<string, string> = {};
+      roleRows.forEach((x) => { if (x.user_id && x.role && !map[x.user_id]) map[x.user_id] = x.role; });
+      setProfiles(profileRows);
+      setCartes(cardRows);
+      setRoles(map);
+    } catch (error: any) {
+      console.error("[GestionCartes] chargement impossible", error);
+      setProfiles([]); setCartes([]); setRoles({});
+      toast.error(error?.message || "Impossible de charger les utilisateurs et les cartes.");
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -157,10 +167,16 @@ const GestionCartes = () => {
   };
 
   const genererToutes = async () => {
-    const manquantes = profiles.filter((p) => !carteDe(p.id));
-    if (!manquantes.length) { toast.info("Toutes les cartes existent déjà"); return; }
+    const manquantes = profiles.filter((p) => {
+      const role = roles[p.user_id];
+      return !!role && !NON_STAFF.includes(role) && !carteDe(p.id);
+    });
+    if (!manquantes.length) {
+      toast.info("Toutes les cartes du personnel existent déjà");
+      return;
+    }
     for (const p of manquantes) await genererCarte(p);
-    toast.success(`${manquantes.length} carte(s) générée(s)`);
+    toast.success(String(manquantes.length) + " carte(s) générée(s)");
   };
 
   const ouvrirEdition = (carte: Row) => {
