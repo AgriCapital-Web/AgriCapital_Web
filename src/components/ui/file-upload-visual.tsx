@@ -7,7 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Eye, X, Upload, FileText, Camera } from "lucide-react";
 
 
-\nconst fileToDataUrl = (file: File) => new Promise<string>((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result||"")); reader.onerror=()=>reject(reader.error); reader.readAsDataURL(file); });\n\ninterface FileUploadVisualProps {
+
+const fileToDataUrl = (file: File) => new Promise<string>((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result||"")); reader.onerror=()=>reject(reader.error); reader.readAsDataURL(file); });
+
+interface FileUploadVisualProps {
   label: string;
   field: string;
   accept?: string;
