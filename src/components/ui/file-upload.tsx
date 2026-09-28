@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Eye, FileText, Image as ImageIcon, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, File } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ const FileUpload = ({
 }: FileUploadProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string>("");
+  const [preview, setPreview] = useState<string>("");
+  const [previewType, setPreviewType] = useState<string>("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,6 +40,8 @@ const FileUpload = ({
       return;
     }
 
+    setPreviewType(file.type);
+    const reader=new FileReader(); reader.onload=()=>setPreview(String(reader.result||"")); reader.readAsDataURL(file);
     onFileSelect(file);
   };
 
@@ -49,6 +54,7 @@ const FileUpload = ({
       inputRef.current.value = "";
     }
     setError("");
+    setPreview(""); setPreviewType("");
     onRemove?.();
   };
 
@@ -63,6 +69,10 @@ const FileUpload = ({
         disabled={disabled}
       />
       
+      {currentFile ? (
+        <div className="space-y-2">{preview && (previewType.startsWith("image/") ? <img src={preview} alt="Aperçu" className="w-full max-h-56 object-contain rounded border" /> : previewType.startsWith("video/") ? <video src={preview} controls className="w-full max-h-56 rounded border" /> : previewType==="application/pdf" ? <iframe title="Aperçu PDF" src={preview} className="w-full h-56 rounded border" /> : <div className="flex items-center gap-2 text-sm text-muted-foreground"><FileText className="h-4 w-4"/>Document sélectionné</div>)}</div>
+      ) : null}
+
       {currentFile ? (
         <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted">
           <File className="h-5 w-5 text-muted-foreground" />
