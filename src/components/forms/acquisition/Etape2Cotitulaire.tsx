@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 
 interface Etape2Props {
   formData: any;
@@ -128,8 +130,9 @@ export const Etape2Cotitulaire = ({ formData, updateFormData }: Etape2Props) => 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="cotit_type_piece">Type de pièce *</Label>
-              <Select
-                value={formData.cotit_type_piece}
+              <PieceTypeSelect value={formData.cotit_type_piece} onChange={(value)=>updateFormData({cotit_type_piece:value})}/>
+              {/* legacy selector removed */
+              {/*
                 onValueChange={(value) => updateFormData({ cotit_type_piece: value })}
               >
                 <SelectTrigger>
@@ -140,7 +143,7 @@ export const Etape2Cotitulaire = ({ formData, updateFormData }: Etape2Props) => 
                   <SelectItem value="passeport">Passeport</SelectItem>
                   <SelectItem value="attestation">Attestation</SelectItem>
                 </SelectContent>
-              </Select>
+              */}
             </div>
 
             <div className="space-y-2">
@@ -205,7 +208,10 @@ export const Etape2Cotitulaire = ({ formData, updateFormData }: Etape2Props) => 
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <CountryPhoneInput label="Téléphone" required countryCode={formData.cotit_telephone_indicatif||"+225"} localValue={formData.cotit_telephone_local||""} onChange={(v)=>updateFormData({cotit_telephone_indicatif:v.callingCode,cotit_telephone_local:v.localValue,cotit_telephone:v.internationalValue})}/>
+            <CountryPhoneInput label="WhatsApp" required countryCode={formData.cotit_whatsapp_indicatif||"+225"} localValue={formData.cotit_whatsapp_local||""} onChange={(v)=>updateFormData({cotit_whatsapp_indicatif:v.callingCode,cotit_whatsapp_local:v.localValue,cotit_whatsapp:v.internationalValue})}/>
+            {/* old phone fields */
+            <div className="hidden">
               <Label htmlFor="cotit_telephone">Téléphone *</Label>
               <Input
                 id="cotit_telephone"
