@@ -7,8 +7,6 @@ import SearchableSelect from "@/components/common/SearchableSelect";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
-import CountryPhoneInput from "@/components/common/CountryPhoneInput";
-import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props{formData:any;updateFormData:(data:any)=>void;}
