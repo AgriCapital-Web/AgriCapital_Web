@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, FileText, Eye, CheckCircle, Clock, MoreVertical, Edit, Archive, Ban, Trash2, RotateCcw, LayoutGrid, List, UserRound } from "lucide-react";
+import { Search, FileText, Eye, CheckCircle, Clock, MoreVertical, Edit, Archive, Ban, Trash2, RotateCcw, LayoutGrid, List, UserRound, Sprout, UsersRound, LandPlot } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -26,6 +26,7 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 
 const Clients = () => {
   const [clients, setClients] = useState<any[]>([]);
+  const [attributions, setAttributions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -48,6 +49,12 @@ const Clients = () => {
         .order("created_at", { ascending: false });
 
       if (sousError) throw sousError;
+
+      const { data: attributionData } = await (supabase as any)
+        .from("beneficiaire_attributions")
+        .select("client_id, plantation_id, surface_attribuee_ha, role_attribution, statut")
+        .eq("statut", "active");
+      setAttributions(attributionData || []);
 
       // Calculer les totaux
       const enrichedData = (sousData || []).map((s: any) => ({
@@ -175,11 +182,20 @@ const Clients = () => {
     return colors[statut] || "bg-gray-500";
   };
 
+  const plantationIds = new Set<string>();
+  clients.forEach((client: any) => (client.plantations || []).forEach((p: any) => plantationIds.add(p.id)));
+  attributions.forEach((a: any) => { if (a.plantation_id) plantationIds.add(a.plantation_id); });
+  const clientsOfficiels = clients.filter((c: any) => c.type_client !== "beneficiaire_particulier").length;
+  const beneficiaires = clients.filter((c: any) => c.type_client === "beneficiaire_particulier").length;
+
   const stats = {
     total: clients.length,
     actifs: clients.filter(s => s.statut === "actif" || s.statut_global === "actif").length,
     inactifs: clients.filter(s => s.statut === "inactif" || s.statut === "suspendu" || s.statut === "archive").length,
     totalHectares: clients.reduce((sum, s) => sum + Number(s.total_hectares || 0), 0),
+    plantations: plantationIds.size,
+    clientsOfficiels,
+    beneficiaires,
   };
 
   return (
@@ -188,37 +204,38 @@ const Clients = () => {
         <div className="space-y-4 sm:space-y-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Gestion des parcours clients</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Acquisitions</h1>
               <p className="text-muted-foreground text-sm mt-1">
-                {clients.length} client(s) enregistré(s)
+                Registre des personnes et dossiers agricoles
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Link to="/beneficiaire-particulier">
                 <Button variant="outline" className="w-full sm:w-auto">
                   <UserRound className="mr-2 h-4 w-4" />
-                  Bénéficiaire particulier
+                  Nouveau bénéficiaire
                 </Button>
               </Link>
               <Link to="/nouvelle-acquisition">
                 <Button className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
                   <FileText className="mr-2 h-4 w-4" />
-                  Nouveau parcours client
+                  Nouveau Client
                 </Button>
               </Link>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Clients
+                  Personnes / dossiers
                 </CardTitle>
                 <FileText className="h-5 w-5 text-primary" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.total}</div>
+                <div className="text-xs text-muted-foreground mt-1">{stats.clientsOfficiels} Client(s) · {stats.beneficiaires} bénéficiaire(s)</div>
               </CardContent>
             </Card>
 
@@ -259,6 +276,13 @@ const Clients = () => {
             </Card>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><UsersRound className="h-4 w-4 text-primary"/>Clients officiels</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.clientsOfficiels}</div><p className="text-xs text-muted-foreground">dossiers commerciaux</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><UserRound className="h-4 w-4 text-primary"/>Bénéficiaires particuliers</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.beneficiaires}</div><p className="text-xs text-muted-foreground">personnes rattachées</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Sprout className="h-4 w-4 text-primary"/>Plantations</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.plantations}</div><p className="text-xs text-muted-foreground">actifs agricoles distincts</p></CardContent></Card>
+            <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><LandPlot className="h-4 w-4 text-primary"/>Superficie rattachée</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.totalHectares.toFixed(2)} ha</div><p className="text-xs text-muted-foreground">toutes personnes confondues</p></CardContent></Card>
+          </div>
+
           <Tabs defaultValue="table" className="space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <div className="relative flex-1 w-full">
@@ -294,6 +318,7 @@ const Clients = () => {
                       <TableHead>ID Unique</TableHead>
                       <TableHead>Nom Complet</TableHead>
                       <TableHead>Téléphone</TableHead>
+                      <TableHead>Type / rôle</TableHead>
                       <TableHead>Offre</TableHead>
                       <TableHead>Plantations</TableHead>
                       <TableHead>Hectares</TableHead>
@@ -305,7 +330,7 @@ const Clients = () => {
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8">
+                        <TableCell colSpan={10} className="text-center py-8">
                           Chargement...
                         </TableCell>
                       </TableRow>
@@ -325,6 +350,13 @@ const Clients = () => {
                             {client.nom_complet || `${client.nom} ${client.prenoms || ''}`}
                           </TableCell>
                           <TableCell>{client.telephone}</TableCell>
+                          <TableCell>
+                            {client.type_client === "beneficiaire_particulier" ? (
+                              <Badge variant="secondary">Bénéficiaire particulier</Badge>
+                            ) : (
+                              <Badge variant="outline">Client officiel</Badge>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {client.type_client === "beneficiaire_particulier" ? (
                               <Badge variant="secondary">Bénéficiaire particulier</Badge>
