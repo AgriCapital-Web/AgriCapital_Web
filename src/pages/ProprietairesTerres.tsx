@@ -515,9 +515,7 @@ const ProprietairesTerres = () => {
                     {/* TAB 2: LOCALISATION */}
                     <TabsContent value="localisation" className="space-y-4">
                       <h4 className="font-semibold">Localisation géographique</h4>
-                      <GeographieCascade districtId={formData.district_id} regionId={formData.region_id} departementId={formData.departement_id} sousPrefectureId={formData.sous_prefecture_id} required onChange={(g)=>setFormData((x:any)=>({...x,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village:g.villageName||""}))}/>
-</div>
-                    </TabsContent>
+                      <GeographieCascade districtId={formData.district_id} regionId={formData.region_id} departementId={formData.departement_id} sousPrefectureId={formData.sous_prefecture_id} required onChange={(g)=>setFormData((x:any)=>({...x,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village:g.villageName||""}))}/></TabsContent>
 
                     {/* TAB 3: PARCELLE */}
                     <TabsContent value="parcelle" className="space-y-4">
