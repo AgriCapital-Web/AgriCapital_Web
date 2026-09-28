@@ -116,28 +116,28 @@ export function useGeoHierarchy(initial?: {
   const loadRegions = async (districtId?: string | null) => {
     if (!districtId) return setRegions([]);
     const { data } = await (supabase as any)
-      .from("regions").select("id, nom").eq("district_id", districtId).eq("est_active", true).order("nom");
+      .from("v_geo_regions").select("id, nom").eq("district_id", districtId).eq("est_active_effectif", true).order("nom");
     setRegions(data || []);
   };
 
   const loadDepartements = async (regionId?: string | null) => {
     if (!regionId) return setDepartements([]);
     const { data } = await (supabase as any)
-      .from("departements").select("id, nom").eq("region_id", regionId).eq("est_actif", true).order("nom");
+      .from("v_geo_departements").select("id, nom").eq("region_id", regionId).eq("est_actif_effectif", true).order("nom");
     setDepartements(data || []);
   };
 
   const loadSousPrefectures = async (departementId?: string | null) => {
     if (!departementId) return setSousPrefectures([]);
     const { data } = await (supabase as any)
-      .from("sous_prefectures").select("id, nom").eq("departement_id", departementId).eq("est_active", true).order("nom");
+      .from("v_geo_sous_prefectures").select("id, nom").eq("departement_id", departementId).eq("est_active_effectif", true).order("nom");
     setSousPrefectures(data || []);
   };
 
   const loadVillages = async (sousPrefectureId?: string | null) => {
     if (!sousPrefectureId) return setVillages([]);
     const { data } = await (supabase as any)
-      .from("villages").select("id, nom").eq("sous_prefecture_id", sousPrefectureId).eq("est_actif", true).order("nom");
+      .from("v_geo_villages").select("id, nom").eq("sous_prefecture_id", sousPrefectureId).eq("est_actif_effectif", true).order("nom");
     setVillages(data || []);
   };
 
@@ -163,7 +163,7 @@ export function useAllRegions() {
   useEffect(() => {
     (async () => {
       const { data } = await (supabase as any)
-        .from("regions").select("id, nom, district_id").eq("est_active", true).order("nom");
+        .from("v_geo_regions").select("id, nom, district_id").eq("est_active_effectif", true).order("nom");
       setRegions(data || []);
       setLoading(false);
     })();
