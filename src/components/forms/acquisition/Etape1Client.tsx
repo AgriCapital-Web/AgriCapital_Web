@@ -350,73 +350,12 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="type_piece">Type de pièce *</Label>
-              <PieceTypeSelect value={formData.type_piece} onChange={(value)=>updateFormData({type_piece:value})}/>{/*
-                onValueChange={(value) => updateFormData({ type_piece: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cni">CNI</SelectItem>
-                  <SelectItem value="passeport">Passeport</SelectItem>
-                  <SelectItem value="attestation">Attestation</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="numero_piece">Numéro de pièce *</Label>
-              <Input
-                id="numero_piece"
-                value={formData.numero_piece}
-                onChange={(e) => updateFormData({ numero_piece: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="date_delivrance_piece">Date de délivrance *</Label>
-              <Input
-                id="date_delivrance_piece"
-                type="date"
-                value={formData.date_delivrance_piece}
-                onChange={(e) => updateFormData({ date_delivrance_piece: e.target.value })}
-                required
-              />
-            </div>
+            <div className="space-y-2"><Label htmlFor="type_piece">Type de pièce *</Label><PieceTypeSelect value={formData.type_piece} onChange={(value)=>updateFormData({type_piece:value})}/></div>
+            <div className="space-y-2"><Label htmlFor="numero_piece">Numéro de pièce *</Label><Input id="numero_piece" value={formData.numero_piece} onChange={(e)=>updateFormData({numero_piece:e.target.value})} required/></div>
+            <div className="space-y-2"><Label htmlFor="date_delivrance_piece">Date de délivrance *</Label><Input id="date_delivrance_piece" type="date" value={formData.date_delivrance_piece} onChange={(e)=>updateFormData({date_delivrance_piece:e.target.value})} required/></div>
           </div>
-
-          <FileUploadVisual
-            label="Photo de la pièce - Recto"
-            field="photo_piece_recto"
-            accept="image/*"
-            required
-            currentFile={formData.photo_piece_recto_file || null}
-            currentPreview={formData.photo_piece_recto_preview || ""}
-            onFileChange={handleFileChange}
-          />
-
-          <FileUploadVisual
-            label="Photo de la pièce - Verso"
-            field="photo_piece_verso"
-            accept="image/*"
-            required
-            currentFile={formData.photo_piece_verso_file || null}
-            currentPreview={formData.photo_piece_verso_preview || ""}
-            onFileChange={handleFileChange}
-          />
-
-          <FileUploadVisual
-            label="Photo profil (Portrait)"
-            field="photo_profil"
-            accept="image/*"
-            required
-            currentFile={formData.photo_profil_file || null}
-            currentPreview={formData.photo_profil_preview || ""}
-            onFileChange={handleFileChange}
-          />
+          <FileUploadVisual label="Photo de la pièce - Recto" field="photo_piece_recto" accept="image/*" required currentFile={formData.photo_piece_recto_file||null} currentPreview={formData.photo_piece_recto_preview||""} onFileChange={handleFileChange} onIdentityNumberDetected={n=>updateFormData({numero_piece:n})} identityDocumentType={formData.type_piece}/>
+          <FileUploadVisual label="Photo de la pièce - Verso" field="photo_piece_verso" accept="image/*" required currentFile={formData.photo_piece_verso_file||null} currentPreview={formData.photo_piece_verso_preview||""} onFileChange={handleFileChange}/>
         </CardContent>
       </Card>
 
