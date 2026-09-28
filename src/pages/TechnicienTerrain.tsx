@@ -39,7 +39,7 @@ const TechnicienTerrain=()=>{
   const allowed=userRoles.some(r=>TECH_ROLES.includes(r));
   const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin"].includes(r));
   const [plantations,setPlantations]=useState<any[]>([]);
-  const [clients,setClients]=useState<any[]>([]);
+  const [clients,setClients]=useState<any[]>([]);\n  const [parcelles,setParcelles]=useState<any[]>([]);
   const [reports,setReports]=useState<any[]>([]);
   const [interventions,setInterventions]=useState<any[]>([]);
   const [tickets,setTickets]=useState<any[]>([]);
@@ -53,7 +53,7 @@ const TechnicienTerrain=()=>{
   });
   const [media,setMedia]=useState<File[]>([]);
   const [intervention,setIntervention]=useState<any>({
-    plantation_id:"",type_intervention:"suivi_mensuel",date_intervention:new Date().toISOString().slice(0,10),
+    plantation_id:"",client_id:"",parcelle_id:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),
     observations:"",recommandations:"",statut:"planifiee"
   });
 
@@ -68,13 +68,13 @@ const TechnicienTerrain=()=>{
     if(!allowed)return;
     setLoading(true);
     const profile=await profileContext();
-    const [{data:p},{data:c},{data:r},{data:i},{data:t}]=await Promise.all([
+    const [{data:p},{data:c},{data:pa},{data:r},{data:i},{data:t}]=await Promise.all([
       (supabase as any).from("plantations").select("id,id_unique,nom_plantation,nom,superficie_ha,client_id,statut_global,prochaine_visite,date_plantation").order("nom_plantation"),
-      (supabase as any).from("clients").select("id,formule_code,formule_nom,famille_offre,nom_complet").order("nom_complet"),
+      (supabase as any).from("clients").select("id,id_unique,formule_code,formule_nom,famille_offre,nom_complet,total_hectares,parcelle_id").order("nom_complet"),\n      (supabase as any).from("parcelles").select("id,id_unique,nom,village,surface_totale_ha,region_id,plantation_date_activation,plantation_type_culture,plantation_densite_plants").order("nom"),
       (supabase as any).from("rapports_visites_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!rapports_visites_techniques_agent_technique_id_fkey(nom_complet)").order("date_visite",{ascending:false}).limit(100),
       (supabase as any).from("interventions_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!interventions_techniques_agent_technique_id_fkey(nom_complet)").order("date_intervention",{ascending:false}).limit(100)
     ]);
-    setPlantations(p||[]);setClients(c||[]);setReports(r||[]);setInterventions(i||[]);setTickets(t||[]);setLoading(false);
+    setPlantations(p||[]);setClients(c||[]);setParcelles(pa||[]);setReports(r||[]);setInterventions(i||[]);setTickets(t||[]);setLoading(false);
   };
 
   useEffect(()=>{load();},[allowed]);
@@ -132,10 +132,15 @@ const TechnicienTerrain=()=>{
     setSaving(true);
     try{
       const profile=await profileContext(); if(!profile?.id)throw new Error("Profil technicien introuvable");
-      const {error}=await offlineInsert("interventions_techniques",{...intervention,id:crypto.randomUUID(),agent_technique_id:profile.id});
+      const payload={...intervention,id:crypto.randomUUID(),agent_technique_id:profile.id,
+        client_id:intervention.client_id||interventionPlantation?.client_id||null,
+        parcelle_id:intervention.parcelle_id||clients.find(c=>c.id===intervention.client_id)?.parcelle_id||interventionPlantation?.parcelle_id||null,
+        plantation_id:intervention.plantation_id||null
+      };
+      const {error}=await offlineInsert("interventions_techniques",payload);
       if(error)throw error;
       toast({title:"Intervention enregistrée"});
-      setIntervention({plantation_id:"",type_intervention:"suivi_mensuel",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee"});
+      setIntervention({plantation_id:"",client_id:"",parcelle_id:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee"});
       load();
     }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
     finally{setSaving(false);}
