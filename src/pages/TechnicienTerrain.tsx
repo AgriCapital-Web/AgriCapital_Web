@@ -51,11 +51,11 @@ const TechnicienTerrain=()=>{
     observations:"",recommandations:"",statut:"planifiee"
   });
 
-  const profileId=async()=>{
+  const profileContext=async()=>{
     const uid=user?.id;
     if(!uid)return null;
-    const {data}=await (supabase as any).from("profiles").select("id").eq("user_id",uid).maybeSingle();
-    return data?.id||null;
+    const {data}=await (supabase as any).from("profiles").select("id,equipe_id,nom_complet").eq("user_id",uid).maybeSingle();
+    return data||null;
   };
 
   const load=async()=>{
@@ -78,17 +78,17 @@ const TechnicienTerrain=()=>{
     if(!report.constat&&!report.travaux_realises&&!report.observations){toast({variant:"destructive",title:"Rapport incomplet",description:"Renseignez au moins le constat ou les travaux réalisés."});return;}
     setSaving(true);
     try{
-      const pid=await profileId(); if(!pid)throw new Error("Profil technicien introuvable");
+      const profile=await profileContext(); if(!profile?.id)throw new Error("Profil technicien introuvable");
       const id=crypto.randomUUID();
       const payload={
-        id,plantation_id:report.plantation_id,client_id:plantation?.client_id||null,agent_technique_id:pid,
+        id,plantation_id:report.plantation_id,client_id:plantation?.client_id||null,agent_technique_id:profile.id,equipe_id:profile.equipe_id||null,
         date_visite:new Date(report.date_visite).toISOString(),type_visite:report.type_visite,
         constat:report.constat||null,travaux_realises:report.travaux_realises||null,etat_plantation:report.etat_plantation||null,
         observations:report.observations||null,recommandations:report.recommandations||null,
         prochaine_intervention:report.prochaine_intervention||null,
         localisation_gps_lat:report.localisation_gps_lat?Number(report.localisation_gps_lat):null,
         localisation_gps_lng:report.localisation_gps_lng?Number(report.localisation_gps_lng):null,
-        statut:submit?"soumis":"brouillon",client_visible:false,created_by:pid
+        statut:submit?"soumis":"brouillon",client_visible:false,created_by:profile.id
       };
       const {error}=await offlineInsert("rapports_visites_techniques",payload);
       if(error)throw error;
@@ -113,8 +113,8 @@ const TechnicienTerrain=()=>{
     if(!intervention.plantation_id){toast({variant:"destructive",title:"Plantation requise"});return;}
     setSaving(true);
     try{
-      const pid=await profileId(); if(!pid)throw new Error("Profil technicien introuvable");
-      const {error}=await offlineInsert("interventions_techniques",{...intervention,id:crypto.randomUUID(),agent_technique_id:pid});
+      const profile=await profileContext(); if(!profile?.id)throw new Error("Profil technicien introuvable");
+      const {error}=await offlineInsert("interventions_techniques",{...intervention,id:crypto.randomUUID(),agent_technique_id:profile.id});
       if(error)throw error;
       toast({title:"Intervention enregistrée"});
       setIntervention({plantation_id:"",type_intervention:"suivi_mensuel",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee"});
