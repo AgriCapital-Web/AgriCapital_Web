@@ -30,6 +30,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
   const [regions, setRegions] = useState<any[]>([]);
   const [departements, setDepartements] = useState<any[]>([]);
   const [sousPrefectures, setSousPrefectures] = useState<any[]>([]);
+  const [villages, setVillages] = useState<any[]>([]);
   
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [phoneCountry, setPhoneCountry] = useState(formData.telephone_indicatif || "+225");
@@ -429,7 +430,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
               <Select
                 value={formData.district_id}
                 onValueChange={(value) => {
-                  updateFormData({ district_id: value, region_id: null, departement_id: null, sous_prefecture_id: null });
+                  updateFormData({ district_id: value, region_id: null, departement_id: null, sous_prefecture_id: null, village_id: null });
                   setRegions([]);
                   setDepartements([]);
                   setSousPrefectures([]);
@@ -451,7 +452,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
               <Select
                 value={formData.region_id}
                 onValueChange={(value) => {
-                  updateFormData({ region_id: value, departement_id: null, sous_prefecture_id: null });
+                  updateFormData({ region_id: value, departement_id: null, sous_prefecture_id: null, village_id: null });
                   setDepartements([]);
                   setSousPrefectures([]);
                 }}
@@ -473,7 +474,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
               <Select
                 value={formData.departement_id}
                 onValueChange={(value) => {
-                  updateFormData({ departement_id: value, sous_prefecture_id: null });
+                  updateFormData({ departement_id: value, sous_prefecture_id: null, village_id: null });
                   setSousPrefectures([]);
                 }}
                 disabled={!formData.region_id}
@@ -493,7 +494,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
               <Label htmlFor="sous_prefecture">Sous-préfecture *</Label>
               <Select
                 value={formData.sous_prefecture_id}
-                onValueChange={(value) => updateFormData({ sous_prefecture_id: value })}
+                onValueChange={(value) => updateFormData({ sous_prefecture_id: value, village_id: null })}
                 disabled={!formData.departement_id}
               >
                 <SelectTrigger>
