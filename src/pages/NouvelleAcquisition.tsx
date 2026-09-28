@@ -126,9 +126,9 @@ const NouvelleAcquisition = () => {
         if(doc.obligatoire&&!formData["doc_"+doc.code+"_file"]){toast({variant:"destructive",title:"Pièce obligatoire manquante",description:doc.libelle});return false;}
       }
     }
-    if(step.code==="contrats"){
+    if(step.code==="documents"){
       const {data:contracts}=await (supabase as any).from("offre_formulaire_contrats").select("*").eq("offre_id",formData.offre_id).eq("actif",true);
-      for(const c of contracts||[]) if(c.obligatoire&&!["a_signer","signe"].includes(formData["contrat_"+c.type_contrat+"_statut"]||"a_preparer")){
+      for(const contract of contracts||[]) if(contract.obligatoire&&!["a_signer","signe"].includes(formData["contrat_"+contract.type_contrat+"_statut"]||"a_preparer")){
         toast({variant:"destructive",title:"Contrat à traiter",description:"Indiquez le statut du contrat applicable avant de continuer."});return false;
       }
     }
