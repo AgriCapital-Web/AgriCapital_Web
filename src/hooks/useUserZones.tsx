@@ -75,10 +75,10 @@ export function useUserZones() {
     const deptIds = getDepartementIds();
     const spIds = getSousPrefectureIds();
     if (deptIds.length > 0) {
-      const { data: depts } = await (supabase as any).from("departements").select("region_id").in("id", deptIds);
+      const { data: depts } = await (supabase as any).from("v_geo_departements").select("region_id").in("id", deptIds).eq("est_actif_effectif", true);
       const regionIds = [...new Set((depts || []).map((d: any) => d.region_id).filter(Boolean))];
       if (regionIds.length > 0) {
-        const { data: regs } = await (supabase as any).from("regions").select("district_id").in("id", regionIds);
+        const { data: regs } = await (supabase as any).from("v_geo_regions").select("district_id").in("id", regionIds).eq("est_active_effectif", true);
         const distIds = [...new Set((regs || []).map((r: any) => r.district_id).filter(Boolean))];
         if (distIds.length > 0) {
           const { data } = await (supabase as any).from("districts").select("*").in("id", distIds).eq("est_actif", true).order("nom");
@@ -87,7 +87,7 @@ export function useUserZones() {
       }
     }
     if (spIds.length > 0) {
-      const { data: sps } = await (supabase as any).from("sous_prefectures").select("departement_id").in("id", spIds);
+      const { data: sps } = await (supabase as any).from("v_geo_sous_prefectures").select("departement_id").in("id", spIds).eq("est_active_effectif", true);
       const dIds = [...new Set((sps || []).map((s: any) => s.departement_id).filter(Boolean))];
       if (dIds.length > 0) {
         const { data: depts } = await (supabase as any).from("departements").select("region_id").in("id", dIds);
@@ -107,7 +107,7 @@ export function useUserZones() {
   };
 
   const fetchFilteredRegions = async (districtId: string) => {
-    let query = (supabase as any).from("regions").select("*").eq("district_id", districtId).eq("est_active", true).order("nom");
+    let query = (supabase as any).from("v_geo_regions").select("*").eq("district_id", districtId).eq("est_active_effectif", true).order("nom");
     const regionIds = getRegionIds();
     if (!isAdmin && regionIds.length > 0) query = query.in("id", regionIds);
     const { data } = await query;
@@ -116,7 +116,7 @@ export function useUserZones() {
 
   const fetchFilteredDepartements = async (regionId: string) => {
     if (isAdmin || getDistrictIds().length > 0 || getRegionIds().length > 0) {
-      const { data } = await (supabase as any).from("departements").select("*").eq("region_id", regionId).eq("est_actif", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_departements").select("*").eq("region_id", regionId).eq("est_actif_effectif", true).order("nom");
       return data || [];
     }
     const deptIds = getDepartementIds();
@@ -127,7 +127,7 @@ export function useUserZones() {
     // Commercial: derive from sous-prefectures
     const spIds = getSousPrefectureIds();
     if (spIds.length > 0) {
-      const { data: sps } = await (supabase as any).from("sous_prefectures").select("departement_id").in("id", spIds);
+      const { data: sps } = await (supabase as any).from("v_geo_sous_prefectures").select("departement_id").in("id", spIds).eq("est_active_effectif", true);
       const dIds = [...new Set((sps || []).map((s: any) => s.departement_id).filter(Boolean))];
       const { data } = await (supabase as any).from("departements").select("*").eq("region_id", regionId).in("id", dIds).eq("est_actif", true).order("nom");
       return data || [];
@@ -138,7 +138,7 @@ export function useUserZones() {
 
   const fetchFilteredSousPrefectures = async (departementId: string) => {
     if (isAdmin || getDistrictIds().length > 0 || getDepartementIds().length > 0) {
-      const { data } = await (supabase as any).from("sous_prefectures").select("*").eq("departement_id", departementId).eq("est_active", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_sous_prefectures").select("*").eq("departement_id", departementId).eq("est_active_effectif", true).order("nom");
       return data || [];
     }
     const spIds = getSousPrefectureIds();
