@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import FileUploadVisual from "@/components/ui/file-upload-visual";
 import { ArrowLeft, FileCheck2, LandPlot, UserRound, Sprout, Upload } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import GeographieCascade from "@/components/common/GeographieCascade";
 
 type UploadState = { file: File | null; preview: string };
 
@@ -41,19 +42,12 @@ const BeneficiaireParticulier = () => {
     telephone: "",
     whatsapp: "",
     statut_foncier: "coutumier",
-    village: "Zakaria",
-    region_id: "d7738144-14cf-43f6-be4d-500f21a9cee5",
-    departement_id: "f6903743-4dc4-4554-8be5-c751ab2ffb28",
-    sous_prefecture_id: "ffdb4050-1b54-49fb-b5ec-faf338b58b19",
+    village: "", district_id: "", region_id: "", departement_id: "", sous_prefecture_id: "", village_id: "",
   });
   const [parcelle, setParcelle] = useState({
     nom: "",
     surface_totale_ha: "4",
-    village: "Zakaria",
-    code_parc: "",
-    region_id: "d7738144-14cf-43f6-be4d-500f21a9cee5",
-    departement_id: "f6903743-4dc4-4554-8be5-c751ab2ffb28",
-    sous_prefecture_id: "ffdb4050-1b54-49fb-b5ec-faf338b58b19",
+    village: "", code_parc: "", district_id: "", region_id: "", departement_id: "", sous_prefecture_id: "", village_id: "",
   });
   const [plantation, setPlantation] = useState({
     nom: "",
@@ -195,7 +189,7 @@ const BeneficiaireParticulier = () => {
             <div><Label>Nom</Label><Input value={proprietaire.nom} onChange={e=>setProprietaire({...proprietaire,nom:e.target.value})}/></div>
             <div><Label>Prénoms</Label><Input value={proprietaire.prenoms} onChange={e=>setProprietaire({...proprietaire,prenoms:e.target.value})}/></div>
             <div><Label>Téléphone</Label><Input value={proprietaire.telephone} onChange={e=>setProprietaire({...proprietaire,telephone:e.target.value})}/></div>
-            <div><Label>Village / localité</Label><Input value={proprietaire.village} onChange={e=>setProprietaire({...proprietaire,village:e.target.value})}/></div>
+            <div className="md:col-span-3"><Label>Localisation administrative</Label><GeographieCascade districtId={proprietaire.district_id} regionId={proprietaire.region_id} departementId={proprietaire.departement_id} sousPrefectureId={proprietaire.sous_prefecture_id} villageId={proprietaire.village_id} required onChange={(g)=>setProprietaire((x:any)=>({...x,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village_id:g.villageId||"",village:g.villageName||""}))}/></div>
             <div><Label>Statut foncier</Label><Input value={proprietaire.statut_foncier} onChange={e=>setProprietaire({...proprietaire,statut_foncier:e.target.value})}/></div>
           </CardContent>
         </Card>
@@ -205,7 +199,7 @@ const BeneficiaireParticulier = () => {
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div><Label>Référence parcelle *</Label><Input value={parcelle.code_parc} onChange={e=>setParcelle({...parcelle,code_parc:e.target.value})}/></div>
             <div><Label>Superficie physique de la parcelle (ha) *</Label><Input type="number" step="0.01" min="0" value={parcelle.surface_totale_ha} onChange={e=>setParcelle({...parcelle,surface_totale_ha:e.target.value})}/></div>
-            <div><Label>Village / localité</Label><Input value={parcelle.village} onChange={e=>setParcelle({...parcelle,village:e.target.value})}/></div>
+            <div className="md:col-span-3"><Label>Localisation administrative</Label><GeographieCascade districtId={parcelle.district_id} regionId={parcelle.region_id} departementId={parcelle.departement_id} sousPrefectureId={parcelle.sous_prefecture_id} villageId={parcelle.village_id} required onChange={(g)=>{const next={...parcelle,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village_id:g.villageId||"",village:g.villageName||""};setParcelle(next);setProprietaire((x:any)=>({...x,district_id:next.district_id,region_id:next.region_id,departement_id:next.departement_id,sous_prefecture_id:next.sous_prefecture_id,village_id:next.village_id,village:next.village}));}}}/></div>
             <div className="md:col-span-3"><p className="text-sm text-muted-foreground">La parcelle reste une parcelle foncière physique. Le système calcule automatiquement la quote-part propriétaire (50 %) et la quote-part bénéficiaire, sans paiement ni activation manuelle du propriétaire.</p></div>
           </CardContent>
         </Card>
