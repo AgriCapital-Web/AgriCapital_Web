@@ -152,7 +152,9 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
   }, [formData.departement_id]);
 
 
-  useEffect(() => { if (!formData.sous_prefecture_id) { setVillages([]); return; } (async()=>{const {data}=await (supabase as any).from("v_geo_villages").select("id,nom").eq("sous_prefecture_id",formData.sous_prefecture_id).eq("est_actif_effectif",true).order("nom");setVillages(data||[]);})(); }, [formData.sous_prefecture_id]);\n\n  const [parcelles, setParcelles] = useState<any[]>([]);
+  useEffect(() => { if (!formData.sous_prefecture_id) { setVillages([]); return; } (async()=>{const {data}=await (supabase as any).from("v_geo_villages").select("id,nom").eq("sous_prefecture_id",formData.sous_prefecture_id).eq("est_actif_effectif",true).order("nom");setVillages(data||[]);})(); }, [formData.sous_prefecture_id]);
+
+  const [parcelles, setParcelles] = useState<any[]>([]);
   const [parcelleSearch, setParcelleSearch] = useState("");
   const [loadingParcelles, setLoadingParcelles] = useState(false);
 
