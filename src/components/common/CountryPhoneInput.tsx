@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { SearchableSelect } from "@/components/common/SearchableSelect";
+import SearchableSelect from "@/components/common/SearchableSelect";
 type Country={code:string;name:string;callingCode:string;flag:string};
 const FALLBACK:Country[]=[["CI","Côte d’Ivoire","+225","🇨🇮"],["FR","France","+33","🇫🇷"],["US","États-Unis","+1","🇺🇸"],["CA","Canada","+1","🇨🇦"],["BE","Belgique","+32","🇧🇪"],["CH","Suisse","+41","🇨🇭"],["GB","Royaume-Uni","+44","🇬🇧"],["SN","Sénégal","+221","🇸🇳"],["GN","Guinée","+224","🇬🇳"],["BF","Burkina Faso","+226","🇧🇫"],["ML","Mali","+223","🇲🇱"],["CM","Cameroun","+237","🇨🇲"],["TG","Togo","+228","🇹🇬"],["BJ","Bénin","+229","🇧🇯"]].map(([code,name,callingCode,flag])=>({code,name,callingCode,flag})) as Country[];
 const flag=(code:string)=>code.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
