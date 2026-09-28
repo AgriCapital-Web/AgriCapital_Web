@@ -19,6 +19,10 @@ import { Search, Plus, Users, MapPin, Layers, Upload, FileText } from "lucide-re
 import { useUserZones } from "@/hooks/useUserZones";
 import GeographieCascade from "@/components/common/GeographieCascade";
 import { uploadFile as uploadToStorage } from "@/utils/storage";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import PieceTypeSelect from "@/components/common/PieceTypeSelect";
+import RelationshipSelect from "@/components/common/RelationshipSelect";
+import FileUploadVisual from "@/components/ui/file-upload-visual";
 import { offlineInsert } from "@/lib/offlineWrite";
 import { getCachedItems, STORES, addToSyncQueue } from "@/lib/offlineDb";
 import { getSafeErrorMessage } from "@/lib/safeError";
@@ -344,6 +348,7 @@ const ProprietairesTerres = () => {
   );
 
   const update = (field: string, value: any) => setFormData(f => ({ ...f, [field]: value }));
+  const updateFormPhone = (v: any, field: string) => setFormData(f => ({ ...f, [field]: v.internationalValue, [field+"_indicatif"]: v.callingCode, [field+"_local"]: v.localValue }));
 
   return (
     <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
@@ -478,14 +483,9 @@ const ProprietairesTerres = () => {
                       <div className="border-t pt-4">
                         <h4 className="font-semibold mb-3">Contact & Pièce d'identité</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Téléphone *</Label>
-                            <Input value={formData.telephone} onChange={e => update('telephone', e.target.value)} required placeholder="07 XX XX XX XX" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>WhatsApp</Label>
-                            <Input value={formData.whatsapp} onChange={e => update('whatsapp', e.target.value)} />
-                          </div>
+                          <CountryPhoneInput label="Téléphone" required countryCode={formData.telephone_indicatif||"+225"} localValue={formData.telephone_local||formData.telephone||""} onChange={v=>updateFormPhone(v,"telephone")}/>
+                          <CountryPhoneInput label="WhatsApp" countryCode={formData.whatsapp_indicatif||"+225"} localValue={formData.whatsapp_local||formData.whatsapp||""} onChange={v=>updateFormPhone(v,"whatsapp")}/>
+                          
                           <div className="space-y-2">
                             <Label>Email</Label>
                             <Input type="email" value={formData.email} onChange={e => update('email', e.target.value)} />
@@ -498,16 +498,7 @@ const ProprietairesTerres = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                           <div className="space-y-2">
                             <Label>Nature pièce d'identité</Label>
-                            <Select value={formData.type_piece} onValueChange={v => update('type_piece', v)}>
-                              <SelectTrigger><SelectValue placeholder="..." /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="cni">CNI</SelectItem>
-                                <SelectItem value="passeport">Passeport</SelectItem>
-                                <SelectItem value="attestation">Attestation d'identité</SelectItem>
-                                <SelectItem value="carte_consulaire">Carte consulaire</SelectItem>
-                                <SelectItem value="permis">Permis de conduire</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <PieceTypeSelect value={formData.type_piece} onChange={v=>update("type_piece",v)}/>
                           </div>
                           <div className="space-y-2">
                             <Label>N° Pièce d'identité</Label>
@@ -598,9 +589,9 @@ const ProprietairesTerres = () => {
                       <h4 className="font-semibold mt-4">Co-titulaire / mandataire et signatures</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2"><Label>Nom co-titulaire / mandataire</Label><Input value={formData.co_titulaire_nom} onChange={e => update('co_titulaire_nom', e.target.value)} /></div>
-                        <div className="space-y-2"><Label>Lien avec le propriétaire</Label><Input value={formData.co_titulaire_lien} onChange={e => update('co_titulaire_lien', e.target.value)} /></div>
-                        <div className="space-y-2"><Label>Type & N° pièce</Label><Input value={formData.co_titulaire_piece} onChange={e => update('co_titulaire_piece', e.target.value)} /></div>
-                        <div className="space-y-2"><Label>Téléphone / WhatsApp</Label><Input value={formData.co_titulaire_telephone} onChange={e => update('co_titulaire_telephone', e.target.value)} /></div>
+                        <div className="space-y-2"><Label>Lien avec le propriétaire</Label><RelationshipSelect value={formData.co_titulaire_lien} onChange={v=>update("co_titulaire_lien",v)}/></div>
+                        <div className="space-y-2"><Label>Type de pièce du co-titulaire</Label><PieceTypeSelect value={formData.co_titulaire_piece} onChange={v=>update("co_titulaire_piece",v)}/></div>
+                        <CountryPhoneInput label="Téléphone / WhatsApp" countryCode={formData.co_titulaire_telephone_indicatif||"+225"} localValue={formData.co_titulaire_telephone_local||formData.co_titulaire_telephone||""} onChange={v=>updateFormPhone(v,"co_titulaire_telephone")}/>
                         <div className="space-y-2"><Label>Témoin propriétaire — Nom</Label><Input value={formData.temoin_proprietaire_nom} onChange={e => update('temoin_proprietaire_nom', e.target.value)} /></div>
                         <div className="space-y-2"><Label>Témoin propriétaire — Qualité</Label><Input value={formData.temoin_proprietaire_qualite} onChange={e => update('temoin_proprietaire_qualite', e.target.value)} /></div>
                         <div className="space-y-2"><Label>Représentant AgriCapital — Nom</Label><Input value={formData.representant_agricapital_nom} onChange={e => update('representant_agricapital_nom', e.target.value)} /></div>
@@ -618,18 +609,9 @@ const ProprietairesTerres = () => {
                     <TabsContent value="documents" className="space-y-4">
                       <h4 className="font-semibold">Documents d'identité</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2"><Upload className="h-4 w-4" /> Photo de profil</Label>
-                          <Input type="file" accept="image/*" onChange={e => setFiles(f => ({ ...f, photo_profil: e.target.files?.[0] || null }))} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2"><Upload className="h-4 w-4" /> CNI / Pièce (Recto)</Label>
-                          <Input type="file" accept="image/*,.pdf" onChange={e => setFiles(f => ({ ...f, cni_recto: e.target.files?.[0] || null }))} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2"><Upload className="h-4 w-4" /> CNI / Pièce (Verso)</Label>
-                          <Input type="file" accept="image/*,.pdf" onChange={e => setFiles(f => ({ ...f, cni_verso: e.target.files?.[0] || null }))} />
-                        </div>
+                        <FileUploadVisual label="Photo de profil" field="photo_profil" accept="image/*" currentFile={files.photo_profil||null} onFileChange={(_,f)=>setFiles(x=>({...x,photo_profil:f}))}/>
+                        <FileUploadVisual label="CNI / Pièce (Recto)" field="cni_recto" accept="image/*,.pdf" currentFile={files.cni_recto||null} onFileChange={(_,f)=>setFiles(x=>({...x,cni_recto:f}))} onIdentityNumberDetected={n=>update("numero_piece",n)} identityDocumentType={formData.type_piece}/>
+                        <FileUploadVisual label="CNI / Pièce (Verso)" field="cni_verso" accept="image/*,.pdf" currentFile={files.cni_verso||null} onFileChange={(_,f)=>setFiles(x=>({...x,cni_verso:f}))}/>
                       </div>
 
                       <h4 className="font-semibold mt-4 flex items-center gap-2"><FileText className="h-4 w-4" /> Annexes de la Convention</h4>
@@ -656,12 +638,7 @@ const ProprietairesTerres = () => {
                                 </div>
                               </div>
                               {isJoint && (
-                                <Input
-                                  type="file"
-                                  accept="image/*,.pdf"
-                                  required
-                                  onChange={e => setFiles(f => ({ ...f, [annexe.field]: e.target.files?.[0] || null }))}
-                                />
+                                <FileUploadVisual label="Fichier" field={annexe.field} accept="image/*,.pdf" required currentFile={files[annexe.field]||null} onFileChange={(_,f)=>setFiles(x=>({...x,[annexe.field]:f}))}/>
                               )}
                               {files[annexe.field] && <p className="text-xs text-muted-foreground">Fichier sélectionné: {files[annexe.field]?.name}</p>}
                             </div>
