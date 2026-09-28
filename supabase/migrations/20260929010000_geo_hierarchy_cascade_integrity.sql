@@ -104,6 +104,40 @@ join public.departements dep on dep.id = sp.departement_id
 join public.regions r on r.id = dep.region_id
 join public.districts d on d.id = r.district_id;
 
+-- Repair duplicate/orphan department rows before enforcing the unique hierarchy.
+-- Dabakala and Katiola had orphan duplicates with NULL region_id.
+update public.account_requests set departement_geo_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
+where departement_geo_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+update public.client_cotitulaires_mandataires set departement_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
+where departement_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+update public.clients set departement_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
+where departement_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+update public.parcelles set departement_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
+where departement_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+update public.plantations set departement_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
+where departement_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+update public.proprietaires_terres set departement_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
+where departement_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+update public.sous_prefectures set departement_id = 'ed623e3a-5a42-40ec-96a7-35d097bc9e31'
+where departement_id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+delete from public.departements where id = 'e096eb86-9593-4bf5-afc0-a824e5748758';
+
+update public.account_requests set departement_geo_id = 'ea517b5a-056d-469e-ba0b-db8cc5078719'
+where departement_geo_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+update public.client_cotitulaires_mandataires set departement_id = 'ea517b5a-056d-469e-ba0b-db8cc5078719'
+where departement_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+update public.clients set departement_id = 'ea517b5a-056d-469e-ba0b-db8cc5078719'
+where departement_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+update public.parcelles set departement_id = 'ea517b5a-056d-469e-ba0b-db8cc5078719'
+where departement_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+update public.plantations set departement_id = 'ea517b5a-056d-469e-ba0b-db8cc5078719'
+where departement_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+update public.proprietaires_terres set departement_id = 'ea517b5a-056d-469e-ba0b-db8cc5078719'
+where departement_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+update public.sous_prefectures set departement_id = 'ea517b5a-056d-469e-ba0b-db8cc5078719'
+where departement_id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+delete from public.departements where id = 'e274b2f3-ff6e-44ea-8ddf-6ebc3daeffc7';
+
 -- Repair known hierarchy defects found in the live database.
 update public.regions r
 set district_id = d.id
