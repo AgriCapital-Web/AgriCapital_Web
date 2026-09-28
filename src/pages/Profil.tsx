@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Phone, Mail, MapPin, Shield, Camera, UserPlus, Save } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 
 const Profil = () => {
@@ -21,6 +22,7 @@ const Profil = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>({});
   const [uploading, setUploading] = useState(false);
+  const [phoneCountries, setPhoneCountries] = useState({ telephone: "+225", telephone_secondaire: "+225", contact1: "+225", contact2: "+225" });
   const photoUrl = useSignedUrl('photos-profils', profile.photo_url);
 
   useEffect(() => {
@@ -43,7 +45,15 @@ const Profil = () => {
         .maybeSingle();
       data = res.data;
     }
-    if (data) setProfile(data);
+    if (data) {
+      setProfile(data);
+      setPhoneCountries({
+        telephone: data.telephone_indicatif || "+225",
+        telephone_secondaire: data.telephone_secondaire_indicatif || "+225",
+        contact1: data.contact_urgence_telephone1_indicatif || "+225",
+        contact2: data.contact_urgence_telephone2_indicatif || "+225",
+      });
+    }
   };
 
   const handleSave = async () => {
@@ -152,8 +162,8 @@ const Profil = () => {
                     <div><Label>Nom complet</Label><Input value={profile.nom_complet || ''} onChange={(e) => update('nom_complet', e.target.value)} /></div>
                     <div><Label>Email principal</Label><Input type="email" value={profile.email || ''} onChange={(e) => update('email', e.target.value)} /></div>
                     <div><Label>Email secondaire</Label><Input type="email" value={profile.adresse_mail_secondaire || ''} onChange={(e) => update('adresse_mail_secondaire', e.target.value)} /></div>
-                    <div><Label>Téléphone principal</Label><Input value={profile.telephone || ''} onChange={(e) => update('telephone', e.target.value)} /></div>
-                    <div><Label>Téléphone secondaire</Label><Input value={profile.telephone_secondaire || ''} onChange={(e) => update('telephone_secondaire', e.target.value)} /></div>
+                    <CountryPhoneInput label="Téléphone principal" countryCode={phoneCountries.telephone} localValue={String(profile.telephone || "").replace(/^\\+\\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, telephone: v.callingCode })); update("telephone", v.internationalValue); }} />
+                    <CountryPhoneInput label="Téléphone secondaire" countryCode={phoneCountries.telephone_secondaire} localValue={String(profile.telephone_secondaire || "").replace(/^\\+\\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, telephone_secondaire: v.callingCode })); update("telephone_secondaire", v.internationalValue); }} />
                     <div><Label>Ville</Label><Input value={profile.ville || ''} onChange={(e) => update('ville', e.target.value)} /></div>
                     <div><Label>Quartier</Label><Input value={profile.quartier || ''} onChange={(e) => update('quartier', e.target.value)} /></div>
                   </div>
@@ -202,8 +212,8 @@ const Profil = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div><Label>Nom</Label><Input value={profile.contact_urgence_nom || ''} onChange={(e) => update('contact_urgence_nom', e.target.value)} /></div>
                     <div><Label>Prénom</Label><Input value={profile.contact_urgence_prenom || ''} onChange={(e) => update('contact_urgence_prenom', e.target.value)} /></div>
-                    <div><Label>Contact 1</Label><Input value={profile.contact_urgence_telephone1 || ''} onChange={(e) => update('contact_urgence_telephone1', e.target.value)} /></div>
-                    <div><Label>Contact 2</Label><Input value={profile.contact_urgence_telephone2 || ''} onChange={(e) => update('contact_urgence_telephone2', e.target.value)} /></div>
+                    <CountryPhoneInput label="Contact 1" countryCode={phoneCountries.contact1} localValue={String(profile.contact_urgence_telephone1 || "").replace(/^\\+\\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, contact1: v.callingCode })); update("contact_urgence_telephone1", v.internationalValue); }} />
+                    <CountryPhoneInput label="Contact 2" countryCode={phoneCountries.contact2} localValue={String(profile.contact_urgence_telephone2 || "").replace(/^\\+\\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, contact2: v.callingCode })); update("contact_urgence_telephone2", v.internationalValue); }} />
                   </div>
                   <div>
                     <Label>Photo de la personne</Label>
