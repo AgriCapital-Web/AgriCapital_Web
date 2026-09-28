@@ -522,6 +522,7 @@ const ClientDetail = () => {
                     </CardContent>
                   </Card>
                 </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="photos">
