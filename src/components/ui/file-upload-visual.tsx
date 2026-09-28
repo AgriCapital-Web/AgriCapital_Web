@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, ScanText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, X, Upload, FileText, Camera } from "lucide-react";
 
 
-interface FileUploadVisualProps {
+\nconst fileToDataUrl = (file: File) => new Promise<string>((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result||"")); reader.onerror=()=>reject(reader.error); reader.readAsDataURL(file); });\n\ninterface FileUploadVisualProps {
   label: string;
   field: string;
   accept?: string;
@@ -13,6 +15,8 @@ interface FileUploadVisualProps {
   currentFile?: File | null;
   currentPreview?: string;
   onFileChange: (field: string, file: File | null, preview: string) => void;
+  onIdentityNumberDetected?: (numero: string) => void;
+  identityDocumentType?: string;
 }
 
 export const FileUploadVisual = ({
@@ -23,8 +27,12 @@ export const FileUploadVisual = ({
   currentFile,
   currentPreview,
   onFileChange,
+  onIdentityNumberDetected,
+  identityDocumentType,
 }: FileUploadVisualProps) => {
   const [preview, setPreview] = useState<string>(currentPreview || "");
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrMessage, setOcrMessage] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Keep preview in sync when parent restores draft / navigates steps
@@ -40,6 +48,14 @@ export const FileUploadVisual = ({
       const previewUrl = reader.result as string;
       setPreview(previewUrl);
       onFileChange(field, file, previewUrl);
+      if (onIdentityNumberDetected && file.type.startsWith("image/")) {
+        setOcrLoading(true); setOcrMessage("Lecture automatique de la pièce…");
+        void fileToDataUrl(file).then(async (imageDataUrl) => {
+          const { data, error } = await supabase.functions.invoke("analyze-id-document", { body: { imageDataUrl, documentType: identityDocumentType } });
+          if (!error && data?.numero_piece) { onIdentityNumberDetected(String(data.numero_piece)); setOcrMessage(data?.confiance >= 0.8 ? "Numéro détecté automatiquement." : "Numéro détecté — vérifiez-le avant validation."); }
+          else setOcrMessage("Lecture automatique indisponible : saisissez le numéro si nécessaire.");
+        }).catch(() => setOcrMessage("Lecture automatique indisponible : saisissez le numéro si nécessaire.")).finally(() => setOcrLoading(false));
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -53,6 +69,7 @@ export const FileUploadVisual = ({
   };
 
   const isImage = currentFile?.type?.startsWith("image/") || preview.startsWith("data:image");
+  const isVideo = currentFile?.type?.startsWith("video/") || preview.startsWith("data:video");
 
   return (
     <div className="space-y-2">
@@ -88,6 +105,8 @@ export const FileUploadVisual = ({
               alt="Aperçu"
               className="w-full h-48 object-contain rounded"
             />
+          ) : isVideo ? (
+            <video src={preview} controls className="w-full h-48 object-contain rounded" />
           ) : (
             <div className="flex items-center justify-center h-48 bg-muted rounded">
               <div className="text-center">
@@ -96,6 +115,8 @@ export const FileUploadVisual = ({
               </div>
             </div>
           )}
+          {ocrLoading && <p className="mt-2 text-xs text-muted-foreground flex items-center justify-center gap-2"><Loader2 className="h-3 w-3 animate-spin"/> {ocrMessage}</p>}
+          {!ocrLoading && ocrMessage && <p className="mt-2 text-xs text-muted-foreground flex items-center justify-center gap-2"><ScanText className="h-3 w-3"/> {ocrMessage}</p>}
           <div className="flex gap-2 mt-3 justify-center">
             <Button
               type="button"
