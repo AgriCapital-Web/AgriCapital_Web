@@ -44,7 +44,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: Sprout, label: "Terrain & interventions", path: "/terrain", permission: PERMISSIONS.VIEW_RAPPORTS_TECHNIQUES },
     { icon: BarChart3, label: "Rapports techniques", path: "/rapports-techniques", permission: PERMISSIONS.VIEW_RAPPORTS_TECHNIQUES },
     { icon: FileText, label: "Rapports financiers", path: "/rapports-financiers", permission: PERMISSIONS.VIEW_RAPPORTS_FINANCIERS },
-    { icon: Ticket, label: "Tickets", path: "/tickets", permission: PERMISSIONS.VIEW_TICKETS },
+    { icon: Ticket, label: "Support", path: "/support", permission: PERMISSIONS.VIEW_TICKETS },
     { icon: CloudUpload, label: "Synchronisation", path: "/synchronisation", permission: PERMISSIONS.VIEW_DASHBOARD },
   ];
 
