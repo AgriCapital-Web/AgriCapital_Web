@@ -7,6 +7,8 @@ import SearchableSelect from "@/components/common/SearchableSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 
 // Validation helpers
 const validatePhone = (phone: string) => /^\d{6,15}$/.test(phone.replace(/\D/g, ""));
@@ -245,7 +247,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
                     <div className="p-2 text-sm text-muted-foreground text-center">Aucune parcelle disponible</div>
                   )}
                 </SelectContent>
-              </Select>
+              </Select>*/}
             </div>
           )}
         </CardContent>
@@ -350,8 +352,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type_piece">Type de pièce *</Label>
-              <Select
-                value={formData.type_piece}
+              <PieceTypeSelect value={formData.type_piece} onChange={(value)=>updateFormData({type_piece:value})}/>{/*
                 onValueChange={(value) => updateFormData({ type_piece: value })}
               >
                 <SelectTrigger>
