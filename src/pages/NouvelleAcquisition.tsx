@@ -11,7 +11,7 @@ import { EtapeRepresentantDynamique } from "@/components/forms/acquisition/Etape
 import { EtapeParcelleDynamique } from "@/components/forms/acquisition/EtapeParcelleDynamique";
 import { EtapeEnqueteClient } from "@/components/forms/acquisition/EtapeEnqueteClient";
 import { EtapeDocumentsContratsDynamiques } from "@/components/forms/acquisition/EtapeDocumentsContratsDynamiques";
-import { EtapePaiementConfirmation } from "@/components/forms/acquisition/EtapePaiementConfirmation";
+import { EtapeConfirmationDossier } from "@/components/forms/acquisition/EtapeConfirmationDossier";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadFile } from "@/utils/storage";
 import { offlineInsert } from "@/lib/offlineWrite";
@@ -262,7 +262,7 @@ const NouvelleAcquisition = () => {
       case "client":return <div className="space-y-6"><EtapeClientDynamique formData={formData} updateFormData={updateFormData}/><EtapeEnqueteClient formData={formData} updateFormData={updateFormData}/><EtapeRepresentantDynamique formData={formData} updateFormData={updateFormData}/></div>;
       case "parcelle":return <EtapeParcelleDynamique formData={formData} updateFormData={updateFormData}/>;
       case "documents":return <EtapeDocumentsContratsDynamiques formData={formData} updateFormData={updateFormData}/>;
-      case "confirmation":return <EtapePaiementConfirmation formData={formData} updateFormData={updateFormData}/>;
+      case "confirmation":return <EtapeConfirmationDossier formData={formData} updateFormData={updateFormData}/>;
       default:return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
     }
   };
