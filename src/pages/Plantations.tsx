@@ -205,29 +205,9 @@ const Plantations = () => {
                 {nombreTotal} plantation(s) enregistrée(s)
               </p>
             </div>
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setSelectedPlantation(null)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Convertir en plantation
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {selectedPlantation ? "Modifier la plantation" : "Convertir un client en plantation"}
-                  </DialogTitle>
-                </DialogHeader>
-                <PlantationForm
-                  plantation={selectedPlantation}
-                  onSuccess={handleSuccess}
-                  onCancel={() => {
-                    setIsFormOpen(false);
-                    setSelectedPlantation(null);
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+            <div className="text-sm text-muted-foreground max-w-xl">
+              Les plantations ne sont pas créées manuellement. Elles apparaissent automatiquement après validation technique de la mise en terre dans le parcours Terrain.
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
