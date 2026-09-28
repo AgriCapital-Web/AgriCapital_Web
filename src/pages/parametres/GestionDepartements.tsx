@@ -92,7 +92,7 @@ const GestionDepartements = () => {
           ) : (
             <div className="space-y-2">
               {filtered.map((dept) => {
-                const regionInactive = dept.regions?.est_active === false;
+                const regionInactive = dept.regions?.est_active !== true;
                 return (
                   <div key={dept.id} className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${regionInactive ? 'opacity-50 bg-muted/30' : 'hover:bg-muted/50'}`}>
                     <div className="flex-1">
@@ -107,7 +107,7 @@ const GestionDepartements = () => {
                       <p className="text-xs text-muted-foreground">Région: {dept.regions?.nom || "—"}</p>
                     </div>
                     <Switch
-                      checked={dept.est_actif ?? false}
+                      checked={!regionInactive && dept.est_actif === true}
                       disabled={regionInactive}
                       onCheckedChange={() => toggleDepartement(dept.id, dept.est_actif ?? false)}
                     />
@@ -120,7 +120,7 @@ const GestionDepartements = () => {
 
           <div className="mt-6 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              💡 {filtered.length} département(s) • {filtered.filter(d => d.est_actif).length} actif(s)
+              💡 {filtered.length} département(s) • {filtered.filter(d => d.regions?.est_active === true && d.est_actif === true).length} actif(s)
             </p>
           </div>
         </CardContent>
