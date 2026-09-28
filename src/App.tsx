@@ -109,7 +109,7 @@ const DomainRouter = () => {
       
       {/* Rapports */}
       <Route path="/rapports-financiers" element={<RapportsFinanciers />} />
-      <Route path="/rapports-techniques" element={<RapportsTechniques />} />
+      <Route path="/rapports-techniques" element={<Navigate to="/support" replace />} />
       <Route path="/terrain" element={<TechnicienTerrain />} />
       
       {/* Finances */}
