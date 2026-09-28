@@ -1,0 +1,1 @@
+alter table public.rapports_visites_techniques add column if not exists contenu_client text;
