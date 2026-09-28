@@ -26,7 +26,7 @@ const admin = createClient(supabaseUrl, serviceKey);
 
 type Contact = {
   source_type: string; source_id: string; user_id?: string | null;
-  nom_complet?: string | null; email?: string | null; telephone?: string | null;
+  nom_complet?: string | null; email?: string | null; telephone?: string | null; whatsapp?: string | null;
   role_code?: string | null; offre_id?: string | null; offre_code?: string | null; offre_nom?: string | null;
 };
 
@@ -80,6 +80,7 @@ async function providerStatus() {
   return {
     resend_email: resend, brevo_email: brevo,
     brevo_sms: brevo && Boolean(Deno.env.get("BREVO_SMS_SENDER")),
+    whatsapp: Boolean(Deno.env.get("WHATSAPP_ACCESS_TOKEN")) && Boolean(Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")),
     email_provider: resend ? "resend" : brevo ? "brevo" : null,
   };
 }
@@ -141,6 +142,37 @@ async function sendSms(contact: Contact, content: string, dedupeKey: string) {
   return { provider: "brevo", messageId: payload?.messageId || null, content: message };
 }
 
+async function sendWhatsApp(contact: Contact, content: string, dedupeKey: string) {
+  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+  const version = Deno.env.get("WHATSAPP_API_VERSION") || "v23.0";
+  if (!token || !phoneNumberId) throw new Error("WhatsApp Cloud API non configure");
+  const recipient = (contact.whatsapp || contact.telephone || "").replace(/[^0-9]/g, "");
+  if (!recipient) throw new Error("Numero WhatsApp invalide");
+  const templateName = Deno.env.get("WHATSAPP_TEMPLATE_NAME");
+  const language = Deno.env.get("WHATSAPP_TEMPLATE_LANGUAGE") || "fr";
+  const body = templateName
+    ? {
+        messaging_product: "whatsapp", to: recipient, type: "template",
+        template: {
+          name: templateName, language: { code: language },
+          components: [{ type: "body", parameters: [{ type: "text", text: content.slice(0, 1024) }] }],
+        },
+      }
+    : {
+        messaging_product: "whatsapp", to: recipient, type: "text",
+        text: { preview_url: false, body: content.slice(0, 4096) },
+      };
+  const response = await fetch("https://graph.facebook.com/" + version + "/" + phoneNumberId + "/messages", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload?.error?.message || "WhatsApp HTTP " + response.status);
+  return { provider: "whatsapp_cloud", messageId: payload?.messages?.[0]?.id || null };
+}
+
 async function resolveContacts(criteria: Record<string, unknown>) {
   const { data, error } = await admin.rpc("notification_resolve_recipients", { _criteres: criteria });
   if (error) throw error;
@@ -159,8 +191,18 @@ async function deliver(args: {
 }) {
   let sent = 0, failed = 0;
   for (const contact of args.contacts) {
-    const channels = args.canal === "email_sms" ? ["email", "sms"] : [args.canal];
-    for (const channel of channels) {
+    const primaryAutoChannel = (() => {
+      if (args.canal !== "auto") return null;
+      const phone = (contact.telephone || contact.whatsapp || "").replace(/\s+/g, "");
+      const digits = phone.replace(/[^0-9]/g, "");
+      return phone.startsWith("+225") || phone.startsWith("225") || /^0\d{9}$/.test(phone) || digits.startsWith("225") ? "sms" : "whatsapp";
+    })();
+    const channels = args.canal === "email_sms"
+      ? ["email", "sms"]
+      : args.canal === "auto"
+        ? [primaryAutoChannel || "email", "email"]
+        : [args.canal];
+    for (const channel of [...new Set(channels)]) {
       if (channel === "app" && !contact.user_id) continue;
       const dedupeKey = (args.campaignId || args.automationId || "manual") + ":" +
         (args.eventKey || "") + ":" + (contact.user_id || contact.source_id) + ":" + channel;
@@ -194,6 +236,11 @@ async function deliver(args: {
           await admin.from("notification_deliveries").update({
             statut: "envoye", fournisseur: result.provider, provider_message_id: result.messageId, sent_at: new Date().toISOString(),
           }).eq("id", delivery.id);
+        } else if (channel === "whatsapp") {
+          const result = await sendWhatsApp(contact, rendered, dedupeKey);
+          await admin.from("notification_deliveries").update({
+            statut: "envoye", fournisseur: result.provider, provider_message_id: result.messageId, sent_at: new Date().toISOString(),
+          }).eq("id", delivery.id);
         } else {
           const result = await sendSms(contact, rendered, dedupeKey);
           await admin.from("notification_deliveries").update({
@@ -202,6 +249,7 @@ async function deliver(args: {
           }).eq("id", delivery.id);
         }
         sent++;
+        if (args.canal === "auto") break;
       } catch (error) {
         failed++;
         await admin.from("notification_deliveries").update({
@@ -246,11 +294,14 @@ async function runEvent(eventCode: string, context: Record<string, unknown>) {
     if (context.client_id) {
       contacts = contacts.filter((c) => c.source_id === context.client_id && c.source_type === "client");
     }
+    if (context.proprietaire_id) {
+      contacts = contacts.filter((c) => c.source_id === context.proprietaire_id && c.source_type === "proprietaire_foncier");
+    }
     if (context.user_id) contacts = contacts.filter((c) => c.user_id === context.user_id);
     const result = await deliver({
       automationId: automation.id, canal: automation.canal, subject: automation.sujet,
       content: automation.contenu, contacts, context,
-      eventKey: eventCode + ":" + (context.paiement_id || context.user_id || "global"),
+      eventKey: eventCode + ":" + (context.paiement_id || context.client_id || context.proprietaire_id || context.user_id || "global"),
     });
     await admin.from("notification_automations").update({ derniere_execution_at: new Date().toISOString() }).eq("id", automation.id);
     results.push({ automation_id: automation.id, ...result });
