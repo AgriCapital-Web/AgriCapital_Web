@@ -53,6 +53,7 @@ export function usePermissions() {
 
   const roles = useMemo(() => normalizeRoles(userRoles || []), [userRoles]);
   const isSuperAdmin = roles.includes(ROLES.SUPER_ADMIN);
+  const isPdg = roles.includes(ROLES.PDG);
 
   const granted = useMemo(() => {
     const set = new Set<string>();
@@ -60,9 +61,9 @@ export function usePermissions() {
     return set;
   }, [roles, matrix]);
 
-  const can = (permission: string) => isSuperAdmin || granted.has(permission);
+  const can = (permission: string) => isSuperAdmin || isPdg || granted.has(permission);
   const canAny = (...permissions: string[]) => permissions.some(can);
   const canAll = (...permissions: string[]) => permissions.every(can);
 
-  return { can, canAny, canAll, roles, isSuperAdmin, permissions: granted, loading, fromDatabase, reload };
+  return { can, canAny, canAll, roles, isSuperAdmin, isPdg, permissions: granted, loading, fromDatabase, reload };
 }
