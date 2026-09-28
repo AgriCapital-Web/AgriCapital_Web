@@ -162,7 +162,8 @@ update public.regions r
 set district_id = d.id
 from public.districts d
 where lower(r.nom) = 'moronou'
-  and lower(d.nom) = 'district de la comoé';
+  and lower(d.nom) = 'district de la comoé'
+  and r.district_id <> d.id;
 
 update public.departements dep
 set region_id = r.id
