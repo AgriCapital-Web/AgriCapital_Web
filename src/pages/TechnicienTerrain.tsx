@@ -38,6 +38,7 @@ const TechnicienTerrain=()=>{
   const [plantations,setPlantations]=useState<any[]>([]);
   const [reports,setReports]=useState<any[]>([]);
   const [interventions,setInterventions]=useState<any[]>([]);
+  const [tickets,setTickets]=useState<any[]>([]);
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
   const [report,setReport]=useState<any>({
@@ -61,12 +62,13 @@ const TechnicienTerrain=()=>{
   const load=async()=>{
     if(!allowed)return;
     setLoading(true);
-    const [{data:p},{data:r},{data:i}]=await Promise.all([
+    const profile=await profileContext();
+    const [{data:p},{data:r},{data:i},{data:t}]=await Promise.all([
       (supabase as any).from("plantations").select("id,id_unique,nom_plantation,nom,superficie_ha,client_id,statut_global,prochaine_visite").order("nom_plantation"),
       (supabase as any).from("rapports_visites_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!rapports_visites_techniques_agent_technique_id_fkey(nom_complet)").order("date_visite",{ascending:false}).limit(100),
       (supabase as any).from("interventions_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!interventions_techniques_agent_technique_id_fkey(nom_complet)").order("date_intervention",{ascending:false}).limit(100)
     ]);
-    setPlantations(p||[]);setReports(r||[]);setInterventions(i||[]);setLoading(false);
+    setPlantations(p||[]);setReports(r||[]);setInterventions(i||[]);setTickets(t||[]);setLoading(false);
   };
 
   useEffect(()=>{load();},[allowed]);
@@ -81,7 +83,7 @@ const TechnicienTerrain=()=>{
       const profile=await profileContext(); if(!profile?.id)throw new Error("Profil technicien introuvable");
       const id=crypto.randomUUID();
       const payload={
-        id,plantation_id:report.plantation_id,client_id:plantation?.client_id||null,agent_technique_id:profile.id,equipe_id:profile.equipe_id||null,
+        id,plantation_id:report.plantation_id,client_id:plantation?.client_id||null,agent_technique_id:profile.id,equipe_id:profile.equipe_id||null,ticket_id:report.ticket_id||null,
         date_visite:new Date(report.date_visite).toISOString(),type_visite:report.type_visite,
         constat:report.constat||null,travaux_realises:report.travaux_realises||null,etat_plantation:report.etat_plantation||null,
         observations:report.observations||null,recommandations:report.recommandations||null,
@@ -98,12 +100,12 @@ const TechnicienTerrain=()=>{
         await offlineInsert("rapports_visites_medias",{
           id:crypto.randomUUID(),rapport_id:id,plantation_id:report.plantation_id,
           media_type:file.type.startsWith("video/")?"video":"photo",storage_path:uploaded.path,
-          mime_type:file.type,nom_fichier:file.name,client_visible:false,created_by:pid
+          mime_type:file.type,nom_fichier:file.name,client_visible:false,created_by:profile.id
         });
       }
       toast({title:submit?"Rapport soumis":"Brouillon enregistré",description:media.length?`${media.length} média(s) rattaché(s).`:undefined});
       setMedia([]);
-      setReport({plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""});
+      setReport({ticket_id:"",plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""});
       load();
     }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
     finally{setSaving(false);}
@@ -136,12 +138,22 @@ const TechnicienTerrain=()=>{
     <div><h1 className="text-3xl font-bold">Terrain & suivi technique</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
 
     <Tabs defaultValue="rapport">
-      <TabsList><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList>
+      <TabsList><TabsTrigger value="demandes">Demandes à traiter {tickets.length>0&&<Badge className="ml-2">{tickets.length}</Badge>}</TabsTrigger><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList>
+
+      <TabsContent value="demandes" className="space-y-4">
+        <Card><CardHeader><CardTitle>Demandes clients à traiter</CardTitle><CardDescription>Les demandes qui vous sont affectées apparaissent ici. Ouvrez une demande pour préparer directement votre rapport.</CardDescription></CardHeader><CardContent className="space-y-3">
+          {tickets.length===0?<p className="text-sm text-muted-foreground">Aucune demande en attente.</p>:tickets.map(t=><div key={t.id} className="border rounded-lg p-4">
+            <div className="flex items-start justify-between gap-3"><div><p className="font-semibold">{t.titre}</p><p className="text-sm text-muted-foreground">{t.client?.nom_complet||"Client"} · {t.plantation?.nom_plantation||t.plantation?.id_unique||"Plantation"}</p></div><Badge>{t.priorite}</Badge></div>
+            <p className="text-sm mt-2">{t.description}</p>{t.action_recommandee&&<p className="text-sm mt-1"><strong>Consigne :</strong> {t.action_recommandee}</p>}
+            <div className="flex justify-end mt-3"><Button onClick={()=>{setReport((x:any)=>({...x,ticket_id:t.id,plantation_id:t.plantation_id,type_visite:"incident",constat:t.description||"",recommandations:t.action_recommandee||""}));document.querySelector('[data-state="active"][value="rapport"]')?.dispatchEvent(new MouseEvent("click",{bubbles:true}));}}>Intervenir et faire le rapport</Button></div>
+          </div>)}
+        </CardContent></Card>
+      </TabsContent>
 
       <TabsContent value="rapport" className="space-y-5">
         <Card><CardHeader><CardTitle>Nouveau rapport terrain</CardTitle><CardDescription>Le rapport reste privé jusqu’à validation technique.</CardDescription></CardHeader><CardContent className="space-y-5">
           <div className="grid md:grid-cols-2 gap-4">
-            <div><Label>Plantation *</Label><Select value={report.plantation_id} onValueChange={v=>setReport((x:any)=>({...x,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une plantation"/></SelectTrigger><SelectContent>{plantations.map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>Demande support</Label><Select value={report.ticket_id||"none"} onValueChange={v=>setReport((x:any)=>({...x,ticket_id:v==="none"?"":v}))}><SelectTrigger><SelectValue placeholder="Aucune demande liée"/></SelectTrigger><SelectContent><SelectItem value="none">Aucune</SelectItem>{tickets.map(t=><SelectItem key={t.id} value={t.id}>{t.titre}</SelectItem>)}</SelectContent></Select></div><div><Label>Plantation *</Label><Select value={report.plantation_id} onValueChange={v=>setReport((x:any)=>({...x,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une plantation"/></SelectTrigger><SelectContent>{plantations.map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Date et heure *</Label><Input type="datetime-local" value={report.date_visite} onChange={e=>setReport((x:any)=>({...x,date_visite:e.target.value}))}/></div>
             <div><Label>Type de visite</Label><Select value={report.type_visite} onValueChange={v=>setReport((x:any)=>({...x,type_visite:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="suivi">Suivi</SelectItem><SelectItem value="installation">Installation</SelectItem><SelectItem value="controle">Contrôle</SelectItem><SelectItem value="incident">Incident</SelectItem><SelectItem value="remise">Remise de plantation</SelectItem></SelectContent></Select></div>
             <div><Label>État de la plantation</Label><Input value={report.etat_plantation} onChange={e=>setReport((x:any)=>({...x,etat_plantation:e.target.value}))} placeholder="Bon, à surveiller, intervention urgente…"/></div>
