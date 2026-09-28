@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAppRoles, useDepartementsEntreprise } from "@/hooks/useReferentiels";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import { normalizeRoles, TERRITORIAL_ROLES, ROLES as APP_ROLES } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 
@@ -293,13 +294,13 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
           <div className="space-y-2">
             <Label>Téléphone</Label>
-            <Input {...register("telephone")} placeholder="0XXXXXXXXX" />
+            <CountryPhoneInput label="Téléphone" countryCode={watch("telephone_indicatif")||"+225"} localValue={watch("telephone_local")||""} onChange={v=>{setValue("telephone_indicatif",v.callingCode);setValue("telephone_local",v.localValue);setValue("telephone",v.internationalValue)}}/>
             {errors.telephone?.message && <p className="text-sm text-destructive">{String(errors.telephone.message)}</p>}
           </div>
 
           <div className="space-y-2">
             <Label>WhatsApp</Label>
-            <Input {...register("whatsapp")} placeholder="0XXXXXXXXX" />
+            <CountryPhoneInput label="WhatsApp" countryCode={watch("whatsapp_indicatif")||"+225"} localValue={watch("whatsapp_local")||""} onChange={v=>{setValue("whatsapp_indicatif",v.callingCode);setValue("whatsapp_local",v.localValue);setValue("whatsapp",v.internationalValue)}}/>
             {errors.whatsapp?.message && <p className="text-sm text-destructive">{String(errors.whatsapp.message)}</p>}
           </div>
 
