@@ -13,6 +13,7 @@ import FileUpload from "@/components/ui/file-upload";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, LandPlot, UserRound } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import GeographieCascade from "@/components/common/GeographieCascade";
 
 interface ClientFormProps { client?: any; onSuccess: () => void; onCancel: () => void; }
 
@@ -25,7 +26,7 @@ const CODES = [
 const CLIENT_COLUMNS = new Set([
   "civilite","nom_famille","prenoms","nom_complet","nom","date_naissance","lieu_naissance","statut_marital",
   "type_piece","numero_piece","date_delivrance_piece","telephone","whatsapp","email","domicile","domicile_residence",
-  "district_id","region_id","departement_id","sous_prefecture_id","offre_id","type_compte","banque_operateur",
+  "district_id","region_id","departement_id","sous_prefecture_id","village_id","offre_id","type_compte","banque_operateur",
   "numero_compte","nom_titulaire_compte","photo_profil_url","fichier_piece_url","fichier_piece_recto_url",
   "fichier_piece_verso_url","localite","nationalite","type_client","parcelle_id","telephone_indicatif","telephone_local",
   "whatsapp_indicatif","whatsapp_local","updated_by"
@@ -33,7 +34,7 @@ const CLIENT_COLUMNS = new Set([
 
 const PARCEL_COLUMNS = new Set([
   "nom","surface_totale_ha","surface_proprietaire_ha","surface_agricapital_ha","surface_attribuee_ha",
-  "surface_disponible_ha","district_id","region_id","departement_id","sous_prefecture_id","village",
+  "surface_disponible_ha","district_id","region_id","departement_id","sous_prefecture_id","village_id","village",
   "localisation_gps_lat","localisation_gps_lng","notes","mode_surface","plantation_surface_cible_ha",
   "plantation_type_culture","plantation_densite_plants","updated_by"
 ]);
@@ -185,7 +186,7 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
           <div><Label>WhatsApp</Label><Input value={form.whatsapp || ""} onChange={e=>setField("whatsapp",e.target.value)}/></div>
           <div><Label>Email</Label><Input type="email" value={form.email || ""} onChange={e=>setField("email",e.target.value)}/></div>
           <div><Label>Domicile / résidence</Label><Input value={form.domicile_residence || form.domicile || ""} onChange={e=>{setField("domicile_residence",e.target.value);setField("domicile",e.target.value);}}/></div>
-          <div><Label>Localité</Label><Input value={form.localite || ""} onChange={e=>setField("localite",e.target.value)}/></div>
+          <div className="md:col-span-2"><Label>Localisation administrative</Label><GeographieCascade districtId={form.district_id} regionId={form.region_id} departementId={form.departement_id} sousPrefectureId={form.sous_prefecture_id} villageId={form.village_id} required onChange={(g)=>setForm((x:any)=>({...x,district_id:g.districtId||null,region_id:g.regionId||null,departement_id:g.departementId||null,sous_prefecture_id:g.sousPrefectureId||null,village_id:g.villageId||null,localite:g.villageName||x.localite||""}))}/></div>
         </CardContent>
       </Card>
 
@@ -219,7 +220,7 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
               <div><Label>Référence parcelle</Label><Input value={parcel.id_unique || ""} disabled /></div>
               <div><Label>Nom de parcelle</Label><Input value={parcel.nom || ""} onChange={e=>updateParcel("nom",e.target.value)}/></div>
               <div><Label>Superficie totale (ha)</Label><Input type="number" min="0" step="0.01" value={parcel.surface_totale_ha ?? ""} onChange={e=>updateParcel("surface_totale_ha",e.target.value)}/></div>
-              <div><Label>Village / localité</Label><Input value={parcel.village || ""} onChange={e=>updateParcel("village",e.target.value)}/></div>
+              <div className="md:col-span-3"><Label>Localisation de la parcelle</Label><GeographieCascade districtId={parcel.district_id} regionId={parcel.region_id} departementId={parcel.departement_id} sousPrefectureId={parcel.sous_prefecture_id} villageId={parcel.village_id} required onChange={(g)=>setParcel((x:any)=>({...x,district_id:g.districtId||null,region_id:g.regionId||null,departement_id:g.departementId||null,sous_prefecture_id:g.sousPrefectureId||null,village_id:g.villageId||null,village:g.villageName||x.village||""}))}/></div>
               <div><Label>Latitude</Label><Input type="number" step="any" value={parcel.localisation_gps_lat ?? ""} onChange={e=>updateParcel("localisation_gps_lat",e.target.value)}/></div>
               <div><Label>Longitude</Label><Input type="number" step="any" value={parcel.localisation_gps_lng ?? ""} onChange={e=>updateParcel("localisation_gps_lng",e.target.value)}/></div>
               <div><Label>Culture</Label><Input value={parcel.plantation_type_culture || ""} onChange={e=>updateParcel("plantation_type_culture",e.target.value)}/></div>
