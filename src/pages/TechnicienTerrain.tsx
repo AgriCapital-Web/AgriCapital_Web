@@ -1,3 +1,4 @@
+import MediaUploadVisual from "@/components/ui/media-upload-visual";
 import { useEffect, useMemo, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -192,7 +193,7 @@ const TechnicienTerrain=()=>{
           <div className="grid md:grid-cols-2 gap-4"><div><Label>Observations internes</Label><Textarea value={report.observations} onChange={e=>setReport((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations internes</Label><Textarea value={report.recommandations} onChange={e=>setReport((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
           <div><Label>Message destiné au client</Label><Textarea value={report.contenu_client} onChange={e=>setReport((x:any)=>({...x,contenu_client:e.target.value}))} placeholder="Ce message pourra être publié dans l’espace client après validation technique."/><p className="text-xs text-muted-foreground mt-1">Seul ce contenu est destiné à être présenté au client.</p>{palmTerroir&&<p className="text-xs text-amber-700 mt-1">PalmTerroir : après la mise en terre, AgriCapital assure l’encadrement, les recommandations et le suivi ; les travaux d’entretien et les intrants restent à la charge du client.</p>}</div>
           <div className="grid md:grid-cols-3 gap-4"><div><Label>Prochaine intervention</Label><Input type="date" value={report.prochaine_intervention} onChange={e=>setReport((x:any)=>({...x,prochaine_intervention:e.target.value}))}/></div><div><Label>Latitude</Label><Input value={report.localisation_gps_lat} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lat:e.target.value}))}/></div><div><Label>Longitude</Label><Input value={report.localisation_gps_lng} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lng:e.target.value}))}/></div></div>
-          <div><Label>Photos / vidéos</Label><Input type="file" accept="image/*,video/*" multiple onChange={e=>setMedia(Array.from(e.target.files||[]))}/><p className="text-xs text-muted-foreground mt-1">Les médias restent privés jusqu’à validation du rapport.</p></div>
+          <div><Label>Photos / vidéos</Label><MediaUploadVisual label="Photos / vidéos" files={media} onChange={setMedia}/><p className="text-xs text-muted-foreground mt-1">Les médias restent privés jusqu’à validation du rapport.</p></div>
           <div className="flex gap-3 justify-end"><Button variant="outline" disabled={saving} onClick={()=>saveReport(false)}>Enregistrer brouillon</Button><Button disabled={saving} onClick={()=>saveReport(true)}>Soumettre le rapport</Button></div>
         </CardContent></Card>
       </TabsContent>
