@@ -117,7 +117,8 @@ const DomainRouter = () => {
       <Route path="/portefeuilles" element={<Portefeuilles />} />
       
       {/* Support */}
-      <Route path="/tickets" element={<Tickets />} />
+      <Route path="/support" element={<Tickets />} />
+              <Route path="/tickets" element={<Navigate to="/support" replace />} />
       
       {/* Admin */}
       <Route path="/parametres" element={<Parametres />} />
