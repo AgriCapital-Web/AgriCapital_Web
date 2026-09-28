@@ -4,6 +4,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import PieceTypeSelect from "@/components/common/PieceTypeSelect";
+import RelationshipSelect from "@/components/common/RelationshipSelect";
 
 interface Props { formData: any; updateFormData: (data: any) => void; }
 
@@ -37,8 +40,8 @@ export const EtapeRepresentantDynamique = ({ formData, updateFormData }: Props) 
         <CardHeader><CardTitle>Identité du représentant</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-4">
-            <div><Label>Qualité *</Label><Select value={formData.representant_type || "cotitulaire"} onValueChange={(v) => updateFormData({representant_type:v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cotitulaire">Cotitulaire</SelectItem><SelectItem value="mandataire">Mandataire</SelectItem></SelectContent></Select></div>
-            <div><Label>Lien avec le Client</Label><Input value={formData.representant_lien || ""} onChange={(e) => updateFormData({representant_lien:e.target.value})} placeholder="Conjoint(e), enfant, parent..." /></div>
+            <div><Label>Qualité *</Label><Select value={formData.representant_type || "cotitulaire"} onValueChange={(v) => updateFormData({representant_type:v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cotitulaire">Cotitulaire</SelectItem><SelectItem value="mandataire">Mandataire</SelectItem></SelectContent></Select></div>*/}
+            <div><Label>Lien avec le Client</Label><RelationshipSelect value={formData.representant_lien||""} onChange={(v)=>updateFormData({representant_lien:v})}/>{/*<Input value={formData.representant_lien || ""} onChange={(e) => updateFormData({representant_lien:e.target.value})} placeholder="Conjoint(e), enfant, parent..." /></div>*/}
             <div><Label>Civilité</Label><Select value={formData.representant_civilite || ""} onValueChange={(v) => updateFormData({representant_civilite:v})}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent><SelectItem value="M">M.</SelectItem><SelectItem value="Mme">Mme</SelectItem><SelectItem value="Mlle">Mlle</SelectItem></SelectContent></Select></div>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -57,7 +60,7 @@ export const EtapeRepresentantDynamique = ({ formData, updateFormData }: Props) 
         <CardHeader><CardTitle>Pièce d’identité et photo</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-4">
-            <div><Label>Type de pièce *</Label><Select value={formData.representant_type_piece || ""} onValueChange={(v) => updateFormData({representant_type_piece:v})}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent><SelectItem value="cni">CNI</SelectItem><SelectItem value="passeport">Passeport</SelectItem><SelectItem value="cni_cedeao">CNI CEDEAO</SelectItem><SelectItem value="permis">Permis</SelectItem><SelectItem value="autre">Autre</SelectItem></SelectContent></Select></div>
+            <div><Label>Type de pièce *</Label><PieceTypeSelect value={formData.representant_type_piece||""} onChange={(v)=>updateFormData({representant_type_piece:v})}/>{/*<Select value={formData.representant_type_piece || ""} onValueChange={(v) => updateFormData({representant_type_piece:v})}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent><SelectItem value="cni">CNI</SelectItem><SelectItem value="passeport">Passeport</SelectItem><SelectItem value="cni_cedeao">CNI CEDEAO</SelectItem><SelectItem value="permis">Permis</SelectItem><SelectItem value="autre">Autre</SelectItem></SelectContent></Select></div>
             <div><Label>Numéro de pièce *</Label><Input value={formData.representant_numero_piece || ""} onChange={(e) => updateFormData({representant_numero_piece:e.target.value})} /></div>
             <div><Label>Date de délivrance</Label><Input type="date" value={formData.representant_date_delivrance || ""} onChange={(e) => updateFormData({representant_date_delivrance:e.target.value})} /></div>
           </div>
@@ -70,8 +73,8 @@ export const EtapeRepresentantDynamique = ({ formData, updateFormData }: Props) 
         <CardHeader><CardTitle>Coordonnées du représentant</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
-            <div><Label>Téléphone</Label><Input value={formData.representant_telephone || ""} onChange={(e) => updateFormData({representant_telephone:e.target.value})} /></div>
-            <div><Label>WhatsApp</Label><Input value={formData.representant_whatsapp || ""} onChange={(e) => updateFormData({representant_whatsapp:e.target.value})} /></div>
+            <CountryPhoneInput label="Téléphone" countryCode={formData.representant_telephone_indicatif||"+225"} localValue={formData.representant_telephone_local||""} onChange={(v)=>updateFormData({representant_telephone_indicatif:v.callingCode,representant_telephone_local:v.localValue,representant_telephone:v.internationalValue})}/><div className="hidden"><Label>Téléphone</Label><Input value={formData.representant_telephone || ""} onChange={(e) => updateFormData({representant_telephone:e.target.value})} /></div>
+            <CountryPhoneInput label="WhatsApp" countryCode={formData.representant_whatsapp_indicatif||"+225"} localValue={formData.representant_whatsapp_local||""} onChange={(v)=>updateFormData({representant_whatsapp_indicatif:v.callingCode,representant_whatsapp_local:v.localValue,representant_whatsapp:v.internationalValue})}/><div className="hidden"><Label>WhatsApp</Label><Input value={formData.representant_whatsapp || ""} onChange={(e) => updateFormData({representant_whatsapp:e.target.value})} /></div>
           </div>
           <div><Label>Adresse</Label><Input value={formData.representant_adresse || ""} onChange={(e) => updateFormData({representant_adresse:e.target.value})} /></div>
         </CardContent>
