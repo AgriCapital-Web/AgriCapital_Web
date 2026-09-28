@@ -106,20 +106,39 @@ export const EtapeDocumentsContratsDynamiques = ({ formData, updateFormData }: P
       {contracts.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Contrats applicables</CardTitle>
+            <CardTitle>Contrats et annexes</CardTitle>
             <CardDescription>
-              Le CRM conserve la terminologie « Client ». Les termes « acquéreur » et « acquisition » restent ceux des documents officiels.
+              Les contrats applicables sont regroupés ici avec les autres pièces du dossier. Le CRM utilise « Client » ; les termes « acquéreur » et « acquisition » restent ceux des documents officiels.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {contracts.map((contract) => (
               <div key={contract.id} className="rounded-lg border p-3">
                 <p className="font-medium">
-                  {contract.type_contrat === "acquisition_client"
+                  {contract.type_contrat === "contrat_acquisition_client"
                     ? "Contrat d’acquisition de plantation agricole"
                     : "Contrat d’accompagnement agricole"}
                 </p>
                 <p className="text-xs text-muted-foreground">{contract.source_document}</p>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm">Statut du contrat</label>
+                    <select className="w-full border rounded-md h-10 px-3" value={formData["contrat_"+contract.type_contrat+"_statut"]||"a_preparer"} onChange={e=>updateFormData({"contrat_"+contract.type_contrat+"_statut":e.target.value})}>
+                      <option value="a_preparer">À préparer</option>
+                      <option value="a_signer">À signer</option>
+                      <option value="signe">Signé</option>
+                    </select>
+                  </div>
+                </div>
+                <FileUploadVisual
+                  label="Contrat signé (si disponible)"
+                  field={"contrat_"+contract.type_contrat}
+                  accept=".pdf,image/jpeg,image/png"
+                  required={false}
+                  currentFile={formData["contrat_"+contract.type_contrat+"_file"]||null}
+                  currentPreview={formData["contrat_"+contract.type_contrat+"_preview"]||""}
+                  onFileChange={(field,file,preview)=>updateFormData({"contrat_"+contract.type_contrat+"_file":file,"contrat_"+contract.type_contrat+"_preview":preview})}
+                />
               </div>
             ))}
           </CardContent>
