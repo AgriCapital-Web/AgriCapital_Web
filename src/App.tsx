@@ -90,7 +90,10 @@ const DomainRouter = () => {
       <Route path="/proprietaires-terres" element={<ProprietairesTerres />} />
       <Route path="/parcelles" element={<Parcelles />} />
       <Route path="/documents" element={<Documents />} />
-      <Route path="/nouvelle-acquisition" element={<NouvelleAcquisition />} />
+      <Route path="/acquisitions" element={<Clients />} />
+      <Route path="/acquisitions/nouveau" element={<NouvelleAcquisition />} />
+      <Route path="/acquisitions/:id" element={<ClientDetail />} />
+      <Route path="/nouvelle-acquisition" element={<Navigate to="/acquisitions/nouveau" replace />} />
       <Route path="/beneficiaire-particulier" element={<BeneficiaireParticulier />} />
       <Route path="/profil" element={<Profil />} />
       
