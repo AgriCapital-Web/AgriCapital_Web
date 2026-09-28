@@ -68,7 +68,7 @@ const GestionRoles = () => {
   const fetchData = async () => {
     try {
       const { data: profilesData } = await supabase
-        .from("profils_annuaire")
+        .from("profiles")
         .select("id, user_id, nom_complet, email, actif, departement")
         .eq("actif", true)
         .order("nom_complet");
