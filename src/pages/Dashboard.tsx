@@ -367,7 +367,7 @@ const Dashboard = () => {
               <Button asChild variant="default" className="h-auto py-4 flex-col gap-2">
                 <Link to="/nouvelle-acquisition">
                   <Plus className="h-5 w-5" />
-                  <span className="text-xs sm:text-sm">Nouvelle acquisition</span>
+                  <span className="text-xs sm:text-sm">Nouveau Client</span>
                 </Link>
               </Button>
             )}
@@ -503,71 +503,71 @@ const Dashboard = () => {
 
           {/* KPIs adaptés au rôle */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            <Card className="hover-scale cursor-pointer transition-all hover:shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Clients
-                </CardTitle>
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.totalClients}</div>
-                {stats.evolutionClients > 0 && (
-                  <div className="flex items-center gap-1 mt-1 sm:mt-2 text-green-600">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm font-medium">+{stats.evolutionClients}%</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <Link to="/acquisitions" className="block h-full" aria-label="Ouvrir le registre des acquisitions">
+              <Card className="h-full hover-scale cursor-pointer transition-all hover:shadow-lg hover:border-primary/50">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Acquisitions</CardTitle>
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                </CardHeader>
+                <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.totalClients}</div>
+                  {stats.evolutionClients > 0 && (
+                    <div className="flex items-center gap-1 mt-1 sm:mt-2 text-green-600">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm font-medium">+{stats.evolutionClients}%</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">Personnes et dossiers agricoles</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="hover-scale cursor-pointer transition-all hover:shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Plantations
-                </CardTitle>
-                <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.totalPlantations}</div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
-                  {stats.totalSuperficie.toFixed(1)} ha
-                </p>
-              </CardContent>
-            </Card>
+            <Link to="/plantations" className="block h-full" aria-label="Ouvrir le registre des plantations">
+              <Card className="h-full hover-scale cursor-pointer transition-all hover:shadow-lg hover:border-primary/50">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Plantations</CardTitle>
+                  <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                </CardHeader>
+                <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.totalPlantations}</div>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">{stats.totalSuperficie.toFixed(1)} ha</p>
+                  <p className="text-xs text-muted-foreground mt-1">Registre des actifs agricoles</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="hover-scale cursor-pointer transition-all hover:shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Production
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.plantationsEnProduction}</div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
-                  {stats.tauxProduction}%
-                </p>
-              </CardContent>
-            </Card>
+            <Link to="/plantations?statut=en_production" className="block h-full" aria-label="Ouvrir les plantations en production">
+              <Card className="h-full hover-scale cursor-pointer transition-all hover:shadow-lg hover:border-green-500/50">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Production</CardTitle>
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                </CardHeader>
+                <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stats.plantationsEnProduction}</div>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">{stats.tauxProduction}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Plantations actuellement en production</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card className="hover-scale cursor-pointer transition-all hover:shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Paiements
-                </CardTitle>
-                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
-                <div className="text-lg sm:text-xl lg:text-2xl font-bold">{formatMontant(stats.totalPaiements)}</div>
-                {stats.paiementsEnAttente > 0 && (
-                  <p className="text-xs sm:text-sm text-orange-600 mt-1 sm:mt-2 flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    {stats.paiementsEnAttente} attente
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            <Link to="/paiements" className="block h-full" aria-label="Ouvrir la gestion des paiements">
+              <Card className="h-full hover-scale cursor-pointer transition-all hover:shadow-lg hover:border-primary/50">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-4 lg:p-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">Paiements</CardTitle>
+                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                </CardHeader>
+                <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold">{formatMontant(stats.totalPaiements)}</div>
+                  {stats.paiementsEnAttente > 0 && (
+                    <p className="text-xs sm:text-sm text-orange-600 mt-1 sm:mt-2 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                      {stats.paiementsEnAttente} attente
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">Paiements validés et à traiter</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
 
           {/* KPIs par zone pour RCom/CE/Commercial */}
