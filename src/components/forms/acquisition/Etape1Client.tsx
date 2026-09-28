@@ -92,7 +92,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
       const { data } = await (supabase as any)
         .from("districts")
         .select("*")
-        .eq("est_actif", true)
+        .eq("est_actif_effectif", true)
         .order("nom");
       if (data) setDistricts(data);
     };
@@ -104,10 +104,10 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
     if (formData.district_id) {
       const fetchRegions = async () => {
         const { data } = await (supabase as any)
-          .from("regions")
+          .from("v_geo_regions")
           .select("*")
           .eq("district_id", formData.district_id)
-          .eq("est_active", true)
+          .eq("est_active_effectif", true)
           .order("nom");
         if (data) setRegions(data);
       };
@@ -120,7 +120,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
     if (formData.region_id) {
       const fetchDepartements = async () => {
         const { data } = await (supabase as any)
-          .from("departements")
+          .from("v_geo_departements")
           .select("*")
           .eq("region_id", formData.region_id)
           .eq("est_actif", true)
@@ -136,10 +136,10 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
     if (formData.departement_id) {
       const fetchSousPrefectures = async () => {
         const { data } = await (supabase as any)
-          .from("sous_prefectures")
+          .from("v_geo_sous_prefectures")
           .select("*")
           .eq("departement_id", formData.departement_id)
-          .eq("est_active", true)
+          .eq("est_active_effectif", true)
           .order("nom");
         if (data) setSousPrefectures(data);
       };
