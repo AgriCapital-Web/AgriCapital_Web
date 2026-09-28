@@ -1,0 +1,89 @@
+name: ANStat RGPH 2021 Import Probe
+
+on:
+  push:
+    branches:
+      - ops/anstat-rgph2021-import
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install parser
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pymupdf
+
+      - name: Fetch official RGPH 2021 locality repertoires
+        shell: bash
+        run: |
+          python <<'PY'
+          import json, os, re, requests, fitz
+          from pathlib import Path
+
+          base = "https://rp2021.anstat.ci/wp-json/wp/v2/media"
+          items=[]
+          for page in range(1,6):
+              r=requests.get(base,params={"search":"Repertoire des Localites","per_page":100,"page":page},timeout=60)
+              if r.status_code==400:
+                  break
+              r.raise_for_status()
+              data=r.json()
+              if not data: break
+              items.extend(data)
+
+          pdfs=[]
+          seen=set()
+          for x in items:
+              u=(x.get("source_url") or "").strip()
+              title=(x.get("title") or {}).get("rendered","")
+              if u.lower().endswith(".pdf") and ("localit" in (title+" "+u).lower()):
+                  if u not in seen:
+                      seen.add(u); pdfs.append({"title":title,"url":u})
+
+          # Fallback to the two independently verified official 2021 files if the media API is unavailable.
+          fallbacks=[
+            "https://rp2021.anstat.ci/wp-content/uploads/2025/04/Repertoire-des-Localites-Agneby-Tiassa.pdf",
+            "https://rp2021.anstat.ci/wp-content/uploads/2025/04/Repertoire-des-Localites-Tchologo.pdf",
+          ]
+          for u in fallbacks:
+              if u not in seen:
+                  pdfs.append({"title":"fallback","url":u})
+
+          out=Path("supabase/imports/anstat_rgph2021_probe")
+          out.mkdir(parents=True,exist_ok=True)
+          (out/"manifest.json").write_text(json.dumps(pdfs,ensure_ascii=False,indent=2),encoding="utf-8")
+
+          ok=0
+          for i,p in enumerate(pdfs,1):
+              try:
+                  b=requests.get(p["url"],timeout=120)
+                  b.raise_for_status()
+                  fn=out/f"{i:02d}.pdf"
+                  fn.write_bytes(b.content)
+                  doc=fitz.open(stream=b.content,filetype="pdf")
+                  txt="\n".join(page.get_text("text") for page in doc)
+                  (out/f"{i:02d}.txt").write_text(txt,encoding="utf-8")
+                  ok+=1
+              except Exception as e:
+                  (out/f"{i:02d}.error.txt").write_text(str(e),encoding="utf-8")
+
+          summary={"discovered":len(pdfs),"downloaded":ok}
+          (out/"summary.json").write_text(json.dumps(summary,indent=2),encoding="utf-8")
+          print(json.dumps(summary))
+          if ok < 30:
+              raise SystemExit("Expected at least 30 regional repertoires; discovery/download incomplete.")
+          PY
+
+      - name: Commit extracted source material
+        run: |
+          git config user.name "AgriCapital ANStat Import"
+          git config user.email "actions@users.noreply.github.com"
+          git add supabase/imports/anstat_rgph2021_probe
+          git commit -m "ops: fetch official ANStat RGPH 2021 locality repertoires" || true
+          git push

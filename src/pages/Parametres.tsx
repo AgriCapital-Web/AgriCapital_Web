@@ -1,7 +1,7 @@
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Shield, MapPin, Settings2, List, Bell, Globe, Package, UsersRound, UserPlus, Database, Map, Building, Home, TreePine, HardDrive, MapPinned, History, IdCard } from "lucide-react";
+import { Users, Shield, Settings2, List, Bell, Globe, Package, UsersRound, UserPlus, Database, HardDrive, MapPinned, History, IdCard, Map } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PERMISSIONS, hasPermission } from "@/lib/roles";
 import Utilisateurs from "@/pages/Utilisateurs";
@@ -10,10 +10,7 @@ import Equipes from "@/pages/Equipes";
 import AccountRequests from "@/pages/AccountRequests";
 import GestionRoles from "@/pages/parametres/GestionRoles";
 import GestionRegions from "@/pages/parametres/GestionRegions";
-import GestionDistricts from "@/pages/parametres/GestionDistricts";
-import GestionDepartements from "@/pages/parametres/GestionDepartements";
-import GestionSousPrefectures from "@/pages/parametres/GestionSousPrefectures";
-import GestionVillages from "@/pages/parametres/GestionVillages";
+import GestionGeographie from "@/pages/parametres/GestionGeographie";
 import ChampsPersonnalises from "@/pages/parametres/ChampsPersonnalises";
 import GestionStatuts from "@/pages/parametres/GestionStatuts";
 import ConfigurationSysteme from "@/pages/parametres/ConfigurationSysteme";
@@ -46,13 +43,9 @@ const Parametres = () => {
 
     { value: 'roles', label: 'Rôles', icon: Shield, permission: PERMISSIONS.MANAGE_ROLES, component: GestionRoles },
     { value: 'demandes', label: 'Demandes', icon: UserPlus, permission: PERMISSIONS.MANAGE_USERS, component: AccountRequests },
+    { value: 'geographie', label: 'Géographie', icon: Map, permission: PERMISSIONS.MANAGE_GEO, component: GestionGeographie },
     { value: 'zones', label: 'Zones', icon: MapPinned, permission: PERMISSIONS.MANAGE_TEAMS, component: GestionZones },
     { value: 'offres', label: 'Offres', icon: Package, permission: PERMISSIONS.MANAGE_OFFERS, component: Offres },
-    { value: 'districts', label: 'Districts', icon: Map, permission: PERMISSIONS.MANAGE_GEO, component: GestionDistricts },
-    { value: 'regions', label: 'Régions', icon: MapPin, permission: PERMISSIONS.MANAGE_GEO, component: GestionRegions },
-    { value: 'departements', label: 'Départements', icon: Building, permission: PERMISSIONS.MANAGE_GEO, component: GestionDepartements },
-    { value: 'sous-prefectures', label: 'S/Préfectures', icon: Home, permission: PERMISSIONS.MANAGE_GEO, component: GestionSousPrefectures },
-    { value: 'villages', label: 'Villages', icon: TreePine, permission: PERMISSIONS.MANAGE_GEO, component: GestionVillages },
     { value: 'statuts', label: 'Statuts', icon: List, permission: PERMISSIONS.MANAGE_SYSTEM, component: GestionStatuts },
     { value: 'champs', label: 'Champs', icon: Settings2, permission: PERMISSIONS.MANAGE_SYSTEM, component: ChampsPersonnalises },
     { value: 'notifications', label: 'Notifs', icon: Bell, permission: PERMISSIONS.MANAGE_SYSTEM, component: GestionNotifications },
