@@ -15,6 +15,7 @@ import { X } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAppRoles, useDepartementsEntreprise } from "@/hooks/useReferentiels";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import FileUploadVisual from "@/components/ui/file-upload-visual";
 import { normalizeRoles, TERRITORIAL_ROLES, ROLES as APP_ROLES } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 
@@ -306,7 +307,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
           <div className="space-y-2 col-span-2">
             <Label>Photo de Profil</Label>
-            <Input type="file" name="photo" accept="image/*" onChange={handlePhotoChange} />
+            <FileUploadVisual label="Photo de Profil" field="photo" accept="image/*" currentPreview={photoPreview} onFileChange={(_,f,p)=>{if(f){setPhotoPreview(p);const input=document.querySelector('input[name="photo"]') as HTMLInputElement|null;if(input){const dt=new DataTransfer();dt.items.add(f);input.files=dt.files;}}}}/>
             {photoPreview && (
               <div className="mt-2 relative inline-block">
                 <img
