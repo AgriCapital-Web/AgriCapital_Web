@@ -70,7 +70,8 @@ const TechnicienTerrain=()=>{
     const profile=await profileContext();
     const [{data:p},{data:c},{data:pa},{data:r},{data:i},{data:t}]=await Promise.all([
       (supabase as any).from("plantations").select("id,id_unique,nom_plantation,nom,superficie_ha,client_id,statut_global,prochaine_visite,date_plantation").order("nom_plantation"),
-      (supabase as any).from("clients").select("id,id_unique,formule_code,formule_nom,famille_offre,nom_complet,total_hectares,parcelle_id").order("nom_complet"),\n      (supabase as any).from("parcelles").select("id,id_unique,nom,village,surface_totale_ha,region_id,plantation_date_activation,plantation_type_culture,plantation_densite_plants").order("nom"),
+      (supabase as any).from("clients").select("id,id_unique,formule_code,formule_nom,famille_offre,nom_complet,total_hectares,parcelle_id").order("nom_complet"),
+      (supabase as any).from("parcelles").select("id,id_unique,nom,village,surface_totale_ha,region_id,plantation_date_activation,plantation_type_culture,plantation_densite_plants").order("nom"),
       (supabase as any).from("rapports_visites_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!rapports_visites_techniques_agent_technique_id_fkey(nom_complet)").order("date_visite",{ascending:false}).limit(100),
       (supabase as any).from("interventions_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!interventions_techniques_agent_technique_id_fkey(nom_complet)").order("date_intervention",{ascending:false}).limit(100)
     ]);
@@ -165,7 +166,7 @@ const TechnicienTerrain=()=>{
         <Card><CardHeader><CardTitle>Demandes clients à traiter</CardTitle><CardDescription>Les demandes qui vous sont affectées apparaissent ici. Ouvrez une demande pour préparer directement votre rapport.</CardDescription></CardHeader><CardContent className="space-y-3">
           {tickets.length===0?<p className="text-sm text-muted-foreground">Aucune demande en attente.</p>:tickets.map(t=><div key={t.id} className="border rounded-lg p-4">
             <div className="flex items-start justify-between gap-3"><div><p className="font-semibold">{t.titre}</p><p className="text-sm text-muted-foreground">{t.client?.nom_complet||"Client"} · {t.plantation?.nom_plantation||t.plantation?.id_unique||"Plantation"}</p></div><Badge>{t.priorite}</Badge></div>
-            <p className="text-sm mt-2">{t.description}</p>{t.action_recommandee&&<p className="text-sm mt-1"><strong>Consigne :</strong> {t.action_recommandee}</p>}
+            <p className="text-sm mt-2">{t.description}</p>
             <div className="flex justify-end mt-3"><Button onClick={()=>{setReport((x:any)=>({...x,ticket_id:t.id,plantation_id:t.plantation_id,type_visite:"incident",constat:t.description||"",recommandations:t.action_recommandee||""}));setActiveTab("rapport");}}>Intervenir et faire le rapport</Button></div>
           </div>)}
         </CardContent></Card>
