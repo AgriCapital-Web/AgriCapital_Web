@@ -11,8 +11,6 @@ import { EtapeRepresentantDynamique } from "@/components/forms/acquisition/Etape
 import { EtapeParcelleDynamique } from "@/components/forms/acquisition/EtapeParcelleDynamique";
 import { EtapeEnqueteClient } from "@/components/forms/acquisition/EtapeEnqueteClient";
 import { EtapeDocumentsContratsDynamiques } from "@/components/forms/acquisition/EtapeDocumentsContratsDynamiques";
-import { EtapeContratsDynamiques } from "@/components/forms/acquisition/EtapeContratsDynamiques";
-import { EtapePaiementInitial } from "@/components/forms/acquisition/EtapePaiementInitial";
 import { EtapePaiementConfirmation } from "@/components/forms/acquisition/EtapePaiementConfirmation";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadFile } from "@/utils/storage";
