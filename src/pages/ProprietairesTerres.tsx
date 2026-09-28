@@ -66,6 +66,8 @@ const ProprietairesTerres = () => {
     statut_foncier: "coutumier", reference_cadastrale: "",
     limites_nord: "", limites_sud: "", limites_est: "", limites_ouest: "",
     servitudes: "", croquis_joint: false,
+    plantation_partagee_activee: true, plantation_surface_cible_ha: "",
+    plantation_type_culture: "Palmier à huile", plantation_densite_plants: "140", plantation_date_activation: "",
     co_titulaire_nom: "", co_titulaire_lien: "", co_titulaire_piece: "", co_titulaire_telephone: "",
     temoin_proprietaire_nom: "", temoin_proprietaire_qualite: "", representant_agricapital_nom: "", representant_agricapital_qualite: "",
     leader_communautaire_nom: "", leader_communautaire_qualite: "", voisin_1_nom: "", voisin_1_cote: "", voisin_2_nom: "", voisin_2_cote: "",
@@ -226,6 +228,14 @@ const ProprietairesTerres = () => {
           proprietaire_id: proprietaire.id,
           nom: `${nomComplet} — ${formData.village || "Parcelle PP"}`,
           surface_totale_ha: surfaceTotale,
+          mode_surface: "foncier",
+          plantation_partagee_activee: Boolean(formData.plantation_partagee_activee),
+          plantation_surface_cible_ha: formData.plantation_partagee_activee
+            ? (formData.plantation_surface_cible_ha ? parseFloat(formData.plantation_surface_cible_ha) : surfaceTotale)
+            : null,
+          plantation_type_culture: formData.plantation_type_culture || "Palmier à huile",
+          plantation_densite_plants: formData.plantation_densite_plants ? parseInt(formData.plantation_densite_plants) : 140,
+          plantation_date_activation: formData.plantation_date_activation || null,
           district_id: formData.district_id || null,
           region_id: formData.region_id || null,
           departement_id: formData.departement_id || null,
@@ -315,6 +325,8 @@ const ProprietairesTerres = () => {
       statut_foncier: "coutumier", reference_cadastrale: "",
       limites_nord: "", limites_sud: "", limites_est: "", limites_ouest: "",
       servitudes: "", croquis_joint: false,
+      plantation_partagee_activee: true, plantation_surface_cible_ha: "",
+      plantation_type_culture: "Palmier à huile", plantation_densite_plants: "140", plantation_date_activation: "",
       co_titulaire_nom: "", co_titulaire_lien: "", co_titulaire_piece: "", co_titulaire_telephone: "",
       temoin_proprietaire_nom: "", temoin_proprietaire_qualite: "", representant_agricapital_nom: "", representant_agricapital_qualite: "",
       leader_communautaire_nom: "", leader_communautaire_qualite: "", voisin_1_nom: "", voisin_1_cote: "", voisin_2_nom: "", voisin_2_cote: "",
@@ -394,7 +406,48 @@ const ProprietairesTerres = () => {
                               <Input value={formData.prenoms} onChange={e => update('prenoms', e.target.value)} />
                             </div>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Card className="border-primary/20 bg-primary/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Planté-Partagé — Activation des plantations</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between gap-4 rounded-lg border bg-background p-3">
+                          <div>
+                            <p className="font-medium">Activer le suivi des plantations</p>
+                            <p className="text-xs text-muted-foreground">
+                              Le dispositif est préparé dès l’enregistrement de la parcelle. L’activation physique se fera progressivement au rattachement des lots.
+                            </p>
+                          </div>
+                          <Checkbox checked={Boolean(formData.plantation_partagee_activee)} onCheckedChange={(v) => update("plantation_partagee_activee", Boolean(v))} />
+                        </div>
+                        {formData.plantation_partagee_activee && (
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <Label>Superficie cible de plantation (ha)</Label>
+                                <Input type="number" min="0" step="0.01" value={formData.plantation_surface_cible_ha} onChange={e => update("plantation_surface_cible_ha", e.target.value)} placeholder="Par défaut : toute la parcelle" />
+                              </div>
+                              <div>
+                                <Label>Culture</Label>
+                                <Input value={formData.plantation_type_culture} onChange={e => update("plantation_type_culture", e.target.value)} />
+                              </div>
+                              <div>
+                                <Label>Densité (plants/ha)</Label>
+                                <Input type="number" min="1" step="1" value={formData.plantation_densite_plants} onChange={e => update("plantation_densite_plants", e.target.value)} />
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-background p-3 text-sm">
+                              <p><strong>Répartition économique :</strong> 50 % propriétaire / 50 % AgriCapital.</p>
+                              <p className="text-muted-foreground mt-1">
+                                Exemple : pour un lot client de 1 ha, AgriCapital active 2 ha de plantation : 1 ha pour le bénéficiaire et 1 ha pour le propriétaire.
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label>Nom & Prénom(s) du père</Label>
                               <Input value={formData.nom_pere} onChange={e => update('nom_pere', e.target.value)} />
