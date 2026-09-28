@@ -146,6 +146,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "clients.view", "clients.create", "clients.update", "plantations.view",
     "offres.view", "promotions.view", "commissions.view", "documents.view", "documents.upload",
   ),
+  [ROLES.TECHNICIEN]: only("clients.view","plantations.view","plantations.update","documents.view","documents.upload","rapports.view_technique","tickets.view","tickets.create","tickets.update"),
   [ROLES.CHEF_EQUIPE_TECHNIQUE]: only(
     "plantations.", "documents.view", "documents.upload", "rapports.view_technique",
     "tickets.view", "tickets.create", "tickets.update", "clients.view",
