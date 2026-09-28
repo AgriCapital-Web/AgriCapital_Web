@@ -13,7 +13,7 @@ const CODES = [
 ];
 
 export const EtapeClientDynamique = ({ formData, updateFormData }: Props) => {
-  const file = (field: string, label: string, accept = "image/*") => (
+  const file = (field: string, label: string, accept = ".pdf,image/jpeg,image/png") => (
     <FileUploadVisual
       label={label}
       field={field}
