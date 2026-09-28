@@ -64,7 +64,7 @@ const GestionDistricts = () => {
       toast({
         title: "Succès",
         description: !currentStatus 
-          ? "District activé — toutes ses régions, départements et sous-préfectures sont automatiquement activés" 
+          ? "District activé — les niveaux inférieurs restent selon leur propre état d’activation" 
           : "District désactivé — toutes ses régions, départements et sous-préfectures sont automatiquement désactivés",
       });
       fetchDistricts();
@@ -89,7 +89,7 @@ const GestionDistricts = () => {
             Gestion des Districts
           </CardTitle>
           <CardDescription>
-            Activer ou désactiver les districts. ⚠️ La désactivation/activation d'un district cascade automatiquement sur toutes ses régions, départements, sous-préfectures et villages. L'admin peut ensuite désactiver individuellement des régions selon l'expansion de l'entreprise.
+            Activer ou désactiver les districts. ⚠️ La désactivation d'un district désactive automatiquement toutes ses régions, départements, sous-préfectures et villages. La réactivation du district ne réactive pas automatiquement les niveaux inférieurs. L'admin peut ensuite désactiver individuellement des régions selon l'expansion de l'entreprise.
           </CardDescription>
         </CardHeader>
         <CardContent>
