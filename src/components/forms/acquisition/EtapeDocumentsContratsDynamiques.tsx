@@ -123,7 +123,7 @@ export const EtapeDocumentsContratsDynamiques = ({ formData, updateFormData }: P
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm">Statut du contrat</label>
-                    <select className="w-full border rounded-md h-10 px-3" value={formData["contrat_"+contract.type_contrat+"_statut"]||"a_preparer"} onChange={e=>updateFormData({"contrat_"+contract.type_contrat+"_statut":e.target.value})}>
+                    <select className="w-full border rounded-md h-10 px-3" value={formData["contrat_"+contract.type_contrat+"_statut"]||"a_preparer"} onChange={e=>updateFormData({["contrat_"+contract.type_contrat+"_statut"]: e.target.value})}>
                       <option value="a_preparer">À préparer</option>
                       <option value="a_signer">À signer</option>
                       <option value="signe">Signé</option>
