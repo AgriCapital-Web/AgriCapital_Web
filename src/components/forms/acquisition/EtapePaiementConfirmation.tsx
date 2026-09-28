@@ -3,13 +3,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { calculPrixEffectif } from "@/lib/pricing";
+import { usePromotionActive } from "@/hooks/usePromotionActive";
 
 interface Props { formData: any; updateFormData: (data: any) => void; }
 
 export const EtapePaiementConfirmation = ({ formData, updateFormData }: Props) => {
   const offre = formData.offre || {};
   const ha = Number(formData.superficie_prevue || 0);
-  const prix = calculPrixEffectif(offre, [], { modePaiement: formData.mode_paiement === "comptant" ? "comptant" : "echeancier" });
+  const { data: promotionActive } = usePromotionActive(formData.offre_id);
+  const prix = calculPrixEffectif(offre, promotionActive ? [promotionActive as any] : [], { modePaiement: formData.mode_paiement === "comptant" ? "comptant" : "echeancier" });
   const pi = Number(prix.depot_initial_effectif || 0) * ha;
   const total = Number(prix.montant_total_effectif || prix.montant_total_base || 0) * ha;
 
@@ -30,7 +32,7 @@ export const EtapePaiementConfirmation = ({ formData, updateFormData }: Props) =
         <CardContent className="space-y-3">
           <div className="flex justify-between"><span>Paiement initial</span><strong>{pi.toLocaleString("fr-FR")} F CFA</strong></div>
           <div className="flex justify-between"><span>Total selon l’offre</span><strong>{total.toLocaleString("fr-FR")} F CFA</strong></div>
-          <div className="text-sm text-muted-foreground">Les montants sont recalculés depuis l’offre sélectionnée et la superficie.</div>
+          <div className="text-sm text-muted-foreground">Les montants sont recalculés depuis l’offre, la superficie et la promotion applicable.</div>
         </CardContent>
       </Card>
 
