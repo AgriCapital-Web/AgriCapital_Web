@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ const Tickets = () => {
   const [tickets, setTickets] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { userRoles } = useAuth();
   const canCreate = userRoles.some((role) => DEFAULT_ROLE_PERMISSIONS[role]?.includes("tickets.create"));
@@ -39,12 +41,17 @@ const Tickets = () => {
       toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(error) });
     } else {
       setTickets(data || []);
+      const requestedId = searchParams.get("ticket");
+      if (requestedId) {
+        const found = (data || []).find((t:any) => t.id === requestedId);
+        if (found) { setSelectedTicket(found); setDialogOpen(true); }
+      }
     }
   };
 
   useEffect(() => {
     fetchTickets();
-  }, []);
+  }, [searchParams]);
 
   useRealtime({ table: "tickets_techniques", onChange: fetchTickets });
 
