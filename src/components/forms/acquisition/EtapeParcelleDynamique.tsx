@@ -12,7 +12,9 @@ export const EtapeParcelleDynamique = ({ formData, updateFormData }: Props) => {
   const [conventions, setConventions] = useState<any[]>([]);
   const [lots, setLots] = useState<any[]>([]);
   const code = String(formData.offre_code || "").toLowerCase();
-  const external = code === "palm-invest" || code === "palm-invest-plus";
+  // Source de vérité : configuration de l'offre en DB.
+  // false => terre du Client ; true => foncier mis à disposition / externe.
+  const external = !Boolean(formData.offre?.necessite_foncier_client);
   const plus = code.endsWith("-plus");
 
   useEffect(() => {
