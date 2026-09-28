@@ -29,7 +29,8 @@ const STAGES_AGRICAPITAL=[
   ["suivi_mensuel","Suivi mensuel"],
   ["autre","Autre"],
 ];
-const STAGES_PALMTERROIR=[["suivi_mensuel","Suivi / encadrement technique"],["autre","Autre suivi technique"]];
+const STAGES_PALMTERROIR_AVANT_PLANTATION=[["piquetage","Piquetage"],["trouaison","Trouaison"],["mise_en_terre","Planting / mise en terre"]];
+const STAGES_PALMTERROIR_APRES_PLANTATION=[["suivi_mensuel","Suivi / encadrement technique"],["autre","Autre suivi technique"]];
 const isPalmTerroir=(p:any)=>String(p?.formule_code||p?.client?.formule_code||"").toLowerCase().includes("palm-terroir");
 
 const TechnicienTerrain=()=>{
@@ -38,6 +39,7 @@ const TechnicienTerrain=()=>{
   const allowed=userRoles.some(r=>TECH_ROLES.includes(r));
   const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin"].includes(r));
   const [plantations,setPlantations]=useState<any[]>([]);
+  const [clients,setClients]=useState<any[]>([]);
   const [reports,setReports]=useState<any[]>([]);
   const [interventions,setInterventions]=useState<any[]>([]);
   const [tickets,setTickets]=useState<any[]>([]);
@@ -66,19 +68,24 @@ const TechnicienTerrain=()=>{
     if(!allowed)return;
     setLoading(true);
     const profile=await profileContext();
-    const [{data:p},{data:r},{data:i},{data:t}]=await Promise.all([
-      (supabase as any).from("plantations").select("id,id_unique,nom_plantation,nom,superficie_ha,client_id,statut_global,prochaine_visite,client:clients!plantations_client_id_fkey(formule_code,formule_nom,famille_offre)").order("nom_plantation"),
+    const [{data:p},{data:c},{data:r},{data:i},{data:t}]=await Promise.all([
+      (supabase as any).from("plantations").select("id,id_unique,nom_plantation,nom,superficie_ha,client_id,statut_global,prochaine_visite,date_plantation").order("nom_plantation"),
+      (supabase as any).from("clients").select("id,formule_code,formule_nom,famille_offre,nom_complet").order("nom_complet"),
       (supabase as any).from("rapports_visites_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!rapports_visites_techniques_agent_technique_id_fkey(nom_complet)").order("date_visite",{ascending:false}).limit(100),
       (supabase as any).from("interventions_techniques").select("*,plantation:plantations(id_unique,nom_plantation),agent:profiles!interventions_techniques_agent_technique_id_fkey(nom_complet)").order("date_intervention",{ascending:false}).limit(100)
     ]);
-    setPlantations(p||[]);setReports(r||[]);setInterventions(i||[]);setTickets(t||[]);setLoading(false);
+    setPlantations(p||[]);setClients(c||[]);setReports(r||[]);setInterventions(i||[]);setTickets(t||[]);setLoading(false);
   };
 
   useEffect(()=>{load();},[allowed]);
 
-  const plantation=useMemo(()=>plantations.find(p=>p.id===report.plantation_id),[plantations,report.plantation_id]);
+  const plantation=useMemo(()=>{
+    const p=plantations.find(x=>x.id===report.plantation_id);
+    if(!p)return null;
+    return {...p,client:clients.find(c=>c.id===p.client_id)||null};
+  },[plantations,clients,report.plantation_id]);
   const palmTerroir=useMemo(()=>isPalmTerroir(plantation),[plantation]);
-  const applicableStages=palmTerroir?STAGES_PALMTERROIR:STAGES_AGRICAPITAL;
+  const applicableStages=palmTerroir?(plantation?.date_plantation?STAGES_PALMTERROIR_APRES_PLANTATION:STAGES_PALMTERROIR_AVANT_PLANTATION):STAGES_AGRICAPITAL;
 
   const saveReport=async(submit:boolean)=>{
     if(!report.plantation_id){toast({variant:"destructive",title:"Plantation requise"});return;}
@@ -119,7 +126,9 @@ const TechnicienTerrain=()=>{
   const saveIntervention=async()=>{
     if(!intervention.plantation_id){toast({variant:"destructive",title:"Plantation requise"});return;}
     const interventionPlantation=plantations.find(p=>p.id===intervention.plantation_id);
-    if(isPalmTerroir(interventionPlantation) && !["suivi_mensuel","autre"].includes(intervention.type_intervention)){toast({variant:"destructive",title:"Étape non applicable",description:"Pour PalmTerroir, après la mise en terre, l’équipe technique assure l’encadrement, les recommandations et le suivi."});return;}
+    const interventionClient=clients.find(c=>c.id===interventionPlantation?.client_id);
+    const interventionStages=isPalmTerroir({...interventionPlantation,client:interventionClient})?(interventionPlantation?.date_plantation?STAGES_PALMTERROIR_APRES_PLANTATION:STAGES_PALMTERROIR_AVANT_PLANTATION):STAGES_AGRICAPITAL;
+    if(!interventionStages.some(([code])=>code===intervention.type_intervention)){toast({variant:"destructive",title:"Étape non applicable",description:"Pour PalmTerroir, après la mise en terre, l’équipe technique assure l’encadrement, les recommandations et le suivi."});return;}
     setSaving(true);
     try{
       const profile=await profileContext(); if(!profile?.id)throw new Error("Profil technicien introuvable");
@@ -175,12 +184,12 @@ const TechnicienTerrain=()=>{
       </TabsContent>
 
       <TabsContent value="intervention" className="space-y-5">
-        <Card><CardHeader><CardTitle>Intervention technique</CardTitle><CardDescription>{isPalmTerroir(plantations.find(p=>p.id===intervention.plantation_id))?"PalmTerroir : encadrement, recommandations et suivi après mise en terre.":"Tracer les opérations réalisées ou planifiées sur la plantation."}</CardDescription></CardHeader><CardContent className="space-y-5">
+        <Card><CardHeader><CardTitle>Intervention technique</CardTitle><CardDescription>{isPalmTerroir({...plantations.find(p=>p.id===intervention.plantation_id),client:clients.find(c=>c.id===plantations.find(p=>p.id===intervention.plantation_id)?.client_id)})?"PalmTerroir : encadrement, recommandations et suivi ; les travaux d’entretien et les intrants restent à la charge du client.":"Tracer les opérations réalisées ou planifiées sur la plantation."}</CardDescription></CardHeader><CardContent className="space-y-5">
           <div className="grid md:grid-cols-3 gap-4">
             <div className="md:col-span-2"><Label>Plantation *</Label><Select value={intervention.plantation_id} onValueChange={v=>setIntervention((x:any)=>({...x,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner"/></SelectTrigger><SelectContent>{plantations.map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Date *</Label><Input type="date" value={intervention.date_intervention} onChange={e=>setIntervention((x:any)=>({...x,date_intervention:e.target.value}))}/></div>
           </div>
-          <div className="grid md:grid-cols-2 gap-4"><div><Label>Étape technique</Label><Select value={intervention.type_intervention} onValueChange={v=>setIntervention((x:any)=>({...x,type_intervention:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{applicableStages.map(([v,l])=><SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent></Select></div><div><Label>Statut</Label><Select value={intervention.statut} onValueChange={v=>setIntervention((x:any)=>({...x,statut:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="planifiee">Planifiée</SelectItem><SelectItem value="en_cours">En cours</SelectItem><SelectItem value="realisee">Réalisée</SelectItem><SelectItem value="annulee">Annulée</SelectItem></SelectContent></Select></div></div>
+          <div className="grid md:grid-cols-2 gap-4"><div><Label>Étape technique</Label><Select value={intervention.type_intervention} onValueChange={v=>setIntervention((x:any)=>({...x,type_intervention:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{((()=>{const p=plantations.find(x=>x.id===intervention.plantation_id);const c=clients.find(x=>x.id===p?.client_id);const stages=isPalmTerroir({...p,client:c})?(p?.date_plantation?STAGES_PALMTERROIR_APRES_PLANTATION:STAGES_PALMTERROIR_AVANT_PLANTATION):STAGES_AGRICAPITAL;return stages;})()).map(([v,l])=><SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent></Select></div><div><Label>Statut</Label><Select value={intervention.statut} onValueChange={v=>setIntervention((x:any)=>({...x,statut:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="planifiee">Planifiée</SelectItem><SelectItem value="en_cours">En cours</SelectItem><SelectItem value="realisee">Réalisée</SelectItem><SelectItem value="annulee">Annulée</SelectItem></SelectContent></Select></div></div>
           <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat / observations</Label><Textarea value={intervention.observations} onChange={e=>setIntervention((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations</Label><Textarea value={intervention.recommandations} onChange={e=>setIntervention((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
           <div className="flex justify-end"><Button disabled={saving} onClick={saveIntervention}>Enregistrer l’intervention</Button></div>
         </CardContent></Card>
