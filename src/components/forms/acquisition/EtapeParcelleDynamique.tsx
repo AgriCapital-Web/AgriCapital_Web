@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import GeographieCascade from "@/components/common/GeographieCascade";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props { formData: any; updateFormData: (data: any) => void; }
@@ -61,10 +62,7 @@ export const EtapeParcelleDynamique = ({ formData, updateFormData }: Props) => {
           <div className="grid md:grid-cols-2 gap-4">
             <div><Label>Superficie (ha) *</Label><Input type="number" min="1" step="0.1" value={formData.superficie_prevue || ""} onChange={(e) => updateFormData({superficie_prevue:e.target.value, surface_propre_ha:e.target.value})} /></div>
             <div><Label>Référence de parcelle</Label><Input value={formData.reference_cadastrale || ""} onChange={(e) => updateFormData({reference_cadastrale:e.target.value})} placeholder="Référence si connue" /></div>
-            <div><Label>Région</Label><Input value={formData.parcelle_region || ""} onChange={(e) => updateFormData({parcelle_region:e.target.value})} /></div>
-            <div><Label>Département</Label><Input value={formData.parcelle_departement || ""} onChange={(e) => updateFormData({parcelle_departement:e.target.value})} /></div>
-            <div><Label>Sous-préfecture</Label><Input value={formData.parcelle_sous_prefecture || ""} onChange={(e) => updateFormData({parcelle_sous_prefecture:e.target.value})} /></div>
-            <div><Label>Village / localité *</Label><Input value={formData.village_propre || ""} onChange={(e) => updateFormData({village_propre:e.target.value})} /></div>
+            <div className="md:col-span-2"><Label>Localisation administrative</Label><GeographieCascade districtId={formData.district_id} regionId={formData.region_id} departementId={formData.departement_id} sousPrefectureId={formData.sous_prefecture_id} villageId={formData.village_id} required onChange={(g)=>updateFormData({district_id:g.districtId||null,region_id:g.regionId||null,departement_id:g.departementId||null,sous_prefecture_id:g.sousPrefectureId||null,village_id:g.villageId||null,parcelle_region:g.regionName||"",parcelle_departement:g.departementName||"",parcelle_sous_prefecture:g.sousPrefectureName||"",village_propre:g.villageName||""})}/></div>
             <div><Label>Latitude GPS</Label><Input type="number" step="any" value={formData.parcelle_latitude || ""} onChange={(e) => updateFormData({parcelle_latitude:e.target.value})} /></div>
             <div><Label>Longitude GPS</Label><Input type="number" step="any" value={formData.parcelle_longitude || ""} onChange={(e) => updateFormData({parcelle_longitude:e.target.value})} /></div>
           </div>
