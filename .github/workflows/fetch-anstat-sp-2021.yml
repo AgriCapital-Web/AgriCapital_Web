@@ -1,0 +1,42 @@
+name: Fetch ANStat SP 2021
+
+on:
+  push:
+    paths:
+      - .github/workflows/fetch-anstat-sp-2021.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch 526 ANStat sub-prefectures
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p supabase/data
+          : > /tmp/pages.jsonl
+          for page in $(seq 1 27); do
+            echo "Fetching page $page"
+            curl --fail --silent --show-error --location \
+              --retry 3 --retry-delay 2 \
+              -X POST "https://api-public.anstat.ci/api/v1/sous-prefectures" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/x-www-form-urlencoded" \
+              --data-urlencode "page=$page" \
+              --data-urlencode "pagination=oui" \
+              --data-urlencode "annee=2021" > "/tmp/page-$page.json"
+            jq -e '.success == true and (.results | type == "array")' "/tmp/page-$page.json" >/dev/null
+            jq -c '.results[]' "/tmp/page-$page.json" >> /tmp/pages.jsonl
+          done
+          jq -s 'unique_by([.cod_dep,.cod_sp]) | sort_by(.cod_dep,.cod_sp)' /tmp/pages.jsonl > supabase/data/anstat_sous_prefectures_rgph2021.json
+          test "$(jq 'length' supabase/data/anstat_sous_prefectures_rgph2021.json)" -eq 526
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/data/anstat_sous_prefectures_rgph2021.json
+          git diff --cached --quiet || git commit -m "data: import 526 ANStat RGPH 2021 subprefectures"
+          git push
