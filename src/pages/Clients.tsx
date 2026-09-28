@@ -336,8 +336,8 @@ const Clients = () => {
                       </TableRow>
                     ) : filteredClients.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8">
-                          Aucun parcours client trouvé
+                        <TableCell colSpan={10} className="text-center py-8">
+                          Aucun dossier trouvé
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -359,7 +359,7 @@ const Clients = () => {
                           </TableCell>
                           <TableCell>
                             {client.type_client === "beneficiaire_particulier" ? (
-                              <Badge variant="secondary">Bénéficiaire particulier</Badge>
+                              <span className="text-muted-foreground">Actif agricole partagé</span>
                             ) : client.offres ? (
                               <Badge style={{ backgroundColor: client.offres.couleur }}>
                                 {client.offres.nom}
