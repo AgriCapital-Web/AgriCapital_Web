@@ -196,16 +196,6 @@ begin
   ), updated_by=v_user, updated_at=now()
   where id=v_parcelle.id;
 
-  perform public.notification_emit_event(
-    'lot_attribue',
-    jsonb_build_object(
-      'lot_id',v_lot.id,'client_id',p_client_id,'parcelle_id',v_parcelle.id,'proprietaire_id',v_owner.id,
-      'surface',v_surface,'surface_client',v_surface,'surface_proprietaire',v_surface,
-      'lot_reference',coalesce(v_lot.reference,v_lot.id::text),'village',coalesce(v_parcelle.village,''),
-      'date_activation',coalesce(p_date_activation,current_date)
-    )
-  );
-
   return jsonb_build_object(
     'activation_id',v_activation.id,'lot_id',v_lot.id,'parcelle_id',v_parcelle.id,
     'client_plantation_id',v_client_plantation,'owner_plantation_id',v_owner_plantation,
@@ -229,15 +219,23 @@ create or replace function public.trg_lot_attribution_notification()
 returns trigger
 language plpgsql security definer set search_path='public'
 as $function$
+declare
+  v_owner_id uuid;
+  v_village text;
 begin
   if new.client_id is not null and new.statut='attribue'
      and (tg_op='INSERT' or old.client_id is distinct from new.client_id or old.statut is distinct from new.statut) then
+    select p.proprietaire_id,p.village into v_owner_id,v_village
+    from public.parcelles p where p.id=new.parcelle_id;
+
     perform public.notification_emit_event(
       'lot_attribue',
       jsonb_build_object(
         'lot_id',new.id,'client_id',new.client_id,'parcelle_id',new.parcelle_id,
-        'surface',coalesce(new.surface_ha,1),'lot_reference',coalesce(new.reference,new.id::text),
-        'date_activation',coalesce(new.date_attribution,current_date)
+        'proprietaire_id',v_owner_id,'surface',coalesce(new.surface_ha,1),
+        'surface_client',coalesce(new.surface_ha,1),'surface_proprietaire',coalesce(new.surface_ha,1),
+        'lot_reference',coalesce(new.reference,new.id::text),
+        'village',coalesce(v_village,''),'date_activation',coalesce(new.date_attribution,current_date)
       )
     );
   end if;
@@ -249,6 +247,39 @@ drop trigger if exists trg_lot_attribution_notification on public.lots_hectares;
 create trigger trg_lot_attribution_notification
 after insert or update of client_id,statut,date_attribution on public.lots_hectares
 for each row execute function public.trg_lot_attribution_notification();
+
+create or replace function public.trg_particular_beneficiary_plantation_notification()
+returns trigger
+language plpgsql security definer set search_path='public'
+as $function$
+declare
+  v_type_client text;
+  v_lot_ref text;
+  v_activation public.plantation_activations%rowtype;
+begin
+  if new.role_attribution='beneficiaire' and new.client_id is not null then
+    select type_client into v_type_client from public.clients where id=new.client_id;
+    if v_type_client='beneficiaire_particulier' then
+      select * into v_activation from public.plantation_activations where id=new.activation_id;
+      select reference into v_lot_ref from public.lots_hectares where id=v_activation.lot_id;
+      perform public.notification_emit_event(
+        'plantation_activee',
+        jsonb_build_object(
+          'client_id',new.client_id,'plantation_id',new.id,'activation_id',new.activation_id,
+          'surface',new.superficie_ha,'lot_reference',coalesce(v_lot_ref,''),
+          'date_activation',coalesce(new.date_activation,current_date)
+        )
+      );
+    end if;
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists trg_particular_beneficiary_plantation_notification on public.plantations;
+create trigger trg_particular_beneficiary_plantation_notification
+after insert on public.plantations
+for each row execute function public.trg_particular_beneficiary_plantation_notification();
 
 insert into public.notification_segments(code,nom,description,criteres,actif)
 values
