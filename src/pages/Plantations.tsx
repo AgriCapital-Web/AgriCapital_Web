@@ -48,6 +48,7 @@ const Plantations = () => {
         .select(`
           *,
           clients (nom, prenoms, id),
+          parcelles (id_unique, nom, village),
           regions (nom),
           departements (nom)
         `)
@@ -283,9 +284,19 @@ const Plantations = () => {
                         {plantation.nom_plantation || plantation.nom}
                       </TableCell>
                       <TableCell>
-                        {plantation.clients 
-                          ? `${plantation.clients.nom} ${plantation.clients.prenoms || ''}`
-                          : '-'}
+                        {plantation.role_attribution === "proprietaire" ? (
+                          <div>
+                            <Badge variant="outline">Propriétaire foncier</Badge>
+                            <span className="block text-xs text-muted-foreground mt-1">{plantation.parcelles?.village || plantation.parcelles?.nom || "—"}</span>
+                          </div>
+                        ) : plantation.role_attribution === "partage" ? (
+                          <div>
+                            <Badge variant="secondary">Actif partagé</Badge>
+                            <span className="block text-xs text-muted-foreground mt-1">{plantation.parcelles?.village || plantation.parcelles?.nom || "—"}</span>
+                          </div>
+                        ) : plantation.clients ? (
+                          `${plantation.clients.nom} ${plantation.clients.prenoms || ''}`
+                        ) : '-'}
                       </TableCell>
                       <TableCell>
                         <span className="font-semibold">{plantation.superficie_ha}</span> ha
