@@ -20,9 +20,9 @@ export function useRegions() {
     (async () => {
       try {
         const { data } = await supabase
-          .from("regions")
+          .from("v_geo_regions")
           .select("nom")
-          .eq("est_active", true)
+          .eq("est_active_effectif", true)
           .order("nom", { ascending: true });
         if (data && data.length > 0) setRegions(data.map((r: any) => r.nom));
       } catch {
