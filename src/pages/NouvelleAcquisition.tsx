@@ -191,7 +191,7 @@ const NouvelleAcquisition = () => {
       }
 
       if(external&&formData.lot_id){
-        const {data:activation,error}=await (supabase as any).rpc("activate_shared_plantation_from_lot",{p_lot_id:formData.lot_id,p_client_id:client.id,p_date_activation:new Date().toISOString().slice(0,10)});
+        const {data:activation,error:activationError}=await (supabase as any).rpc("activate_shared_plantation_from_lot",{p_lot_id:formData.lot_id,p_client_id:client.id,p_date_activation:new Date().toISOString().slice(0,10)});
         if(activationError||!activation)throw activationError||new Error("Activation Planté-Partagé impossible");
       }
 
