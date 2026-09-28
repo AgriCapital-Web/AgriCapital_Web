@@ -93,11 +93,19 @@ join public.regions r on r.id = dep.region_id
 join public.districts d on d.id = r.district_id;
 
 create or replace view public.v_geo_villages as
-select v.*, sp.est_active as sous_prefecture_active, dep.est_actif as departement_actif,
-       r.est_active as region_actif, d.est_actif as district_actif,
+select v.id,
+       v.nom,
+       v.sous_prefecture_id,
+       v.est_actif,
+       v.created_at,
+       sp.est_active as sous_prefecture_active,
+       dep.est_actif as departement_actif,
+       r.est_active as region_actif,
+       d.est_actif as district_actif,
        (coalesce(d.est_actif,false) and coalesce(r.est_active,false)
         and coalesce(dep.est_actif,false) and coalesce(sp.est_active,false)
-        and coalesce(v.est_actif,false)) as est_actif_effectif
+        and coalesce(v.est_actif,false)) as est_actif_effectif,
+       v.code
 from public.villages v
 join public.sous_prefectures sp on sp.id = v.sous_prefecture_id
 join public.departements dep on dep.id = sp.departement_id
