@@ -92,7 +92,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
       const { data } = await (supabase as any)
         .from("districts")
         .select("*")
-        .eq("est_actif_effectif", true)
+        .eq("est_actif", true)
         .order("nom");
       if (data) setDistricts(data);
     };
@@ -123,7 +123,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
           .from("v_geo_departements")
           .select("*")
           .eq("region_id", formData.region_id)
-          .eq("est_actif", true)
+          .eq("est_active_effectif", true)
           .order("nom");
         if (data) setDepartements(data);
       };
