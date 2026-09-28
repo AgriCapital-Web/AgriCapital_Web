@@ -113,7 +113,7 @@ const NouvelleAcquisition = () => {
         toast({variant:"destructive",title:"Foncier externe incomplet",description:"La convention et le lot disponible sont obligatoires pour cette offre."}); return false;
       }
     }
-    if(step.code==="enquete"&&!formData.enquete_objectif){
+    if(step.code==="cotitulaire"){\n      if(formData.offre?.necessite_cotitulaire&&!formData.has_representant){toast({variant:"destructive",title:"Cotitulaire / mandataire requis",description:"Cette offre exige de renseigner un cotitulaire ou mandataire."});return false;}\n      if(formData.has_representant){\n        const repFields=["representant_type","representant_nom","representant_prenoms","representant_type_piece","representant_numero_piece","representant_telephone"];\n        if(repFields.some(f=>!formData[f])||!formData.representant_piece_recto_file||!formData.representant_piece_verso_file||!formData.representant_photo_profil_file){toast({variant:"destructive",title:"Cotitulaire / mandataire incomplet",description:"Renseignez l’identité, le lien, les coordonnées et les pièces/photos."});return false;}\n      }\n    }\n    if(step.code==="enquete"&&!formData.enquete_objectif){
       toast({variant:"destructive",title:"Enquête incomplète",description:"L’objectif du Client est obligatoire."}); return false;
     }
     if(step.code==="documents"){
@@ -259,7 +259,7 @@ const NouvelleAcquisition = () => {
     if(!step)return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
     switch(step.code){
       case "offre":return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
-      case "client":return <div className="space-y-6"><EtapeClientDynamique formData={formData} updateFormData={updateFormData}/><EtapeEnqueteClient formData={formData} updateFormData={updateFormData}/><EtapeRepresentantDynamique formData={formData} updateFormData={updateFormData}/></div>;
+      case "client":return <div className="space-y-6"><EtapeClientDynamique formData={formData} updateFormData={updateFormData}/><EtapeEnqueteClient formData={formData} updateFormData={updateFormData}/></div>;\n      case "cotitulaire":return <EtapeRepresentantDynamique formData={formData} updateFormData={updateFormData}/>;
       case "parcelle":return <EtapeParcelleDynamique formData={formData} updateFormData={updateFormData}/>;
       case "documents":return <EtapeDocumentsContratsDynamiques formData={formData} updateFormData={updateFormData}/>;
       case "confirmation":return <EtapeConfirmationDossier formData={formData} updateFormData={updateFormData}/>;
@@ -269,7 +269,7 @@ const NouvelleAcquisition = () => {
 
   const last=current===activeSteps.length-1&&activeSteps.length>0;
   return <ProtectedRoute><MainLayout><div className="max-w-7xl mx-auto page-section space-y-5">
-    <div><h1 className="text-3xl font-bold">Nouveau Client</h1><p className="text-muted-foreground">Parcours Client simplifié : offre, Client et enquête, foncier, dossier documentaire et confirmation.</p><SyncStatusBadge state={syncState} className="mt-2"/></div>
+    <div><h1 className="text-3xl font-bold">Nouveau Client</h1><p className="text-muted-foreground">Parcours Client : offre, informations du client, cotitulaire / mandataire, foncier, documents et confirmation.</p><SyncStatusBadge state={syncState} className="mt-2"/></div>
     <div className="flex gap-2 overflow-x-auto pb-2">{activeSteps.map((s,i)=><Button key={s.code} size="sm" variant={i===current?"default":"outline"} onClick={()=>i<=current&&setCurrent(i)}>{i+1}. {s.titre}</Button>)}</div>
     <Card className="p-4 sm:p-6 rounded-2xl shadow-sm">{loadingSteps?<div className="p-8 text-center"><Loader2 className="mx-auto animate-spin"/></div>:renderStep()}</Card>
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
