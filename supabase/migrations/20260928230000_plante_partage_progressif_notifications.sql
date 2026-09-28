@@ -128,6 +128,10 @@ begin
   select * into v_owner from public.proprietaires_terres where id=v_parcelle.proprietaire_id;
   if v_owner.id is null then raise exception 'Propriétaire foncier introuvable'; end if;
 
+  if not coalesce(v_parcelle.plantation_partagee_activee,false) then
+    raise exception 'Le Planté-Partagé n’est pas activé sur cette parcelle';
+  end if;
+
   v_surface := coalesce(v_lot.surface_ha,1);
   v_agri_share := coalesce(v_parcelle.surface_agricapital_ha, v_parcelle.surface_totale_ha/2, 0);
   select coalesce(sum(l.surface_ha),0) into v_allocated
@@ -135,6 +139,10 @@ begin
   where l.parcelle_id=v_parcelle.id and l.id<>v_lot.id and l.client_id is not null and l.statut='attribue';
   if v_allocated + v_surface > v_agri_share then
     raise exception 'La part AgriCapital disponible de la parcelle est insuffisante';
+  end if;
+  if v_parcelle.plantation_surface_cible_ha is not null
+     and (2 * (v_allocated + v_surface)) > v_parcelle.plantation_surface_cible_ha then
+    raise exception 'La superficie cible de plantation Planté-Partagé serait dépassée';
   end if;
 
   select * into v_activation from public.plantation_activations where lot_id=v_lot.id;
