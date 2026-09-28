@@ -28,6 +28,7 @@ const CHANNELS = [
   { value: "email", label: "Email", icon: Mail },
   { value: "sms", label: "SMS", icon: Smartphone },
   { value: "email_sms", label: "Email + SMS", icon: MessageSquare },
+  { value: "auto", label: "Automatique (routage AgriCapital)", icon: Zap },
 ];
 
 const EVENTS = [
@@ -39,6 +40,8 @@ const EVENTS = [
   ["visite_technique", "Visite technique"],
   ["recolte", "Recolte"],
   ["nouveau_client", "Nouveau client"],
+  ["lot_attribue", "Lot activé sur une parcelle Planté-Partagé"],
+  ["plantation_activee", "Plantation activée"],
   ["prospect_relance", "Relance prospect"],
   ["campagne_speciale", "Campagne speciale"],
 ];
@@ -54,6 +57,8 @@ const AUDIENCES = [
   ["palmterroir", "Clients PalmTerroir"],
   ["palmterroir_plus", "Clients PalmTerroir+"],
   ["agriplan", "Clients AgriPlan"],
+  ["proprietaires_fonciers", "Propriétaires fonciers"],
+  ["beneficiaires_particuliers", "Bénéficiaires particuliers"],
 ];
 
 const normalizeSms = (value: string) =>
@@ -177,7 +182,7 @@ const GestionNotifications = () => {
             <div className="min-w-0">
               <CardTitle className="flex flex-wrap items-center gap-2"><Bell className="h-5 w-5 shrink-0" /> Communication et notifications</CardTitle>
               <CardDescription className="break-anywhere">
-                Notifications app, SMS, emails, campagnes speciales et automatisations selon les situations des clients, prospects et equipes.
+                Notifications app, SMS, emails et routage automatique selon le profil, la situation et le canal disponible. Les propriétaires fonciers et bénéficiaires particuliers ont un parcours distinct des clients payants.
               </CardDescription>
             </div>
             <Button variant="outline" onClick={() => { void checkProviders(); void load(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualiser</Button>
@@ -237,7 +242,7 @@ const GestionNotifications = () => {
                 <Field label="Delai anti-doublon (minutes)"><Input type="number" min={0} value={automation.cooldown_minutes} onChange={(e) => setAutomation({ ...automation, cooldown_minutes: Number(e.target.value) || 0 })} /></Field>
               </div>
               <Field label="Sujet email"><Input value={automation.sujet} onChange={(e) => setAutomation({ ...automation, sujet: e.target.value })} /></Field>
-              <Field label="Message"><Textarea rows={5} value={automation.contenu} onChange={(e) => setAutomation({ ...automation, contenu: e.target.value })} placeholder="Bonjour {{prenom}}, votre paiement a bien ete recu." />{automation.canal.includes("sms") && <p className={automationSmsCount > 150 ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>{automationSmsCount}/150 caracteres SMS, accents supprimes automatiquement.</p>}</Field>
+              <Field label="Message"><Textarea rows={5} value={automation.contenu} onChange={(e) => setAutomation({ ...automation, contenu: e.target.value })} placeholder="Bonjour {{prenom}}, votre plantation est activée..." />{automation.canal.includes("sms") && <p className={automationSmsCount > 150 ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>{automationSmsCount}/150 caracteres SMS, accents supprimes automatiquement.</p>}<p className="text-xs text-muted-foreground">Variables disponibles : {{prenom}}, {{nom}}, {{surface}}, {{village}}, {{lot_reference}}, {{date_activation}}. Le canal « Automatique » applique le routage AgriCapital et le fallback email.</p></Field>
               <div className="flex items-center gap-2"><Switch checked={automation.actif} onCheckedChange={(v) => setAutomation({ ...automation, actif: v })} /><Label>Activer automatiquement</Label></div>
               <Button onClick={saveAutomation}><Zap className="mr-2 h-4 w-4" />Enregistrer l'automatisation</Button>
             </CardContent>
