@@ -10,7 +10,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if tg_table_name = 'districts' and new.est_actif = false and old.est_actif is distinct from false then
+  if tg_table_name = 'districts' and (to_jsonb(new)->>'est_actif')::boolean = false and (to_jsonb(old)->>'est_actif')::boolean is distinct from false then
     update public.regions set est_active = false where district_id = new.id;
     update public.departements d set est_actif = false
       where d.region_id in (select r.id from public.regions r where r.district_id = new.id);
@@ -27,7 +27,7 @@ begin
         join public.regions r on r.id = d.region_id
         where r.district_id = new.id
       );
-  elsif tg_table_name = 'regions' and new.est_active = false and old.est_active is distinct from false then
+  elsif tg_table_name = 'regions' and (to_jsonb(new)->>'est_active')::boolean = false and (to_jsonb(old)->>'est_active')::boolean is distinct from false then
     update public.departements set est_actif = false where region_id = new.id;
     update public.sous_prefectures s set est_active = false
       where s.departement_id in (select d.id from public.departements d where d.region_id = new.id);
