@@ -33,6 +33,7 @@ import PublicLead from "./pages/PublicLead";
 import DevCarteApercu from "./pages/__DevCarteApercu";
 import VerificationCarte from "./pages/VerificationCarte";
 import BeneficiaireParticulier from "./pages/BeneficiaireParticulier";
+import TechnicienTerrain from "./pages/TechnicienTerrain";
 
 const LegacyVerificationRedirect = () => {
   const path = window.location.pathname;
@@ -109,6 +110,7 @@ const DomainRouter = () => {
       {/* Rapports */}
       <Route path="/rapports-financiers" element={<RapportsFinanciers />} />
       <Route path="/rapports-techniques" element={<RapportsTechniques />} />
+      <Route path="/terrain" element={<TechnicienTerrain />} />
       
       {/* Finances */}
       <Route path="/commissions" element={<Commissions />} />
