@@ -1,3 +1,4 @@
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
