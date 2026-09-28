@@ -137,7 +137,8 @@ const GestionRegions = () => {
                 </p>
               ) : (
                 filteredRegions.map((region) => {
-                  const districtInactif = region.districts?.est_actif === false;
+                  const districtInactif = region.districts?.est_actif !== true;
+                  const regionEffective = !districtInactif && region.est_active === true;
                   return (
                   <div
                     key={region.id}
@@ -160,7 +161,7 @@ const GestionRegions = () => {
                     </div>
                     <Switch
                       id={`region-${region.id}`}
-                      checked={region.est_active ?? false}
+                      checked={regionEffective}
                       disabled={districtInactif}
                       onCheckedChange={() => toggleRegion(region.id, region.est_active ?? false)}
                     />
@@ -173,7 +174,7 @@ const GestionRegions = () => {
 
           <div className="mt-6 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              💡 {filteredRegions.length} région(s) affichée(s) • {filteredRegions.filter(r => r.est_active).length} active(s)
+              💡 {filteredRegions.length} région(s) affichée(s) • {filteredRegions.filter(r => r.districts?.est_actif === true && r.est_active === true).length} active(s)
             </p>
           </div>
         </CardContent>
