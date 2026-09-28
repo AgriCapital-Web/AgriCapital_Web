@@ -92,7 +92,7 @@ const GestionSousPrefectures = () => {
           ) : (
             <div className="space-y-2">
               {filtered.map((sp) => {
-                const deptInactif = sp.departements?.est_actif === false;
+                const deptInactif = sp.departements?.est_actif !== true;
                 return (
                   <div key={sp.id} className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${deptInactif ? 'opacity-50 bg-muted/30' : 'hover:bg-muted/50'}`}>
                     <div className="flex-1">
@@ -107,7 +107,7 @@ const GestionSousPrefectures = () => {
                       <p className="text-xs text-muted-foreground">Département: {sp.departements?.nom || "—"}</p>
                     </div>
                     <Switch
-                      checked={sp.est_active ?? false}
+                      checked={!deptInactif && sp.est_active === true}
                       disabled={deptInactif}
                       onCheckedChange={() => toggleSousPrefecture(sp.id, sp.est_active ?? false)}
                     />
@@ -120,7 +120,7 @@ const GestionSousPrefectures = () => {
 
           <div className="mt-6 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
-              💡 {filtered.length} sous-préfecture(s) • {filtered.filter(s => s.est_active).length} active(s)
+              💡 {filtered.length} sous-préfecture(s) • {filtered.filter(s => s.departements?.est_actif === true && s.est_active === true).length} active(s)
             </p>
           </div>
         </CardContent>
