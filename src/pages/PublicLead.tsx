@@ -1,3 +1,4 @@
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,7 +102,7 @@ export default function PublicLead() {
             <CardContent className="grid md:grid-cols-2 gap-4">
               <div><Label>Nom *</Label><Input value={f.nom} onChange={e=>set("nom",e.target.value)} required /></div>
               <div><Label>Prénom(s) *</Label><Input value={f.prenoms} onChange={e=>set("prenoms",e.target.value)} required /></div>
-              <div><Label>Téléphone principal *</Label><Input type="tel" value={f.telephone} onChange={e=>set("telephone",e.target.value)} required /></div>
+              <CountryPhoneInput label="Téléphone principal" required countryCode={f.telephone_indicatif||"+225"} localValue={f.telephone_local||""} onChange={v=>setForm(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
               <div><Label>WhatsApp</Label><Input type="tel" value={f.whatsapp} onChange={e=>set("whatsapp",e.target.value)} /></div>
               <div className="md:col-span-2"><Label>Email</Label><Input type="email" value={f.email} onChange={e=>set("email",e.target.value)} /></div>
             </CardContent>
