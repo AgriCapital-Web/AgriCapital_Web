@@ -487,7 +487,11 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <CountryPhoneInput label="Téléphone" required countryCode={formData.telephone_indicatif||"+225"} localValue={formData.telephone_local||""} onChange={v=>updateFormData({telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue})}/>
+            <CountryPhoneInput label="WhatsApp" countryCode={formData.whatsapp_indicatif||"+225"} localValue={formData.whatsapp_local||""} onChange={v=>updateFormData({whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue})}/>
+          </div>
+
+          <div className="space-y-2">
               <Label htmlFor="type_compte">Type de compte *</Label>
               <Select
                 value={formData.type_compte}
