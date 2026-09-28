@@ -94,7 +94,7 @@ export const TERRITORIAL_ROLES: string[] = [
  */
 export function hasPermission(userRoles: string[], permission: readonly string[]): boolean {
   const normalized = normalizeRoles(userRoles);
-  return normalized.some((role) => (permission as readonly string[]).includes(role));
+  return normalized.includes(ROLES.PDG) || normalized.some((role) => (permission as readonly string[]).includes(role));
 }
 
 export const PERMISSIONS = {
