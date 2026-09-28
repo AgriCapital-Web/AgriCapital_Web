@@ -27,6 +27,7 @@ const ClientDetail = () => {
   const [photos, setPhotos] = useState<any[]>([]);
   const [parcelle, setParcelle] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [attributions, setAttributions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
 
@@ -64,6 +65,14 @@ const ClientDetail = () => {
           : null,
       })));
       setDocuments(docsWithUrls);
+
+      const { data: attributionsData } = await (supabase as any)
+        .from("beneficiaire_attributions")
+        .select("*, parcelles(id_unique,nom,village), plantations(id_unique,nom_plantation,superficie_ha,statut_global)")
+        .eq("client_id", id)
+        .eq("statut", "active")
+        .order("created_at", { ascending: true });
+      setAttributions(attributionsData || []);
 
       // Fetch plantations
       const { data: plantationsData, error: plantationsError } = await (supabase as any)
@@ -426,6 +435,38 @@ const ClientDetail = () => {
 
             {client.type_client === "beneficiaire_particulier" && (
               <TabsContent value="dossier">
+              <div className="grid gap-4">
+                <Card>
+                  <CardHeader><CardTitle>Attributions agricoles</CardTitle></CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Parcelle</TableHead>
+                          <TableHead>Rôle</TableHead>
+                          <TableHead>Quote-part</TableHead>
+                          <TableHead>Plantation partagée</TableHead>
+                          <TableHead>Référence acte</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {attributions.length === 0 ? (
+                          <TableRow><TableCell colSpan={5} className="text-center py-8">Aucune attribution enregistrée</TableCell></TableRow>
+                        ) : attributions.map((a: any) => (
+                          <TableRow key={a.id}>
+                            <TableCell>{a.parcelles?.id_unique || a.parcelles?.nom || "—"}{a.parcelles?.village ? <span className="block text-xs text-muted-foreground">{a.parcelles.village}</span> : null}</TableCell>
+                            <TableCell><Badge variant="outline">{a.role_attribution === "proprietaire_beneficiaire" ? "Propriétaire + bénéficiaire" : "Bénéficiaire particulier"}</Badge></TableCell>
+                            <TableCell className="font-semibold">{Number(a.surface_attribuee_ha || 0).toFixed(2)} ha</TableCell>
+                            <TableCell>{a.plantations?.nom_plantation || a.plantations?.id_unique || "—"}</TableCell>
+                            <TableCell>{a.reference_acte || "—"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                <Card>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
