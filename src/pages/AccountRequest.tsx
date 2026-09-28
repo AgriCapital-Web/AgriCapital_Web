@@ -232,7 +232,7 @@ const AccountRequest = () => {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <Field label="Nom complet *" icon={<User />}><Input required value={formData.nom_complet} onChange={(e) => setFormData({ ...formData, nom_complet: e.target.value })} placeholder="Ex: KOUASSI Jean" /></Field>
               <Field label="Email *" icon={<Mail />}><Input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="votre@email.com" /></Field>
-              <Field label="Téléphone *" icon={<Phone />}><Input required type="tel" value={formData.telephone} onChange={(e) => setFormData({ ...formData, telephone: e.target.value })} placeholder="07 XX XX XX XX" /></Field>
+              <Field label="Téléphone *" icon={<Phone />}><CountryPhoneInput label="" required countryCode={formData.telephone_indicatif||"+225"} localValue={formData.telephone_local||formData.telephone||""} onChange={v=>setFormData(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/></Field>
               <Field label="Poste souhaité *" icon={<Briefcase />}><Select value={formData.poste} onValueChange={(value) => setFormData({ ...formData, poste: value })}><SelectTrigger><SelectValue placeholder="Sélectionner un poste" /></SelectTrigger><SelectContent>{ROLES.map((role) => <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>)}</SelectContent></Select></Field>
             </div>
 
