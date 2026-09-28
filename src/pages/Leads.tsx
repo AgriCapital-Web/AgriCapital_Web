@@ -407,7 +407,7 @@ export default function Leads() {
               <div><Label>Nom *</Label><Input value={leadForm.nom} onChange={(e) => setLeadForm({ ...leadForm, nom: e.target.value })} /></div>
               <div><Label>Prénom(s) *</Label><Input value={leadForm.prenoms} onChange={(e) => setLeadForm({ ...leadForm, prenoms: e.target.value })} /></div>
               <CountryPhoneInput label="Téléphone" required countryCode={leadForm.telephone_indicatif||"+225"} localValue={leadForm.telephone_local||""} onChange={v=>setLeadForm(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
-              <div><Label>WhatsApp</Label><Input type="tel" value={leadForm.whatsapp} onChange={(e) => setLeadForm({ ...leadForm, whatsapp: e.target.value })} /></div>
+              <CountryPhoneInput label="WhatsApp" countryCode={leadForm.whatsapp_indicatif||"+225"} localValue={leadForm.whatsapp_local||""} onChange={v=>setLeadForm(x=>({...x,whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue}))}/>
               <div><Label>Email</Label><Input type="email" value={leadForm.email} onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })} /></div>
               <div>
                 <Label>Région *</Label>
