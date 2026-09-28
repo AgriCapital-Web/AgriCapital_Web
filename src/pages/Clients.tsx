@@ -42,7 +42,8 @@ const Clients = () => {
           *,
           offres (nom, couleur),
           regions (nom),
-          plantations (id, superficie_ha)
+          plantations (id, superficie_ha, role_attribution),
+          beneficiaire_attributions (id, surface_attribuee_ha, statut, role_attribution, plantation_id)
         `)
         .order("created_at", { ascending: false });
 
@@ -51,8 +52,14 @@ const Clients = () => {
       // Calculer les totaux
       const enrichedData = (sousData || []).map((s: any) => ({
         ...s,
-        nombre_plantations: s.plantations?.length || 0,
-        total_hectares: s.plantations?.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0) || 0,
+        nombre_plantations: s.beneficiaire_attributions?.length
+          ? new Set(s.beneficiaire_attributions.map((a: any) => a.plantation_id).filter(Boolean)).size || s.beneficiaire_attributions.length
+          : (s.plantations?.length || 0),
+        total_hectares: s.beneficiaire_attributions?.length
+          ? s.beneficiaire_attributions
+              .filter((a: any) => a.statut === "active")
+              .reduce((sum: number, a: any) => sum + Number(a.surface_attribuee_ha || 0), 0)
+          : (s.plantations?.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0) || 0),
       }));
 
       setClients(enrichedData);
