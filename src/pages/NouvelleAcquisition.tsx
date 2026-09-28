@@ -94,15 +94,6 @@ const NouvelleAcquisition = () => {
       if(!formData.enquete_objectif){
         toast({variant:"destructive",title:"Enquête client incomplète",description:"L’objectif du Client est obligatoire."}); return false;
       }
-      if(formData.offre?.necessite_cotitulaire&&!formData.has_representant){
-        toast({variant:"destructive",title:"Cotitulaire / mandataire requis",description:"Cette offre exige de renseigner un cotitulaire ou mandataire."}); return false;
-      }
-      if(formData.has_representant){
-        const repFields=["representant_type","representant_nom","representant_prenoms","representant_type_piece","representant_numero_piece"];
-        if(repFields.some(f=>!formData[f])||!formData.representant_piece_recto_file||!formData.representant_piece_verso_file||!formData.representant_photo_profil_file){
-          toast({variant:"destructive",title:"Représentant incomplet",description:"Renseignez l’identité et les pièces/photos du cotitulaire ou mandataire."}); return false;
-        }
-      }
     }
     if(step.code==="parcelle"){
       const external=!Boolean(formData.offre?.necessite_foncier_client);
@@ -113,7 +104,14 @@ const NouvelleAcquisition = () => {
         toast({variant:"destructive",title:"Foncier externe incomplet",description:"La convention et le lot disponible sont obligatoires pour cette offre."}); return false;
       }
     }
-    if(step.code==="cotitulaire"){\n      if(formData.offre?.necessite_cotitulaire&&!formData.has_representant){toast({variant:"destructive",title:"Cotitulaire / mandataire requis",description:"Cette offre exige de renseigner un cotitulaire ou mandataire."});return false;}\n      if(formData.has_representant){\n        const repFields=["representant_type","representant_nom","representant_prenoms","representant_type_piece","representant_numero_piece","representant_telephone"];\n        if(repFields.some(f=>!formData[f])||!formData.representant_piece_recto_file||!formData.representant_piece_verso_file||!formData.representant_photo_profil_file){toast({variant:"destructive",title:"Cotitulaire / mandataire incomplet",description:"Renseignez l’identité, le lien, les coordonnées et les pièces/photos."});return false;}\n      }\n    }\n    if(step.code==="enquete"&&!formData.enquete_objectif){
+    if(step.code==="cotitulaire"){
+      if(formData.offre?.necessite_cotitulaire&&!formData.has_representant){toast({variant:"destructive",title:"Cotitulaire / mandataire requis",description:"Cette offre exige de renseigner un cotitulaire ou mandataire."});return false;}
+      if(formData.has_representant){
+        const repFields=["representant_type","representant_nom","representant_prenoms","representant_type_piece","representant_numero_piece","representant_telephone"];
+        if(repFields.some(f=>!formData[f])||!formData.representant_piece_recto_file||!formData.representant_piece_verso_file||!formData.representant_photo_profil_file){toast({variant:"destructive",title:"Cotitulaire / mandataire incomplet",description:"Renseignez l’identité, le lien, les coordonnées et les pièces/photos."});return false;}
+      }
+    }
+    if(step.code==="enquete"&&!formData.enquete_objectif){
       toast({variant:"destructive",title:"Enquête incomplète",description:"L’objectif du Client est obligatoire."}); return false;
     }
     if(step.code==="documents"){
@@ -259,7 +257,8 @@ const NouvelleAcquisition = () => {
     if(!step)return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
     switch(step.code){
       case "offre":return <Etape0Offre formData={formData} updateFormData={updateFormData}/>;
-      case "client":return <div className="space-y-6"><EtapeClientDynamique formData={formData} updateFormData={updateFormData}/><EtapeEnqueteClient formData={formData} updateFormData={updateFormData}/></div>;\n      case "cotitulaire":return <EtapeRepresentantDynamique formData={formData} updateFormData={updateFormData}/>;
+      case "client":return <div className="space-y-6"><EtapeClientDynamique formData={formData} updateFormData={updateFormData}/><EtapeEnqueteClient formData={formData} updateFormData={updateFormData}/></div>;
+      case "cotitulaire":return <EtapeRepresentantDynamique formData={formData} updateFormData={updateFormData}/>;
       case "parcelle":return <EtapeParcelleDynamique formData={formData} updateFormData={updateFormData}/>;
       case "documents":return <EtapeDocumentsContratsDynamiques formData={formData} updateFormData={updateFormData}/>;
       case "confirmation":return <EtapeConfirmationDossier formData={formData} updateFormData={updateFormData}/>;
