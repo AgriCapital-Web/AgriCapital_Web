@@ -189,10 +189,11 @@ const GestionNotifications = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Status label="Resend email" ok={Boolean(provider.resend_email)} />
             <Status label="Brevo email" ok={Boolean(provider.brevo_email)} />
             <Status label="Brevo SMS" ok={Boolean(provider.brevo_sms)} />
+            <Status label="WhatsApp Cloud" ok={Boolean(provider.whatsapp)} />
           </div>
         </CardContent>
       </Card>
