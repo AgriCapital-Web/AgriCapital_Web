@@ -249,7 +249,7 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
                     <div className="p-2 text-sm text-muted-foreground text-center">Aucune parcelle disponible</div>
                   )}
                 </SelectContent>
-              </Select>*/}
+              </Select>}
             </div>
           )}
         </CardContent>
