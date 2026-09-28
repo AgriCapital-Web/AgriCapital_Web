@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logoGreen from "@/assets/logo-green.png";
 import { User, Mail, Phone, Briefcase, MapPin, FileText, KeyRound, AtSign, Camera, Loader2, CheckCircle2, Image as ImageIcon } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import GeographieCascade from "@/components/common/GeographieCascade";
 
 const ROLES = [
   { value: "commercial", label: "Commercial (Comm)" },
@@ -86,7 +87,7 @@ const AccountRequest = () => {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await (supabase as any).from("districts").select("*").eq("est_actif_effectif", true).order("nom");
+      const { data } = await (supabase as any).from("districts").select("*").eq("est_actif", true).order("nom");
       setDistricts(data || []);
     })();
   }, []);
@@ -260,11 +261,7 @@ const AccountRequest = () => {
 
             <div className="space-y-3">
               <Label className="text-sm font-medium flex items-center gap-2"><MapPin className="h-4 w-4" /> Localisation</Label>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <Select value={formData.district} onValueChange={(value) => setFormData({ ...formData, district: value })}><SelectTrigger><SelectValue placeholder="District" /></SelectTrigger><SelectContent>{districts.map((dist) => <SelectItem key={dist.id} value={dist.id}>{dist.nom}</SelectItem>)}</SelectContent></Select>
-                <Select value={formData.region} onValueChange={(value) => setFormData({ ...formData, region: value })} disabled={!formData.district}><SelectTrigger><SelectValue placeholder="Région" /></SelectTrigger><SelectContent>{regions.map((region) => <SelectItem key={region.id} value={region.id}>{region.nom}</SelectItem>)}</SelectContent></Select>
-                <Select value={formData.departement} onValueChange={(value) => setFormData({ ...formData, departement: value })} disabled={!formData.region}><SelectTrigger><SelectValue placeholder="Département" /></SelectTrigger><SelectContent>{departements.map((dept) => <SelectItem key={dept.id} value={dept.id}>{dept.nom}</SelectItem>)}</SelectContent></Select>
-              </div>
+              <GeographieCascade districtId={formData.district} regionId={formData.region} departementId={formData.departement} showVillage={false} className="grid grid-cols-1 gap-3 sm:grid-cols-3" onChange={(g)=>setFormData(prev=>({...prev,district:g.districtId||"",region:g.regionId||"",departement:g.departementId||""}))} />
             </div>
 
             <div className="space-y-3 rounded-lg border-2 border-primary/30 bg-primary/5 p-4">
