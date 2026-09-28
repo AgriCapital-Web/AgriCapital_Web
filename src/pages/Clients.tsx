@@ -150,7 +150,7 @@ const Clients = () => {
 
       toast({
         title: "Succès",
-        description: "Client supprimé",
+        description: "Dossier supprimé",
       });
       fetchData();
     } catch (error: any) {
@@ -359,7 +359,7 @@ const Clients = () => {
                           </TableCell>
                           <TableCell>
                             {client.type_client === "beneficiaire_particulier" ? (
-                              <span className="text-muted-foreground">Actif agricole partagé</span>
+                              <span className="text-muted-foreground">{client.formule_nom || "Actif agricole"}</span>
                             ) : client.offres ? (
                               <Badge style={{ backgroundColor: client.offres.couleur }}>
                                 {client.offres.nom}
@@ -386,7 +386,7 @@ const Clients = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Link to={`/client/${client.id}`}>
+                              <Link to={`/acquisitions/${client.id}`}>
                                 <Button variant="ghost" size="sm">
                                   <Eye className="h-4 w-4" />
                                 </Button>
