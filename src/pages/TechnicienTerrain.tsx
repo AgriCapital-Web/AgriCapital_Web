@@ -39,7 +39,8 @@ const TechnicienTerrain=()=>{
   const allowed=userRoles.some(r=>TECH_ROLES.includes(r));
   const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin"].includes(r));
   const [plantations,setPlantations]=useState<any[]>([]);
-  const [clients,setClients]=useState<any[]>([]);\n  const [parcelles,setParcelles]=useState<any[]>([]);
+  const [clients,setClients]=useState<any[]>([]);
+  const [parcelles,setParcelles]=useState<any[]>([]);
   const [reports,setReports]=useState<any[]>([]);
   const [interventions,setInterventions]=useState<any[]>([]);
   const [tickets,setTickets]=useState<any[]>([]);
