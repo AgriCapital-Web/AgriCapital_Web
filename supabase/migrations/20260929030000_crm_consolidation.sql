@@ -128,6 +128,20 @@ drop trigger if exists trg_sync_technical_plantation on public.interventions_tec
 create trigger trg_sync_technical_plantation after insert or update of statut,nombre_plants_realises,nombre_plants_remplaces on public.interventions_techniques for each row execute function public.trg_sync_technical_plantation();
 
 update public.plantations set densite_cible=143,densite_plants=143,nombre_plants_prevus=round(superficie_ha*143),nombre_plants_mis_en_terre=coalesce(nombre_plants_mis_en_terre,round(superficie_ha*143)),surface_reellement_plantee=coalesce(surface_reellement_plantee,superficie_ha),taux_reussite=coalesce(taux_reussite,100) where date_plantation is not null;
+with stages as (
+  select p.id plantation_id,p.client_id,p.parcelle_id,s.type_intervention
+  from public.plantations p
+  cross join (values ('validation_parcelle'),('defrichage'),('trouaison'),('mise_en_terre')) s(type_intervention)
+  where p.date_plantation is not null
+)
+insert into public.interventions_techniques(id,plantation_id,client_id,parcelle_id,type_intervention,date_intervention,statut,observations,recommandations,created_at,updated_at)
+select gen_random_uuid(),s.plantation_id,s.client_id,s.parcelle_id,s.type_intervention,current_date,'realisee','Étape historique validée lors de la consolidation du suivi technique.','Étape reprise dans la progression du portail.',now(),now()
+from stages s
+where not exists(select 1 from public.interventions_techniques i where i.plantation_id=s.plantation_id and i.type_intervention=s.type_intervention and i.statut='realisee');
+
+update public.plantations p set date_activation=coalesce(p.date_activation,i.date_intervention),statut_global='active',updated_at=now()
+from (select plantation_id,max(date_intervention) date_intervention from public.interventions_techniques where type_intervention='mise_en_terre' and statut='realisee' group by plantation_id) i
+where p.id=i.plantation_id;
 
 insert into public.role_permissions(role_code,permission_code)
 select * from (values
