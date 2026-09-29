@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { TrendingUp, Leaf, Sprout, Check, Sparkles, Loader2 } from "lucide-react";
+import { TrendingUp, Leaf, Sprout, Check, Sparkles, Loader2, Crown } from "lucide-react";
 import { usePromotionActive } from "@/hooks/usePromotionActive";
 import { calculPrixEffectif } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
