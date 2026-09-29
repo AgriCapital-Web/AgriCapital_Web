@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { PERMISSIONS, hasPermission, ROLE_SHORT_LABELS } from "@/lib/roles";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationCenter } from "@/components/common/NotificationCenter";
@@ -23,6 +24,7 @@ interface MainLayoutProps { children: ReactNode; }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   const { signOut, profile, userRoles } = useAuth();
+  const { can } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -41,13 +43,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: Receipt, label: "Commissions", path: "/commissions", permission: PERMISSIONS.VIEW_COMMISSIONS },
     { icon: Wallet, label: "Portefeuilles", path: "/portefeuilles", permission: PERMISSIONS.VIEW_PORTEFEUILLES },
     { icon: Users, label: "Équipes", path: "/equipes", permission: PERMISSIONS.VIEW_EQUIPES },
-    { icon: Sprout, label: "Terrain", path: "/terrain", permission: PERMISSIONS.VIEW_RAPPORTS_TECHNIQUES },
+    { icon: Sprout, label: "Technique", path: "/terrain", permission: PERMISSIONS.VIEW_RAPPORTS_TECHNIQUES },
     { icon: FileText, label: "Rapports financiers", path: "/rapports-financiers", permission: PERMISSIONS.VIEW_RAPPORTS_FINANCIERS },
     { icon: Ticket, label: "Support", path: "/support", permission: PERMISSIONS.VIEW_TICKETS },
     { icon: CloudUpload, label: "Synchronisation", path: "/synchronisation", permission: PERMISSIONS.VIEW_DASHBOARD },
   ];
 
-  const visibleMenuItems = menuItems.filter(item => hasPermission(userRoles, item.permission));
+  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"rapports.view_technique",    "/leads":"leads.view", "/acquisitions":"clients.view", "/proprietaires-terres":"clients.view",    "/parcelles":"plantations.view", "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => can(permissionCodeByPath[item.path] || "parametres.view") || hasPermission(userRoles, item.permission));
   const handleLogout = async () => { await signOut(); navigate("/"); };
   const getInitials = (name: string) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AG';
 
@@ -102,7 +104,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           <Button variant="ghost" className={cn("h-10 w-full justify-start gap-3 rounded-md text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground", location.pathname === "/profil" && "bg-primary-foreground/15 text-primary-foreground")} onClick={() => { navigate("/profil"); setOpen(false); }}>
             <UserCircle className="h-4 w-4" /><span className="text-sm font-medium">Profil</span>
           </Button>
-          {hasPermission(userRoles, PERMISSIONS.VIEW_PARAMETRES) && (
+          {can("parametres.view") && (
             <Button variant="ghost" className={cn("h-10 w-full justify-start gap-3 rounded-md text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground", location.pathname === "/parametres" && "bg-primary-foreground/15 text-primary-foreground")} onClick={() => { navigate("/parametres"); setOpen(false); }}>
               <Settings className="h-4 w-4" /><span className="text-sm font-medium">Paramètres</span>
             </Button>
@@ -130,7 +132,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <SheetContent side="left" className="w-72 p-0"><SidebarContent /></SheetContent>
       </Sheet>
 
-      <main className="min-w-0 flex-1 pt-14 md:pt-0 bg-muted/20">
+      <main className="min-w-0 flex-1 overflow-x-hidden pt-14 md:pt-0 bg-muted/20">
         <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b bg-background/80 px-6 backdrop-blur-xl shadow-sm md:flex">
           <div className="ml-auto flex min-w-0 items-center gap-3">
             <NetworkIndicator />

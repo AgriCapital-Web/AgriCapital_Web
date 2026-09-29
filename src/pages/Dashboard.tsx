@@ -407,22 +407,6 @@ const Dashboard = () => {
 
           {/* Cartes d'état */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-l-4 border-l-primary">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" /> Acquisitions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{stats.totalClients}</div>
-                    <p className="text-xs text-muted-foreground">{acquisitionsEnAttente} en attente</p>
-                  </div>
-                  <Link to="/acquisitions" className="text-xs text-primary hover:underline">Voir →</Link>
-                </div>
-              </CardContent>
-            </Card>
             <Card className="border-l-4 border-l-amber-500">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">

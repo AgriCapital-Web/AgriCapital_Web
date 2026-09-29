@@ -52,12 +52,21 @@ const Equipes = () => {
       const [{ data: equipesData, error }, { data: regionsData }, { data: profilesData }] = await Promise.all([
         (supabase as any).from("equipes").select(`*, responsable:profiles!equipes_responsable_id_fkey(nom_complet, telephone), region:regions(nom)`).order("created_at", { ascending: false }),
         (supabase as any).from("regions").select("*").order("nom"),
-        (supabase as any).from("profils_annuaire").select("id, nom_complet, user_id").order("nom_complet"),
+        (supabase as any).from("profiles").select("id, nom_complet, user_id, actif").eq("actif", true).order("nom_complet"),
       ]);
       if (error) throw error;
       setEquipes(equipesData || []);
       setRegions(regionsData || []);
-      setProfiles(profilesData || []);
+      const baseProfiles = (profilesData || []) as any[];
+      const userIds = baseProfiles.map((p: any) => p.user_id).filter(Boolean);
+      let rolesRows: any[] = [];
+      if (userIds.length) {
+        const { data: rr } = await (supabase as any).from("user_roles").select("user_id, role").in("user_id", userIds);
+        rolesRows = rr || [];
+      }
+      const roleMap: Record<string,string[]> = {};
+      rolesRows.forEach((r: any) => { (roleMap[r.user_id] ||= []).push(r.role); });
+      setProfiles(baseProfiles.map((p: any) => ({ ...p, roles: roleMap[p.user_id] || [] })));
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(error) });
     } finally {
@@ -166,6 +175,13 @@ const Equipes = () => {
       toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(error) });
     }
   };
+
+  const responsablesDisponibles = profiles.filter((p: any) => {
+    const roles = (p.roles || []) as string[];
+    const isChef = roles.includes("chef_equipe_commercial") || roles.includes("chef_equipe_technique") || roles.includes("chef_equipe");
+    const sameTeamRole = formData.type_equipe === "technique" ? roles.includes("chef_equipe_technique") : roles.includes("chef_equipe_commercial");
+    return isChef && sameTeamRole;
+  });
 
   const filteredEquipes = equipes.filter((e) => {
     const matchesSearch = e.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -283,7 +299,7 @@ const Equipes = () => {
                 <Select value={formData.responsable_id} onValueChange={(v) => setFormData({ ...formData, responsable_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
                   <SelectContent>
-                    {profiles.map((p) => (
+                    {responsablesDisponibles.map((p) => (
                       <SelectItem key={p.id} value={p.id}>{p.nom_complet}</SelectItem>
                     ))}
                   </SelectContent>

@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/usePermissions";
 import { offlineInsert } from "@/lib/offlineWrite";
 import { uploadOrQueueFile } from "@/lib/offlineFiles";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","super_admin"];
+const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","super_admin","pdg"];
 const STAGES_AGRICAPITAL=[
+  ["validation_parcelle","Validation de la parcelle"],
   ["defrichage","Défrichage"],
   ["piquetage","Piquetage"],
   ["trouaison","Trouaison"],
@@ -30,15 +32,16 @@ const STAGES_AGRICAPITAL=[
   ["suivi_mensuel","Suivi mensuel"],
   ["autre","Autre"],
 ];
-const STAGES_PALMTERROIR_AVANT_PLANTATION=[["piquetage","Piquetage"],["trouaison","Trouaison"],["mise_en_terre","Planting / mise en terre"]];
+const STAGES_PALMTERROIR_AVANT_PLANTATION=[["validation_parcelle","Validation de la parcelle"],["piquetage","Piquetage"],["trouaison","Trouaison"],["mise_en_terre","Planting / mise en terre"]];
 const STAGES_PALMTERROIR_APRES_PLANTATION=[["suivi_mensuel","Suivi / encadrement technique"],["autre","Autre suivi technique"]];
 const isPalmTerroir=(p:any)=>String(p?.formule_code||p?.client?.formule_code||"").toLowerCase().includes("palm-terroir");
 
 const TechnicienTerrain=()=>{
   const {user,userRoles}=useAuth();
   const {toast}=useToast();
-  const allowed=userRoles.some(r=>TECH_ROLES.includes(r));
-  const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin"].includes(r));
+  const {can}=usePermissions();
+  const allowed=can("rapports.view_technique") || userRoles.some(r=>TECH_ROLES.includes(r));
+  const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin","pdg"].includes(r));
   const [plantations,setPlantations]=useState<any[]>([]);
   const [clients,setClients]=useState<any[]>([]);
   const [parcelles,setParcelles]=useState<any[]>([]);
@@ -56,7 +59,7 @@ const TechnicienTerrain=()=>{
   const [media,setMedia]=useState<File[]>([]);
   const [intervention,setIntervention]=useState<any>({
     plantation_id:"",client_id:"",parcelle_id:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),
-    observations:"",recommandations:"",statut:"planifiee"
+    observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"143"
   });
 
   const profileContext=async()=>{
@@ -145,12 +148,16 @@ const TechnicienTerrain=()=>{
     try{
       const profile=await profileContext(); if(!profile?.id)throw new Error("Profil technicien introuvable");
       const payload={...intervention,id:crypto.randomUUID(),agent_technique_id:profile.id,
-        client_id:targetClientId,parcelle_id:targetParcelleId,plantation_id:intervention.plantation_id||null
+        client_id:targetClientId,parcelle_id:targetParcelleId,plantation_id:intervention.plantation_id||null,
+        nombre_plants_prevus:intervention.nombre_plants_prevus?Number(intervention.nombre_plants_prevus):null,
+        nombre_plants_realises:intervention.nombre_plants_realises?Number(intervention.nombre_plants_realises):null,
+        nombre_plants_remplaces:intervention.nombre_plants_remplaces?Number(intervention.nombre_plants_remplaces):null,
+        densite_plants:intervention.densite_plants?Number(intervention.densite_plants):143
       };
       const {error}=await offlineInsert("interventions_techniques",payload);
       if(error)throw error;
       toast({title:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"Mise en terre validée":"Intervention enregistrée",description:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"La plantation sera créée automatiquement par la base de données.":undefined});
-      setIntervention({plantation_id:"",client_id:"",parcelle_id:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee"});
+      setIntervention({plantation_id:"",client_id:"",parcelle_id:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"143"});
       load();
     }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
     finally{setSaving(false);}
@@ -166,7 +173,7 @@ const TechnicienTerrain=()=>{
   if(!allowed)return <ProtectedRoute><MainLayout><Card><CardHeader><CardTitle>Accès technicien</CardTitle><CardDescription>Cette interface est réservée aux accès techniques autorisés.</CardDescription></CardHeader></Card></MainLayout></ProtectedRoute>;
 
   return <ProtectedRoute><MainLayout><div className="space-y-6">
-    <div><h1 className="text-3xl font-bold">Terrain & suivi technique</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
+    <div><h1 className="text-3xl font-bold">Technique — suivi des plantations</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
 
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList><TabsTrigger value="demandes">Demandes à traiter {tickets.length>0&&<Badge className="ml-2">{tickets.length}</Badge>}</TabsTrigger><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList>
@@ -203,14 +210,14 @@ const TechnicienTerrain=()=>{
           <div className="grid md:grid-cols-3 gap-4">
             <div><Label>Client / dossier *</Label><Select value={intervention.client_id} onValueChange={v=>setIntervention((x:any)=>({...x,client_id:v,parcelle_id:clients.find(c=>c.id===v)?.parcelle_id||x.parcelle_id,plantation_id:""}))}><SelectTrigger><SelectValue placeholder="Sélectionner un Client"/></SelectTrigger><SelectContent>{clients.map(c=><SelectItem key={c.id} value={c.id}>{c.nom_complet} · {c.id_unique}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Parcelle *</Label><Select value={intervention.parcelle_id} onValueChange={v=>setIntervention((x:any)=>({...x,parcelle_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une parcelle"/></SelectTrigger><SelectContent>{parcelles.filter(pa=>!intervention.client_id||clients.find(c=>c.id===intervention.client_id)?.parcelle_id===pa.id).map(pa=><SelectItem key={pa.id} value={pa.id}>{pa.id_unique}{pa.village?` · ${pa.village}`:""}</SelectItem>)}</SelectContent></Select></div>
-            <div><Label>Plantation</Label><Select value={intervention.plantation_id||"none"} onValueChange={v=>{const p=plantations.find(x=>x.id===v);setIntervention((x:any)=>({...x,plantation_id:v==="none"?"":v,client_id:p?.client_id||x.client_id,parcelle_id:p?.parcelle_id||clients.find(c=>c.id===p?.client_id)?.parcelle_id||x.parcelle_id}));}}><SelectTrigger><SelectValue placeholder="Aucune si avant plantation"/></SelectTrigger><SelectContent><SelectItem value="none">Aucune — avant plantation</SelectItem>{plantations.filter(p=>!intervention.client_id||p.client_id===intervention.client_id).map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique} · {p.id_unique}</SelectItem>)}</SelectContent></Select></div>
+            <div><Label>Plantation</Label><Select value={intervention.plantation_id||"none"} onValueChange={v=>{const p=plantations.find(x=>x.id===v);const density=Number(intervention.densite_plants||143);const planned=p?.superficie_ha?Math.round(Number(p.superficie_ha)*density):"";setIntervention((x:any)=>({...x,plantation_id:v==="none"?"":v,client_id:p?.client_id||x.client_id,parcelle_id:p?.parcelle_id||clients.find(c=>c.id===p?.client_id)?.parcelle_id||x.parcelle_id,nombre_plants_prevus:planned}));}}><SelectTrigger><SelectValue placeholder="Aucune si avant plantation"/></SelectTrigger><SelectContent><SelectItem value="none">Aucune — avant plantation</SelectItem>{plantations.filter(p=>!intervention.client_id||p.client_id===intervention.client_id).map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique} · {p.id_unique}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Date *</Label><Input type="date" value={intervention.date_intervention} onChange={e=>setIntervention((x:any)=>({...x,date_intervention:e.target.value}))}/></div>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div><Label>Étape technique</Label><Select value={intervention.type_intervention} onValueChange={v=>setIntervention((x:any)=>({...x,type_intervention:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{((()=>{const p=plantations.find(x=>x.id===intervention.plantation_id);const c=clients.find(x=>x.id===(intervention.client_id||p?.client_id));const stages=isPalmTerroir({...p,client:c})?(p?.date_plantation?STAGES_PALMTERROIR_APRES_PLANTATION:STAGES_PALMTERROIR_AVANT_PLANTATION):STAGES_AGRICAPITAL;return stages;})()).map(([v,l])=><SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Statut</Label><Select value={intervention.statut} onValueChange={v=>setIntervention((x:any)=>({...x,statut:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="planifiee">Planifiée</SelectItem><SelectItem value="en_cours">En cours</SelectItem><SelectItem value="realisee">Réalisée</SelectItem><SelectItem value="annulee">Annulée</SelectItem></SelectContent></Select></div>
           </div>
-          <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat / observations</Label><Textarea value={intervention.observations} onChange={e=>setIntervention((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations</Label><Textarea value={intervention.recommandations} onChange={e=>setIntervention((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
+          <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat / observations</Label><Textarea value={intervention.observations} onChange={e=>setIntervention((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations</Label><Textarea value={intervention.recommandations} onChange={e=>setIntervention((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>\n           {(intervention.type_intervention==="mise_en_terre"||intervention.type_intervention==="remplacement") && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-xl border bg-muted/20 p-4"><div><Label>Densité (plants/ha)</Label><Input type="number" min="1" value={intervention.densite_plants} onChange={e=>setIntervention((x:any)=>({...x,densite_plants:e.target.value}))}/><p className="text-[10px] text-muted-foreground mt-1">Valeur par défaut : 143 plants/ha.</p></div><div><Label>Plants prévus</Label><Input type="number" min="0" value={intervention.nombre_plants_prevus} onChange={e=>setIntervention((x:any)=>({...x,nombre_plants_prevus:e.target.value}))}/></div><div><Label>{intervention.type_intervention==="remplacement"?"Plants remplacés":"Plants mis en terre"}</Label><Input type="number" min="0" value={intervention.type_intervention==="remplacement"?intervention.nombre_plants_remplaces:intervention.nombre_plants_realises} onChange={e=>setIntervention((x:any)=>intervention.type_intervention==="remplacement"?({...x,nombre_plants_remplaces:e.target.value}):({...x,nombre_plants_realises:e.target.value}))}/></div><div><Label>Calcul prévu</Label><div className="h-10 rounded-md border bg-background px-3 flex items-center text-sm">{(()=>{const p=plantations.find(x=>x.id===intervention.plantation_id);const ha=Number(p?.superficie_ha||0);return ha?`${Math.round(ha*Number(intervention.densite_plants||143))} plants`:"Sélectionnez une plantation";})()}</div></div></div>}
           <div className="flex justify-end"><Button disabled={saving} onClick={saveIntervention}>Enregistrer l’intervention</Button></div>
         </CardContent></Card>
       </TabsContent>

@@ -38,7 +38,7 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   ...build("roles", "Rôles", [...CRUD, ["manage_permissions", "Gérer les permissions"]]),
   ...build("offres", "Offres", [
     ...CRUD,
-    ["manage_prices", "Gérer les prix et le dépôt initial"],
+    ["manage_prices", "Gérer les prix et le Paiement Initial"],
     ["manage_promotions", "Gérer les promotions"],
   ]),
   ...build("promotions", "Promotions", [
@@ -87,6 +87,16 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   ...build("commissions", "Commissions", [
     ["view", "Consulter"],
     ["validate", "Valider"],
+    ["manage_payouts", "Paramétrer et effectuer les versements"],
+  ]),
+  ...build("beneficiaires", "Bénéficiaires", [
+    ["view", "Consulter"],
+    ["create", "Créer un bénéficiaire"],
+    ["update", "Modifier"],
+  ]),
+  ...build("portefeuilles", "Portefeuilles", [
+    ["view", "Consulter"],
+    ["manage_payouts", "Gérer les versements"],
   ]),
   ...build("tickets", "Support", [
     ["view", "Consulter"],
@@ -125,27 +135,27 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "utilisateurs.", "offres.", "promotions.", "leads.", "clients.", "plantations.",
     "documents.", "rapports.", "tickets.", "commissions.view",
     "paiements.view", "paiements.record", "paiements.validate",
-    "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit",
+    "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit", "portefeuilles.view",
   ).filter((c) => !["utilisateurs.delete", "utilisateurs.manage_roles"].includes(c)),
   [ROLES.RESPONSABLE_COMMERCIAL]: only(
-    "leads.", "clients.view", "clients.create", "clients.update",
+    "leads.", "clients.view", "portefeuilles.view", "clients.create", "clients.update",
     "plantations.view", "offres.view", "promotions.view",
     "paiements.view", "commissions.view", "rapports.view_financier", "rapports.export",
     "documents.view", "tickets.view", "utilisateurs.view", "parametres.manage_teams",
   ),
   [ROLES.COMPTABLE]: only(
-    "paiements.", "commissions.", "rapports.view_financier", "rapports.export",
+    "paiements.", "commissions.", "commissions.manage_payouts", "portefeuilles.", "portefeuilles.manage_payouts", "rapports.view_financier", "rapports.export",
     "clients.view", "offres.view", "promotions.view", "documents.view", "documents.validate",
   ),
   [ROLES.CHEF_EQUIPE_COMMERCIAL]: only(
     "leads.view", "leads.create", "leads.update", "leads.assign",
-    "clients.view", "clients.create", "clients.update", "plantations.view",
+    "clients.view", "clients.create", "clients.update", "beneficiaires.view", "portefeuilles.view", "commissions.view", "plantations.view",
     "offres.view", "promotions.view", "commissions.view", "documents.view", "documents.upload",
   ),
-  [ROLES.TECHNICIEN]: only("clients.view","plantations.view","plantations.update","documents.view","documents.upload","rapports.view_technique","tickets.view","tickets.create","tickets.update"),
+  [ROLES.TECHNICIEN]: only("clients.view","plantations.view","plantations.update","documents.view","documents.upload","rapports.view_technique","tickets.view","tickets.create","tickets.update","portefeuilles.view","commissions.view"),
   [ROLES.CHEF_EQUIPE_TECHNIQUE]: only(
     "plantations.", "documents.view", "documents.upload", "rapports.view_technique",
-    "tickets.view", "tickets.create", "tickets.update", "clients.view",
+    "tickets.view", "portefeuilles.view", "commissions.view", "tickets.create", "tickets.update", "clients.view",
   ),
   [ROLES.CHEF_EQUIPE_SERVICE_CLIENT]: only(
     "tickets.", "clients.view", "clients.update", "paiements.view", "paiements.record",
@@ -154,7 +164,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.COMMERCIAL]: only(
     "leads.view", "leads.create", "leads.update",
     "clients.view", "clients.create", "clients.update",
-    "plantations.view", "offres.view", "promotions.view", "commissions.view",
+    "plantations.view", "offres.view", "promotions.view", "commissions.view", "portefeuilles.view",
     "documents.view", "documents.upload",
   ),
   [ROLES.SERVICE_CLIENT]: only(

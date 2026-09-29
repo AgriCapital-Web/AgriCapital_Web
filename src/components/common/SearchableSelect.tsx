@@ -16,6 +16,7 @@ interface SearchableSelectProps {
   emptyText?: string;
   disabled?: boolean;
   className?: string;
+  triggerLabel?: string;
 }
 
 export default function SearchableSelect({
@@ -27,6 +28,7 @@ export default function SearchableSelect({
   emptyText = "Aucun résultat.",
   disabled = false,
   className,
+  triggerLabel,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const selected = useMemo(() => options.find((option) => option.value === value), [options, value]);
@@ -35,7 +37,7 @@ export default function SearchableSelect({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button type="button" variant="outline" role="combobox" aria-expanded={open} disabled={disabled} className={cn("w-full justify-between font-normal", className)}>
-          <span className="truncate">{selected?.label || placeholder}</span>
+          <span className="truncate">{triggerLabel ?? selected?.label ?? placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

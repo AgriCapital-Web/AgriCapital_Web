@@ -14,6 +14,8 @@ import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { ArrowLeft, FileCheck2, LandPlot, UserRound, Sprout, Upload } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import MainLayout from "@/components/layout/MainLayout";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import GeographieCascade from "@/components/common/GeographieCascade";
 
 type UploadState = { file: File | null; preview: string };
@@ -153,6 +155,8 @@ const BeneficiaireParticulier = () => {
   };
 
   return (
+    <ProtectedRoute requiredPermissionCode="beneficiaires.create">
+      <MainLayout>
     <div className="max-w-5xl mx-auto space-y-6 pb-10">
       <div className="flex items-center gap-3">
         <Button type="button" variant="ghost" onClick={() => navigate("/clients")}>
@@ -241,6 +245,8 @@ const BeneficiaireParticulier = () => {
         </div>
       </form>
     </div>
+      </MainLayout>
+    </ProtectedRoute>
   );
 };
 

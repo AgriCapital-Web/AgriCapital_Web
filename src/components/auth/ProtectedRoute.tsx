@@ -2,15 +2,18 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { hasPermission } from '@/lib/roles';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: string;
   requiredPermission?: readonly string[];
+  requiredPermissionCode?: string;
 }
 
-const ProtectedRoute = ({ children, requiredRole, requiredPermission }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requiredRole, requiredPermission, requiredPermissionCode }: ProtectedRouteProps) => {
   const { user, loading, hasRole, userRoles } = useAuth();
+  const { can } = usePermissions();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,7 +22,7 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission }: Protecte
         navigate('/login');
       } else if (requiredRole && !hasRole(requiredRole)) {
         navigate('/dashboard');
-      } else if (requiredPermission && !hasPermission(userRoles, requiredPermission)) {
+      } else if (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission)) {
         navigate('/dashboard');
       }
     }
@@ -35,7 +38,7 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission }: Protecte
 
   if (!user) return null;
   if (requiredRole && !hasRole(requiredRole)) return null;
-  if (requiredPermission && !hasPermission(userRoles, requiredPermission)) return null;
+  if (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission)) return null;
 
   return <>{children}</>;
 };

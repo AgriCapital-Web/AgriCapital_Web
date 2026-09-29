@@ -65,6 +65,7 @@ const Offres = () => {
   const [isOffreDialogOpen, setIsOffreDialogOpen] = useState(false);
   const [isPromoDialogOpen, setIsPromoDialogOpen] = useState(false);
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
+  const [detailsFamily, setDetailsFamily] = useState<string | null>(null);
 
   const [promoFormData, setPromoFormData] = useState({
     nom: "",
@@ -109,12 +110,15 @@ const Offres = () => {
   // Update offre
   const updateOffreMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Offre> }) => {
-      const { error } = await supabase
-        .from('offres')
-        .update(updates)
-        .eq('id', id);
-      
-      if (error) throw error;
+      const current = (offres || []).find((o: any) => o.id === id) as any;
+      const family = String(current?.famille_offre || "").toUpperCase();
+      const targets = ["PALMINVEST","TERRAPALM"].includes(family)
+        ? (offres || []).filter((o: any) => String(o.famille_offre || "").toUpperCase() === family)
+        : [current];
+      for (const target of targets) {
+        const { error } = await supabase.from('offres').update(updates).eq('id', target.id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['offres'] });
@@ -395,243 +399,122 @@ const Offres = () => {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {offres?.map((offre) => {
-              const IconComponent = getIcone(offre.code);
-              const couleurs = getCouleur(offre.code, offre.couleur);
-              const avantagesList = parseAvantages(offre.avantages);
-              const prix = parOffre(offre.id);
-              const promoApplicable = !!prix?.promotion_id;
-              
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {[
+              { key: "PALMINVEST", label: "PalmInvest", description: "Plantation avec gestion autonome ou déléguée.", icon: TrendingUp, tone: "text-primary", bg: "bg-primary/10" },
+              { key: "TERRAPALM", label: "TerraPalm", description: "Plantation sur foncier du client.", icon: Leaf, tone: "text-emerald-700", bg: "bg-emerald-500/10" },
+              { key: "PALMTERROIR", label: "PalmTerroir", description: "Formules Essentielle et Flexible.", icon: Crown, tone: "text-amber-700", bg: "bg-amber-500/10" },
+            ].map((family) => {
+              const familyOffers = (offres || []).filter((o: any) => String(o.famille_offre || "").toUpperCase() === family.key);
+              const Icon = family.icon;
+              const active = familyOffers.some((o: any) => o.actif);
               return (
-                <Card 
-                  key={offre.id} 
-                  className={`relative overflow-hidden transition-all ${couleurs.border} ${!offre.actif ? 'opacity-60' : ''}`}
-                >
-                  <CardHeader className={`${couleurs.bg} pb-4`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-full bg-white shadow-sm">
-                          <IconComponent className={`h-8 w-8 ${couleurs.text}`} />
-                        </div>
-                        <div>
-                          <CardTitle className={`text-xl ${couleurs.text}`}>
-                            {offre.nom}
-                          </CardTitle>
-                          <p className="text-sm text-muted-foreground">{offre.description}</p>
-                        </div>
+                <Card key={family.key} className="overflow-hidden border-border/80">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${family.bg}`}>
+                        <Icon className={`h-5 w-5 ${family.tone}`} />
                       </div>
-                      <Switch
-                        checked={offre.actif ?? true}
-                        onCheckedChange={(checked) => toggleOffreMutation.mutate({ id: offre.id, actif: checked })}
-                      />
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-4 space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Paiement Initial (PI) / ha :</p>
-                      <div className="flex items-baseline gap-2">
-                        {promoApplicable && prix && prix.depot_initial_effectif !== prix.depot_initial_base && (
-                          <span className="text-lg text-muted-foreground line-through">
-                            {formatMontant(prix.depot_initial_base)}F
-                          </span>
-                        )}
-                        <span className="text-2xl font-bold text-primary">
-                          {formatMontant(prix?.depot_initial_effectif ?? offre.montant_pi_par_ha)}F
-                        </span>
-                        <span className="text-sm">/ha</span>
-                        {promoApplicable && prix && (
-                          <Badge className="bg-green-500">
-                            {prix.reduction_pct > 0 ? `-${prix.reduction_pct}%` : "Promotion"}
-                          </Badge>
-                        )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className={`truncate font-bold ${family.tone}`}>{family.label}</h3>
+                        <p className="truncate text-xs text-muted-foreground">{family.description}</p>
                       </div>
+                      <Badge variant={active ? "default" : "secondary"} className="shrink-0">{active ? "Active" : "Inactive"}</Badge>
                     </div>
-
-                    {(() => {
-                      const pe = parOffre(offre.id);
-                      const promoActive = !!pe?.promotion_id;
-                      return (
-                        <div className="space-y-2 rounded-md border bg-muted/40 p-3">
-                          <p className="text-sm font-semibold">Prix effectif (promotion appliquée depuis la base)</p>
-                          <div className="grid gap-1 text-sm">
-                            <div className="flex items-baseline justify-between gap-2">
-                              <span className="text-muted-foreground">Prix global / ha</span>
-                              <span className="flex items-baseline gap-2">
-                                {promoActive && pe && pe.montant_total_effectif !== pe.montant_total_base && (
-                                  <span className="line-through text-muted-foreground">{formatMontant(pe.montant_total_base)}F</span>
-                                )}
-                                <span className="font-bold text-primary">{formatMontant(pe?.montant_total_effectif ?? offre.montant_total_par_ha)}F</span>
-                              </span>
-                            </div>
-                            <div className="flex items-baseline justify-between gap-2">
-                              <span className="text-muted-foreground">Paiement Initial (PI) / ha</span>
-                              <span className="flex items-baseline gap-2">
-                                {promoActive && pe && pe.depot_initial_effectif !== pe.depot_initial_base && (
-                                  <span className="line-through text-muted-foreground">{formatMontant(pe.depot_initial_base)}F</span>
-                                )}
-                                <span className="font-bold">{formatMontant(pe?.depot_initial_effectif ?? offre.montant_pi_par_ha)}F</span>
-                              </span>
-                            </div>
-                            <div className="space-y-2">
-                              <span className="text-muted-foreground">Échéancier mensuel / ha</span>
-                              <div className="space-y-1 rounded-md bg-background/70 p-2">
-                                {(pe?.tranches_effectives?.length
-                                  ? pe.tranches_effectives
-                                  : getTranches(offre)
-                                ).filter((t: any) => Number(t.mensualite_par_ha ?? 0) > 0).map((t: any, i: number) => {
-                                  const base = Number(t.mensualite_par_ha ?? 0);
-                                  const eff = Number(t.mensualite_par_ha_effective ?? base);
-                                  return (
-                                    <div key={i} className="flex items-center justify-between text-xs">
-                                      <span>An {t.annee ?? i + 1} — {t.mois ?? ((t.mois_fin ?? 0) - (t.mois_debut ?? 0) + 1)} mois</span>
-                                      <span className="font-semibold">
-                                        {promoActive && eff !== base && <span className="mr-2 text-muted-foreground line-through">{formatMontant(base)}F</span>}
-                                        {formatMontant(eff)}F/mois
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                          {promoActive && pe && (
-                            <Badge className="bg-green-500">
-                              {pe.promotion_nom} — {pe.promotion_cible === "paiement_initial" ? "PI" : "CG"} -{pe.reduction_pct}%
-                            </Badge>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-
-                    <div className="space-y-2 pt-2 border-t">
-                      {avantagesList.map((avantage: string, idx: number) => (
-                        <div key={idx} className="flex items-start gap-2">
-                          <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-sm">{avantage}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="pt-2 flex items-center justify-between">
-                      <Badge variant={offre.actif ? "default" : "secondary"}>
-                        {offre.actif ? "Active" : "Inactive"}
-                      </Badge>
-                      <Dialog open={isOffreDialogOpen && editOffre?.id === offre.id} onOpenChange={(open) => {
-                        setIsOffreDialogOpen(open);
-                        if (!open) setEditOffre(null);
-                      }}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" onClick={() => {
-                            setEditOffre(offre);
-                            setIsOffreDialogOpen(true);
-                          }}>
-                            <Pencil className="h-4 w-4 mr-1" />
-                            Modifier
-                          </Button>
-                        </DialogTrigger>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="ml-2"
-                          onClick={() => {
-                            if (confirm(`Supprimer définitivement l'offre "${offre.nom}" ? Cette action est irréversible.`)) {
-                              deleteOffreMutation.mutate(offre.id);
-                            }
-                          }}
-                          disabled={deleteOffreMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Modifier l'offre {editOffre?.nom}</DialogTitle>
-                          </DialogHeader>
-                          {editOffre && (
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="nom">Nom de l'offre</Label>
-                                <Input 
-                                  id="nom"
-                                  value={editOffre.nom}
-                                  onChange={(e) => setEditOffre({...editOffre, nom: e.target.value})}
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="description">Description</Label>
-                                <Textarea 
-                                  id="description"
-                                  value={editOffre.description || ''}
-                                  onChange={(e) => setEditOffre({...editOffre, description: e.target.value})}
-                                />
-                              </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="montant_pi">Montant PI/ha (F)</Label>
-                                  <Input
-                                    id="montant_pi"
-                                    type="number"
-                                    min="0"
-                                    value={editOffre.montant_pi_par_ha ?? ""}
-                                    onChange={(e) => setEditOffre({...editOffre, montant_pi_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="montant_cash">Montant comptant/ha (F)</Label>
-                                  <Input
-                                    id="montant_cash"
-                                    type="number"
-                                    min="0"
-                                    value={editOffre.montant_cash_par_ha ?? ""}
-                                    onChange={(e) => setEditOffre({...editOffre, montant_cash_par_ha: e.target.value === "" ? null : Number(e.target.value)})}
-                                  />
-                                </div>
-                              </div>
-                              <div className="space-y-3 rounded-lg border p-3">
-                                <div>
-                                  <div className="text-sm font-semibold">Échéancier par période</div>
-                                  <p className="text-xs text-muted-foreground">Le PI reste séparé. Les mensualités sont configurées par An 1, An 2 et An 3.</p>
-                                </div>
-                                {getTranches(editOffre).filter((t:any)=>t.type !== "paiement_initial").map((t:any,index:number)=>(
-                                  <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                    <div>
-                                      <Label>An {index+1} — nombre de mois</Label>
-                                      <Input type="number" min="0" value={t.mois ?? ""} onChange={(e)=>{
-                                        const next=getTranches(editOffre).map((x:any,i:number)=>i===index?{...x,mois:e.target.value===""?"":Number(e.target.value)}:x);
-                                        setEditOffre({...editOffre,tranches_paiement:next});
-                                      }}/>
-                                    </div>
-                                    <div>
-                                      <Label>Mensualité / ha (F)</Label>
-                                      <Input type="number" min="0" value={t.mensualite_par_ha ?? ""} onChange={(e)=>{
-                                        const next=getTranches(editOffre).map((x:any,i:number)=>i===index?{...x,mensualite_par_ha:e.target.value===""?"":Number(e.target.value)}:x);
-                                        setEditOffre({...editOffre,tranches_paiement:next});
-                                      }}/>
-                                    </div>
-                                    <div className="flex items-end pb-2 text-xs text-muted-foreground">{formatMontant((Number(t.mois)||0)*(Number(t.mensualite_par_ha)||0))} F / période</div>
-                                  </div>
-                                ))}
-                              </div>
-                              <Button 
-                                onClick={handleSaveOffre} 
-                                className="w-full"
-                                disabled={updateOffreMutation.isPending}
-                              >
-                                {updateOffreMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                Enregistrer
-                              </Button>
-                            </div>
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                    <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3">
+                      <span className="text-xs text-muted-foreground">{familyOffers.length} formule{familyOffers.length > 1 ? "s" : ""}</span>
+                      <Button size="sm" variant="outline" onClick={() => setDetailsFamily(family.key)}>Voir les détails</Button>
                     </div>
                   </CardContent>
                 </Card>
               );
             })}
           </div>
+
+          <Dialog open={!!detailsFamily} onOpenChange={(open) => !open && setDetailsFamily(null)}>
+            <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-3xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Détails et configuration de l'offre</DialogTitle>
+                <DialogDescription>Les modalités tarifaires communes de PalmInvest et TerraPalm s'appliquent automatiquement à leurs deux formules. Les différences de gestion restent propres à chaque formule.</DialogDescription>
+              </DialogHeader>
+              {detailsFamily && (
+                <div className="space-y-3">
+                  {(offres || []).filter((o: any) => String(o.famille_offre || "").toUpperCase() === detailsFamily).map((offre: any) => {
+                    const pe = parOffre(offre.id);
+                    const tranches = pe?.tranches_effectives?.length ? pe.tranches_effectives : getTranches(offre);
+                    return (
+                      <Card key={offre.id} className="border-border">
+                        <CardContent className="p-4">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <p className="font-semibold">{offre.formule_nom || offre.nom}</p>
+                              <p className="text-xs text-muted-foreground">{offre.formule_code}</p>
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => { setEditOffre(offre); setDetailsFamily(null); setIsOffreDialogOpen(true); }}>
+                              <Pencil className="mr-1 h-4 w-4" /> Modifier
+                            </Button>
+                          </div>
+                          <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                            <div className="rounded-lg bg-muted/40 p-2"><span className="block text-[10px] text-muted-foreground">PI / ha</span><b>{formatMontant(pe?.depot_initial_effectif ?? offre.montant_pi_par_ha)} F</b></div>
+                            <div className="rounded-lg bg-muted/40 p-2"><span className="block text-[10px] text-muted-foreground">Mensualité / ha</span><b>{formatMontant(offre.contribution_mensuelle_par_ha || 0)} F</b></div>
+                            <div className="rounded-lg bg-muted/40 p-2"><span className="block text-[10px] text-muted-foreground">Durée</span><b>{offre.duree_paiement_mois || 0} mois</b></div>
+                            <div className="rounded-lg bg-muted/40 p-2"><span className="block text-[10px] text-muted-foreground">Gestion</span><b>{offre.gestion_type === "deleguee" ? "Déléguée" : "Autonome"}</b></div>
+                          </div>
+                          <div className="mt-3 space-y-1">
+                            {tranches.filter((t: any) => Number(t.mensualite_par_ha ?? 0) > 0).map((t: any, i: number) => (
+                              <div key={i} className="flex min-w-0 justify-between gap-3 rounded-md bg-background p-2 text-xs">
+                                <span>An {t.annee ?? i + 1} · {t.mois ?? ((t.mois_fin ?? 0) - (t.mois_debut ?? 0) + 1)} mois</span>
+                                <span className="shrink-0 font-semibold">{formatMontant(Number(t.mensualite_par_ha_effective ?? t.mensualite_par_ha ?? 0))} F/ha</span>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isOffreDialogOpen} onOpenChange={(open) => { setIsOffreDialogOpen(open); if (!open) setEditOffre(null); }}>
+            <DialogContent className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Modifier la configuration {editOffre?.famille_offre || editOffre?.nom}</DialogTitle>
+                <DialogDescription>Pour PalmInvest et TerraPalm, les paramètres tarifaires enregistrés ici sont répliqués sur les deux formules de la même offre.</DialogDescription>
+              </DialogHeader>
+              {editOffre && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div><Label>Nom d'affichage</Label><Input value={editOffre.nom || ""} onChange={e => setEditOffre({...editOffre, nom:e.target.value})} /></div>
+                    <div><Label>PI / ha (F)</Label><Input type="number" min="0" value={editOffre.montant_pi_par_ha ?? ""} onChange={e => setEditOffre({...editOffre, montant_pi_par_ha:Number(e.target.value)})} /></div>
+                    <div><Label>Comptant / ha (F)</Label><Input type="number" min="0" value={editOffre.montant_cash_par_ha ?? ""} onChange={e => setEditOffre({...editOffre, montant_cash_par_ha:Number(e.target.value)})} /></div>
+                    <div><Label>Durée (mois)</Label><Input type="number" min="0" value={editOffre.duree_paiement_mois ?? ""} onChange={e => setEditOffre({...editOffre, duree_paiement_mois:Number(e.target.value)})} /></div>
+                  </div>
+                  <div className="rounded-xl border p-3">
+                    <p className="mb-2 text-sm font-semibold">Échéancier</p>
+                    {getTranches(editOffre).map((t:any,i:number) => (
+                      <div key={i} className="grid grid-cols-1 gap-2 border-t py-2 first:border-t-0 sm:grid-cols-3">
+                        <Label className="text-xs">An {i+1} · {t.mois ?? 0} mois</Label>
+                        <Input type="number" min="0" placeholder="Mois" value={t.mois ?? ""} onChange={e => {
+                          const next=getTranches(editOffre).map((x:any,j:number)=>j===i?{...x,mois:Number(e.target.value)}:x);
+                          setEditOffre({...editOffre,tranches_paiement:next});
+                        }} />
+                        <Input type="number" min="0" placeholder="Mensualité / ha" value={t.mensualite_par_ha ?? ""} onChange={e => {
+                          const next=getTranches(editOffre).map((x:any,j:number)=>j===i?{...x,mensualite_par_ha:Number(e.target.value)}:x);
+                          setEditOffre({...editOffre,tranches_paiement:next});
+                        }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button variant="outline" onClick={() => { setIsOffreDialogOpen(false); setEditOffre(null); }}>Annuler</Button>
+                    <Button onClick={handleSaveOffre} disabled={updateOffreMutation.isPending}>{updateOffreMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Enregistrer</Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* Onglet Promotions */}
