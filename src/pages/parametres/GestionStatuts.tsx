@@ -22,8 +22,8 @@ interface Statut {
 }
 
 const STATUTS_PLANTATION = [
-  { valeur: "en_attente_da", label: "En attente DI", color: "secondary", description: "Dossier en attente de versement du dépôt initial" },
-  { valeur: "da_valide", label: "DI validé", color: "default", description: "Dépôt initial versé et validé" },
+  { valeur: "en_attente_da", label: "En attente PI", color: "secondary", description: "Dossier en attente de versement du Paiement Initial" },
+  { valeur: "da_valide", label: "PI validé", color: "default", description: "Paiement Initial versé et validé" },
   { valeur: "en_delimitation_gps", label: "En délimitation GPS", color: "default", description: "Délimitation géographique en cours" },
   { valeur: "en_piquetage", label: "En piquetage", color: "default", description: "Piquetage du terrain en cours" },
   { valeur: "en_plantation", label: "En plantation", color: "default", description: "Mise en terre des plants en cours" },
