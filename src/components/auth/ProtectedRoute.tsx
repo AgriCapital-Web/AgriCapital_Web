@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission, requiredPe
       } else if (requiredRole && !hasRole(requiredRole)) {
         navigate('/dashboard', { replace: true });
       } else if (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission)) {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     }
   }, [user, loading, requiredRole, requiredPermission, requiredPermissionCode, navigate, hasRole, userRoles, can]);
