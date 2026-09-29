@@ -102,8 +102,8 @@ export default function PublicLead() {
             <CardContent className="grid md:grid-cols-2 gap-4">
               <div><Label>Nom *</Label><Input value={f.nom} onChange={e=>set("nom",e.target.value)} required /></div>
               <div><Label>Prénom(s) *</Label><Input value={f.prenoms} onChange={e=>set("prenoms",e.target.value)} required /></div>
-              <CountryPhoneInput label="Téléphone principal" required countryCode={f.telephone_indicatif||"+225"} localValue={f.telephone_local||""} onChange={v=>setForm(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
-              <CountryPhoneInput label="WhatsApp" countryCode={f.whatsapp_indicatif||"+225"} localValue={f.whatsapp_local||""} onChange={v=>setForm(x=>({...x,whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue}))}/>
+              <CountryPhoneInput label="Téléphone principal" required countryCode={f.telephone_indicatif||"+225"} localValue={f.telephone_local||""} onChange={v=>setF(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
+              <CountryPhoneInput label="WhatsApp" countryCode={f.whatsapp_indicatif||"+225"} localValue={f.whatsapp_local||""} onChange={v=>setF(x=>({...x,whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue}))}/>
               <div className="md:col-span-2"><Label>Email</Label><Input type="email" value={f.email} onChange={e=>set("email",e.target.value)} /></div>
             </CardContent>
           </Card>
