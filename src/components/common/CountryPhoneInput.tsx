@@ -7,7 +7,7 @@ const flag=(code:string)=>code.toUpperCase().replace(/./g,c=>String.fromCodePoin
 export interface CountryPhoneInputProps{label:string;countryCode?:string;localValue?:string;required?:boolean;disabled?:boolean;onChange:(v:{countryCode:string;callingCode:string;localValue:string;internationalValue:string})=>void}
 export const CountryPhoneInput=({label,countryCode="CI",localValue="",required,disabled,onChange}:CountryPhoneInputProps)=>{
  const [countries,setCountries]=useState<Country[]>(FALLBACK);
- useEffect(()=>{const cached=localStorage.getItem("agricapital:countries:v1");if(cached){try{const p=JSON.parse(cached);if(Array.isArray(p)&&p.length>150)setCountries(p)}catch{}}
+ useEffect(()=>{const cached=localStorage.getItem("agricapital:countries:v1");if(cached){try{const p=JSON.parse(cached);if(Array.isArray(p)&&p.length>150)setCountries(p)}catch (error) { console.warn("[CountryPhoneInput] cache pays invalide", error); }}
  fetch("https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags").then(r=>r.ok?r.json():Promise.reject()).then((rows:any[])=>{const mapped=rows.map(r=>({code:r.cca2,name:r.name?.common||r.cca2,callingCode:r.idd?.root?(r.idd.root+(r.idd.suffixes?.[0]||"")):"",flag:r.flags?.emoji||flag(r.cca2)})).filter((c:Country)=>c.callingCode).sort((a,b)=>a.name.localeCompare(b.name,"fr"));if(mapped.length>150){setCountries(mapped);localStorage.setItem("agricapital:countries:v1",JSON.stringify(mapped))}}).catch(()=>undefined)},[]);
  const selected=countries.find(c=>c.code===countryCode)||countries.find(c=>c.callingCode===countryCode)||countries.find(c=>c.code==="CI")||countries[0];
  const options=useMemo(()=>countries.map(c=>({value:c.code,label:c.flag+" "+c.name+" "+c.callingCode})),[countries]);
