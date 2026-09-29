@@ -232,7 +232,7 @@ const InfoRow = ({
   <div
     style={{
       display: "grid",
-      gridTemplateColumns: "150px 1fr",
+      gridTemplateColumns: "138px minmax(0,1fr)",
       alignItems: "center",
       minHeight: 42,
       borderBottom: `1px solid ${GRIS_CLAIR}`,
@@ -336,7 +336,7 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             zIndex: 1,
             height: "100%",
             boxSizing: "border-box",
-            padding: "38px 42px 32px",
+            padding: "36px 36px 30px",
             display: "flex",
             flexDirection: "column",
           }}
@@ -395,7 +395,7 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
               style={{
                 margin: 0,
                 color: VERT,
-                fontSize: nom.length > 28 ? 22 : 25,
+                fontSize: nom.length > 28 ? 23 : 27,
                 fontWeight: 800,
                 lineHeight: "27px",
                 textTransform: "uppercase",
@@ -572,7 +572,7 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
               alignItems: "center",
             }}
           >
-            <QR code={carte.code_verification} size={250} />
+            <QR code={carte.code_verification} size={278} />
           </div>
 
           <div style={{ textAlign: "center", marginTop: 15 }}>
@@ -626,10 +626,10 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
               borderRadius: "0 8px 8px 0",
             }}
           >
-            <p style={{ margin: 0, color: VERT, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <p style={{ margin: 0, color: VERT, fontSize: 11.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
               Contrôle de la carte
             </p>
-            <p style={{ margin: "5px 0 0", color: GRIS, fontSize: 10, lineHeight: "14px" }}>
+            <p style={{ margin: "5px 0 0", color: GRIS, fontSize: 11, lineHeight: "15px" }}>
               La page officielle affiche l'identité du titulaire, son statut et les informations de validité enregistrées par AgriCapital.
             </p>
           </div>
