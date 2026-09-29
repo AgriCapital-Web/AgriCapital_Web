@@ -97,7 +97,7 @@ const NouvelleAcquisition = () => {
       }
     }
     if(step.code==="parcelle"){
-      const external=!Boolean(formData.offre?.necessite_foncier_client);
+      const external=!formData.offre?.necessite_foncier_client;
       if(Number(formData.superficie_prevue)<=0||!formData.village_propre){
         toast({variant:"destructive",title:"Parcelle incomplète",description:"La superficie et la localité sont obligatoires."}); return false;
       }
@@ -122,8 +122,8 @@ const NouvelleAcquisition = () => {
         if(c.when==="representant_active"&&!formData.has_representant)continue;
         if(c.relation==="mandataire"&&formData.representant_type!=="mandataire")continue;
         if(c.when==="offre_plus"&&!String(formData.offre_code||"").endsWith("-plus"))continue;
-        if(c.when==="client_land"&&!Boolean(formData.offre?.necessite_foncier_client))continue;
-        if(c.when==="acquisition"&&!Boolean(formData.offre?.contrat_acquisition_requis))continue;
+        if(c.when==="client_land"&&!formData.offre?.necessite_foncier_client)continue;
+        if(c.when==="acquisition"&&!formData.offre?.contrat_acquisition_requis)continue;
         if(doc.obligatoire&&!formData["doc_"+doc.code+"_file"]){toast({variant:"destructive",title:"Pièce obligatoire manquante",description:doc.libelle});return false;}
       }
     }
@@ -162,7 +162,7 @@ const NouvelleAcquisition = () => {
       const ha=Number(formData.superficie_prevue);
       const prix=calculPrixEffectif(offer,promotionActive?[promotionActive as any]:[],{modePaiement:"echeancier"});
       const total=Number(prix.montant_total_effectif||prix.montant_total_base||0)*ha;
-      const external=!Boolean(offer.necessite_foncier_client);
+      const external=!offer.necessite_foncier_client;
 
       let parcelleId=formData.parcelle_id||null;
       if(!external){
