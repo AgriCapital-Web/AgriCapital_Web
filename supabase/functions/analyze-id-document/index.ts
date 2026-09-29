@@ -20,7 +20,7 @@ Deno.serve(async req=>{
    const r=await fetch("https://ai.gateway.lovable.dev/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Lovable-API-Key":key},body:JSON.stringify({model:"google/gemini-3-flash-preview",messages:[{role:"user",content:[{type:"text",text:prompt},{type:"image_url",image_url:{url:parsed.data.imageDataUrl}}]}],temperature:0,response_format:{type:"json_object"}})});
    if(!r.ok) return response({error:"Analyse IA indisponible."},502);
    const p=await r.json(); const raw=p?.choices?.[0]?.message?.content;
-   let result:any={numero_piece:"",type_piece:"",confiance:0}; try{result={...result,...JSON.parse(typeof raw==="string"?raw:"{}")}}catch{}
+   let result:any={numero_piece:"",type_piece:"",confiance:0}; try{result={...result,...JSON.parse(typeof raw==="string"?raw:"{}")}}catch{ result={...result}; }
    return response({success:true,numero_piece:String(result.numero_piece||"").trim().slice(0,120),type_piece:String(result.type_piece||"").trim(),confiance:Math.max(0,Math.min(1,Number(result.confiance)||0))});
  }catch(e){return response({error:e instanceof Error?e.message:"Erreur interne."},500);}
 });
