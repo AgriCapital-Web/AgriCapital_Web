@@ -281,7 +281,8 @@ AS $$
 
     SELECT
       CASE
-        WHEN c.type_client='proprietaire_foncier' THEN 'proprietaire_foncier'
+        WHEN c.proprietaire_id IS NOT NULL AND c.type_client='beneficiaire_particulier' THEN 'proprietaire_foncier+beneficiaire_particulier'
+        WHEN c.proprietaire_id IS NOT NULL THEN 'proprietaire_foncier'
         WHEN c.type_client='beneficiaire_particulier' THEN 'beneficiaire_particulier'
         ELSE 'client'
       END AS source_type,
@@ -299,8 +300,8 @@ AS $$
   WHERE
     COALESCE(_criteres->>'audience','tous') IN ('tous','all')
     OR (COALESCE(_criteres->>'audience','') IN ('clients','client') AND c.source_type='client')
-    OR (COALESCE(_criteres->>'audience','') IN ('proprietaires_fonciers','proprietaire_foncier','owners') AND c.source_type='proprietaire_foncier')
-    OR (COALESCE(_criteres->>'audience','') IN ('beneficiaires_particuliers','beneficiaire_particulier','beneficiaries') AND c.source_type='beneficiaire_particulier')
+    OR (COALESCE(_criteres->>'audience','') IN ('proprietaires_fonciers','proprietaire_foncier','owners') AND c.source_type LIKE 'proprietaire_foncier%')
+    OR (COALESCE(_criteres->>'audience','') IN ('beneficiaires_particuliers','beneficiaire_particulier','beneficiaries') AND c.source_type LIKE '%beneficiaire_particulier%')
     OR (COALESCE(_criteres->>'audience','') IN ('equipe','equipe_interne','staff','team') AND c.source_type='equipe')
     OR (COALESCE(_criteres->>'audience','')='commerciaux' AND c.role_code IN ('commercial','responsable_commercial','chef_equipe_commercial'))
     OR (COALESCE(_criteres->>'audience','')='palminvest' AND lower(coalesce(c.offre_code,'')) LIKE 'palm-invest%')
