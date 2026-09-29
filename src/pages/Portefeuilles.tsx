@@ -4,6 +4,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ const money=(n:any)=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"X
 
 export default function Portefeuilles(){
   const { can, roles, isSuperAdmin, isPdg } = usePermissions();
+  const { user } = useAuth();
   const { toast } = useToast();
   const canManage = isSuperAdmin || isPdg || can("portefeuilles.manage_payouts") || can("commissions.manage_payouts");
   const [profiles,setProfiles]=useState<any[]>([]);
@@ -63,14 +65,15 @@ export default function Portefeuilles(){
   };
   useEffect(()=>{void load();},[]);
   
-  const current=useMemo(()=>profiles.find(p=>p.user_id===null),[profiles]);
   const visibleProfiles=useMemo(()=>{
-    const meRoles=roles||[];
     if(isSuperAdmin||isPdg||can("portefeuilles.manage_payouts")) return profiles;
-    const me=profiles.find((p:any)=>meRoles.length && false);
-    return profiles.filter((p:any)=>p.roles?.some((r:string)=>COMMISSION_ROLES.includes(r)) && (meRoles.some((r:string)=>TEAM_ROLES.includes(r)) ? true : p.user_id===undefined ? false : true));
-  },[profiles,roles,isSuperAdmin,isPdg,can]);
-
+    const me=profiles.find((p:any)=>p.user_id===user?.id);
+    if(!me) return [];
+    const isManager=me.roles?.some((r:string)=>TEAM_ROLES.includes(r));
+    if(isManager && me.equipe_id) return profiles.filter((p:any)=>p.equipe_id===me.equipe_id);
+    return profiles.filter((p:any)=>p.user_id===user?.id);
+  },[profiles,user,isSuperAdmin,isPdg,can]);
+  
   const filtered=useMemo(()=>portefeuilles.filter((p:any)=>{
     if(!visibleProfiles.some((x:any)=>x.user_id===p.user_id)) return false;
     const q=search.toLowerCase();
