@@ -82,11 +82,14 @@ export const RoleDashboard = () => {
         const colMap: Record<string, string> = { district: "district_id", region: "region_id", departement: "departement_id", sous_prefecture: "sous_prefecture_id" };
         const col = colMap[zoneType] || "district_id";
 
-        const [{ data: clients }, { data: plantations }, { data: paiements }] = await Promise.all([
+        const [{ data: clients }, { data: plantations }] = await Promise.all([
           (supabase as any).from("clients").select("id").in(col, zoneIds),
-          (supabase as any).from("plantations").select("superficie_ha, statut_global").in(col, zoneIds),
-          (supabase as any).from("paiements").select("montant, statut"),
+          (supabase as any).from("plantations").select("id,superficie_ha, statut_global").in(col, zoneIds),
         ]);
+        const plantationIds=(plantations||[]).map((p:any)=>p.id);
+        const { data: paiements } = plantationIds.length
+          ? await (supabase as any).from("paiements").select("montant, statut").in("plantation_id", plantationIds)
+          : { data: [] };
 
         setStats({
           totalClients: clients?.length || 0,
@@ -114,15 +117,15 @@ export const RoleDashboard = () => {
   const roleLabel = isAdmin ? "Administrateur" : isResponsableCommercial ? "Responsable Commercial" : isChefEquipe ? "Chef d'Équipe" : isTechnique ? "Technique" : "Commercial";
   const zoneLevel = isAdmin ? "Global" : isResponsableCommercial ? "Régions" : isChefEquipe ? "Départements" : "Sous-préfectures";
 
-  const showCommercialKPIs = isCommercial || isResponsableCommercial || isAdmin;
-  const showTechKPIs = isTechnique || isResponsableCommercial || isAdmin;
+  const showCommercialKPIs = isCommercial || isResponsableCommercial;
+  const showTechKPIs = isTechnique || isResponsableCommercial;
 
   return (
     <Card className="border-primary/20 bg-primary/5">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Target className="h-4 w-4 text-primary" />
-          Ma Zone — {roleLabel}
+          Périmètre — {roleLabel}
           <Badge variant="outline" className="ml-auto text-xs">{zoneLevel}</Badge>
         </CardTitle>
         {stats.zoneName && (
@@ -138,12 +141,12 @@ export const RoleDashboard = () => {
               <div className="text-center p-2 bg-background rounded-lg">
                 <Users className="h-4 w-4 mx-auto text-primary mb-1" />
                 <div className="text-lg font-bold">{stats.totalClients}</div>
-                <div className="text-xs text-muted-foreground">Clients</div>
+                <div className="text-xs text-muted-foreground">Clients de ma zone</div>
               </div>
               <div className="text-center p-2 bg-background rounded-lg">
                 <DollarSign className="h-4 w-4 mx-auto text-amber-600 mb-1" />
                 <div className="text-sm font-bold">{formatMontant(stats.totalPaiements)}</div>
-                <div className="text-xs text-muted-foreground">Encaissés</div>
+                <div className="text-xs text-muted-foreground">Encaissés — zone</div>
               </div>
             </>
           )}
@@ -152,12 +155,12 @@ export const RoleDashboard = () => {
               <div className="text-center p-2 bg-background rounded-lg">
                 <Sprout className="h-4 w-4 mx-auto text-green-600 mb-1" />
                 <div className="text-lg font-bold">{stats.totalPlantations}</div>
-                <div className="text-xs text-muted-foreground">Plantations</div>
+                <div className="text-xs text-muted-foreground">Plantations — zone</div>
               </div>
               <div className="text-center p-2 bg-background rounded-lg">
                 <TrendingUp className="h-4 w-4 mx-auto text-blue-600 mb-1" />
                 <div className="text-lg font-bold">{stats.totalHectares.toFixed(1)}</div>
-                <div className="text-xs text-muted-foreground">Hectares</div>
+                <div className="text-xs text-muted-foreground">Hectares — zone</div>
               </div>
             </>
           )}

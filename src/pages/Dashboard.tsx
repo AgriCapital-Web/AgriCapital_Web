@@ -82,7 +82,6 @@ const Dashboard = () => {
   const [alertes, setAlertes] = useState<any[]>([]);
   const [topClients, setTopClients] = useState<any[]>([]);
   const [docsEnAttente, setDocsEnAttente] = useState(0);
-  const [acquisitionsEnAttente, setAcquisitionsEnAttente] = useState(0);
   const [synthese, setSynthese] = useState<any[]>([]);
   const [syntheseAgg, setSyntheseAgg] = useState({
     contratsActifs: 0,
@@ -259,7 +258,6 @@ const Dashboard = () => {
         .from("clients")
         .select("*", { count: "exact", head: true })
         .eq("statut", "en_attente");
-      setAcquisitionsEnAttente(subsCount || 0);
 
       setStats({
         totalClients: clientsCount || 0,
@@ -405,24 +403,8 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Cartes d'état */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-l-4 border-l-amber-500">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Wallet className="h-4 w-4 text-amber-600" /> Paiements
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-baseline justify-between">
-                  <div>
-                    <div className="text-2xl font-bold">{formatMontant(stats.totalPaiements)}</div>
-                    <p className="text-xs text-muted-foreground">{stats.paiementsEnAttente} à valider</p>
-                  </div>
-                  <Link to="/paiements" className="text-xs text-primary hover:underline">Voir →</Link>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Informations complémentaires — sans doublonner les KPI principaux */}
+          <div className="grid grid-cols-1 gap-4">
             <Card className="border-l-4 border-l-emerald-600">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -430,12 +412,12 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline justify-between gap-3">
                   <div>
                     <div className="text-2xl font-bold">{docsEnAttente}</div>
-                    <p className="text-xs text-muted-foreground">à vérifier</p>
+                    <p className="text-xs text-muted-foreground">Documents en attente de vérification</p>
                   </div>
-                  <Link to="/documents" className="text-xs text-primary hover:underline">Voir →</Link>
+                  <Link to="/documents" className="shrink-0 text-xs text-primary hover:underline">Voir →</Link>
                 </div>
               </CardContent>
             </Card>
@@ -554,8 +536,8 @@ const Dashboard = () => {
             </Link>
           </div>
 
-          {/* KPIs par zone pour RCom/CE/Commercial */}
-          <RoleDashboard />
+          {/* KPIs de zone — uniquement pour les profils ayant un périmètre opérationnel. */}
+          {!userRoles.some((r) => ["super_admin", "pdg", "directeur_tc", "responsable_operations"].includes(r)) && <RoleDashboard />}
 
           {/* Carte Interactive des Plantations */}
           <PlantationsMap />
