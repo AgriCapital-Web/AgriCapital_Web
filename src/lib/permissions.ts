@@ -38,7 +38,7 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   ...build("roles", "Rôles", [...CRUD, ["manage_permissions", "Gérer les permissions"]]),
   ...build("offres", "Offres", [
     ...CRUD,
-    ["manage_prices", "Gérer les prix et le dépôt initial"],
+    ["manage_prices", "Gérer les prix et le Paiement Initial"],
     ["manage_promotions", "Gérer les promotions"],
   ]),
   ...build("promotions", "Promotions", [
