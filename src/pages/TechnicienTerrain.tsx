@@ -56,7 +56,7 @@ const TechnicienTerrain=()=>{
   const [media,setMedia]=useState<File[]>([]);
   const [intervention,setIntervention]=useState<any>({
     plantation_id:"",client_id:"",parcelle_id:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),
-    observations:"",recommandations:"",statut:"planifiee"
+    observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"143"
   });
 
   const profileContext=async()=>{
