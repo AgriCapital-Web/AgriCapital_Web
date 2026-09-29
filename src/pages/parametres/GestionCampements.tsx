@@ -14,7 +14,7 @@ export default function GestionCampements(){
 
   useEffect(()=>{ (async()=>{
     setLoading(true);
-    const {data,error}=await supabase.from("v_geo_campements").select("*").order("nom").limit(1000);
+    const {data,error}=await (supabase as any).from("v_geo_campements").select("*").order("nom").limit(1000);
     if(!error && data) setRows(data as Row[]);
     setLoading(false);
   })(); },[]);
