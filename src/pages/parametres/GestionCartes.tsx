@@ -38,7 +38,7 @@ const GestionCartes = () => {
 
   const [profiles, setProfiles] = useState<Row[]>([]);
   const [cartes, setCartes] = useState<Row[]>([]);
-  const [roles, setRoles] = useState<Record<string, string>>({});
+  const [roles, setRoles] = useState<Record<string, string[]>>({});
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Row | null>(null);
@@ -71,8 +71,8 @@ const GestionCartes = () => {
       const profileRows = (p.data || []) as Row[];
       const cardRows = (c.data || []) as Row[];
       const roleRows = (r.data || []) as Row[];
-      const map: Record<string, string> = {};
-      roleRows.forEach((x) => { if (x.user_id && x.role && !map[x.user_id]) map[x.user_id] = x.role; });
+      const map: Record<string, string[]> = {};
+      roleRows.forEach((x) => { if (x.user_id && x.role) (map[x.user_id] ||= []).push(x.role); });
       setProfiles(profileRows);
       setCartes(cardRows);
       setRoles(map);
@@ -94,8 +94,9 @@ const GestionCartes = () => {
     const t = q.trim().toLowerCase();
     return profiles
       .filter((p) => {
-        const r = roles[p.user_id];
-        return !!r && !NON_STAFF.includes(r);
+        const rr = roles[p.user_id] || [];
+        const staffRole = rr.find((r:string) => !NON_STAFF.includes(r));
+        return !!staffRole;
       })
       .filter((p) => !t || [p.nom_complet, p.email, p.poste].some((v) => (v || "").toLowerCase().includes(t)))
 
@@ -111,7 +112,7 @@ const GestionCartes = () => {
             nom_complet: p.nom_complet,
             poste: c?.poste || p.poste,
             departement: c?.departement || p.departement,
-            role_code: c?.role_code || roles[p.user_id],
+            role_code: c?.role_code || (roles[p.user_id] || []).find((r:string) => !NON_STAFF.includes(r)),
             type_contrat: c?.type_contrat || "cdi",
             statut_agent: c?.statut_agent || "employe",
             mission: c?.mission || null,
@@ -141,9 +142,9 @@ const GestionCartes = () => {
     const payload = {
       profile_id: profile.id,
       matricule: nextMatricule(),
-      poste: profile.poste || roleLabel(roles[profile.user_id]),
+      poste: profile.poste || roleLabel((roles[profile.user_id] || []).find((r:string) => !NON_STAFF.includes(r)) || "commercial"),
       departement: profile.departement || null,
-      role_code: roles[profile.user_id] || null,
+      role_code: (roles[profile.user_id] || []).find((r:string) => !NON_STAFF.includes(r)) || null,
       type_contrat: "cdi",
       statut_agent: "employe",
       zone_intervention: profile.departement || null,
@@ -168,8 +169,8 @@ const GestionCartes = () => {
 
   const genererToutes = async () => {
     const manquantes = profiles.filter((p) => {
-      const role = roles[p.user_id];
-      return !!role && !NON_STAFF.includes(role) && !carteDe(p.id);
+      const role = (roles[p.user_id] || []).find((r:string) => !NON_STAFF.includes(r));
+      return !!role && !carteDe(p.id);
     });
     if (!manquantes.length) {
       toast.info("Toutes les cartes du personnel existent déjà");
