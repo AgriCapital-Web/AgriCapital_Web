@@ -132,7 +132,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <SheetContent side="left" className="w-72 p-0"><SidebarContent /></SheetContent>
       </Sheet>
 
-      <main className="min-w-0 flex-1 pt-14 md:pt-0 bg-muted/20">
+      <main className="min-w-0 flex-1 overflow-x-hidden pt-14 md:pt-0 bg-muted/20">
         <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b bg-background/80 px-6 backdrop-blur-xl shadow-sm md:flex">
           <div className="ml-auto flex min-w-0 items-center gap-3">
             <NetworkIndicator />
