@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Sprout, DollarSign, FileText, Settings, Camera, LandPlot, UserRound, ExternalLink } from "lucide-react";
+import { ArrowLeft, Sprout, DollarSign, FileText, Settings, Camera, LandPlot, UserRound, ExternalLink, MessageSquare } from "lucide-react";
 import TicketForm from "@/components/forms/TicketForm";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { resolveStorageUrl } from "@/utils/storage";
+import ClientMessagingPanel from "@/components/clients/ClientMessagingPanel";
 
 const ClientDetail = () => {
   const { id } = useParams();
@@ -296,6 +297,10 @@ const ClientDetail = () => {
                 <Camera className="h-4 w-4 mr-2" />
                 Photos
               </TabsTrigger>
+              <TabsTrigger value="messagerie">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Messagerie
+              </TabsTrigger>
               {client.type_client === "beneficiaire_particulier" && (
                 <TabsTrigger value="dossier">
                   <LandPlot className="h-4 w-4 mr-2" />
@@ -523,6 +528,10 @@ const ClientDetail = () => {
                   </Card>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="messagerie">
+              <ClientMessagingPanel clientId={id!} plantationId={plantations[0]?.id || null} />
             </TabsContent>
 
             <TabsContent value="photos">
