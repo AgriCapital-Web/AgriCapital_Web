@@ -104,10 +104,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           <Button variant="ghost" className={cn("h-10 w-full justify-start gap-3 rounded-md text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground", location.pathname === "/profil" && "bg-primary-foreground/15 text-primary-foreground")} onClick={() => { navigate("/profil"); setOpen(false); }}>
             <UserCircle className="h-4 w-4" /><span className="text-sm font-medium">Profil</span>
           </Button>
-          {hasPermission(userRoles, PERMISSIONS.VIEW_PARAMETRES) && (
-            {can("parametres.view") && <Button variant="ghost" className={cn("h-10 w-full justify-start gap-3 rounded-md text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground", location.pathname === "/parametres" && "bg-primary-foreground/15 text-primary-foreground")} onClick={() => { navigate("/parametres"); setOpen(false); }}>
+          {can("parametres.view") && (
+            <Button variant="ghost" className={cn("h-10 w-full justify-start gap-3 rounded-md text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground", location.pathname === "/parametres" && "bg-primary-foreground/15 text-primary-foreground")} onClick={() => { navigate("/parametres"); setOpen(false); }}>
               <Settings className="h-4 w-4" /><span className="text-sm font-medium">Paramètres</span>
-            </Button>}
+            </Button>
+          )}
           <Button variant="ghost" className="h-10 w-full justify-start gap-3 rounded-md text-primary-foreground/80 hover:bg-destructive hover:text-destructive-foreground" onClick={handleLogout}>
             <LogOut className="h-4 w-4" /><span className="text-sm font-medium">Déconnexion</span>
           </Button>
