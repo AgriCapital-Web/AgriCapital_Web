@@ -76,7 +76,7 @@ export const useNotifications = () => {
                 tag: newNotification.id,
                 data: newNotification.data || {},
               });
-            } catch {}
+            } catch (error) { console.warn("[Notifications] notification navigateur indisponible", error); }
           }
           toast({ title: newNotification.title, description: newNotification.message });
         }
