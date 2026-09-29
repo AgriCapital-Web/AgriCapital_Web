@@ -1,0 +1,2 @@
+update public.configurations_systeme set valeur='36',description='Durée de référence de la phase d’installation/acquisition (mois)' where cle='acquisition_duree_contrat_mois';
+update public.configurations_systeme set valeur='CI-DAL-01-2025-B12-13435' where cle='societe_rccm';
