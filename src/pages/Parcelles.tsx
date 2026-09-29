@@ -16,7 +16,6 @@ import { Progress } from "@/components/ui/progress";
 import { Search, Plus, Layers, MapPin, BarChart3 } from "lucide-react";
 import { useUserZones } from "@/hooks/useUserZones";
 import GeographieCascade from "@/components/common/GeographieCascade";
-import GeographieCascade from "@/components/common/GeographieCascade";
 import { offlineInsert } from "@/lib/offlineWrite";
 import { getCachedItems, STORES } from "@/lib/offlineDb";
 import { getSafeErrorMessage } from "@/lib/safeError";
