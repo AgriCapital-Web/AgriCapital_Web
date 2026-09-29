@@ -145,7 +145,11 @@ const TechnicienTerrain=()=>{
     try{
       const profile=await profileContext(); if(!profile?.id)throw new Error("Profil technicien introuvable");
       const payload={...intervention,id:crypto.randomUUID(),agent_technique_id:profile.id,
-        client_id:targetClientId,parcelle_id:targetParcelleId,plantation_id:intervention.plantation_id||null
+        client_id:targetClientId,parcelle_id:targetParcelleId,plantation_id:intervention.plantation_id||null,
+        nombre_plants_prevus:intervention.nombre_plants_prevus?Number(intervention.nombre_plants_prevus):null,
+        nombre_plants_realises:intervention.nombre_plants_realises?Number(intervention.nombre_plants_realises):null,
+        nombre_plants_remplaces:intervention.nombre_plants_remplaces?Number(intervention.nombre_plants_remplaces):null,
+        densite_plants:intervention.densite_plants?Number(intervention.densite_plants):143
       };
       const {error}=await offlineInsert("interventions_techniques",payload);
       if(error)throw error;
