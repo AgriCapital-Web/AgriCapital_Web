@@ -4,7 +4,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, BriefcaseBusiness, UserRound, UserCog, MapPin, FileText, CheckCircle2 } from "lucide-react";
 import { Etape0Offre } from "@/components/forms/acquisition/Etape0Offre";
 import { EtapeClientDynamique } from "@/components/forms/acquisition/EtapeClientDynamique";
 import { EtapeRepresentantDynamique } from "@/components/forms/acquisition/EtapeRepresentantDynamique";
@@ -22,6 +22,7 @@ import { calculPrixEffectif } from "@/lib/pricing";
 import { usePromotionActive } from "@/hooks/usePromotionActive";
 
 type Step = { code:string; titre:string; description?:string; ordre:number; obligatoire:boolean };
+const STEP_ICONS: Record<string, any> = { offre: BriefcaseBusiness, client: UserRound, cotitulaire: UserCog, parcelle: MapPin, enquete: UserRound, documents: FileText, confirmation: CheckCircle2 };
 
 const NouvelleAcquisition = () => {
   const [formData,setFormData]=useState<any>({});
@@ -269,8 +270,8 @@ const NouvelleAcquisition = () => {
   const last=current===activeSteps.length-1&&activeSteps.length>0;
   return <ProtectedRoute><MainLayout><div className="max-w-7xl mx-auto page-section space-y-5">
     <div><h1 className="text-3xl font-bold">Nouveau Client</h1><p className="text-muted-foreground">Parcours Client : offre, informations du client, cotitulaire / mandataire, foncier, documents et confirmation.</p><SyncStatusBadge state={syncState} className="mt-2"/></div>
-    <div className="flex gap-2 overflow-x-auto pb-2">{activeSteps.map((s,i)=><Button key={s.code} size="sm" variant={i===current?"default":"outline"} onClick={()=>i<=current&&setCurrent(i)}>{i+1}. {s.titre}</Button>)}</div>
-    <Card className="p-4 sm:p-6 rounded-2xl shadow-sm">{loadingSteps?<div className="p-8 text-center"><Loader2 className="mx-auto animate-spin"/></div>:renderStep()}</Card>
+    <div className="flex min-w-0 gap-2 overflow-x-auto pb-2 scrollbar-thin">{activeSteps.map((s,i)=>{const Icon=STEP_ICONS[s.code]||FileText;return <Button key={s.code} size="sm" variant={i===current?"default":"outline"} className="shrink-0 gap-1.5 px-2.5 sm:px-3" title={s.titre} aria-label={`Étape ${i+1}: ${s.titre}`} onClick={()=>i<=current&&setCurrent(i)}><Icon className="h-4 w-4"/><span className="hidden sm:inline">{i+1}. {s.titre}</span><span className="sm:hidden text-xs">{i+1}</span></Button>})}</div>
+    <Card className="min-w-0 overflow-hidden p-3 sm:p-6 rounded-2xl shadow-sm">{loadingSteps?<div className="p-8 text-center"><Loader2 className="mx-auto animate-spin"/></div>:renderStep()}</Card>
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
       <Button variant="outline" onClick={()=>setCurrent(v=>Math.max(0,v-1))} disabled={current===0||saving}><ChevronLeft className="mr-2 h-4 w-4"/>Précédent</Button>
       {!last?<Button onClick={next} disabled={saving||loadingSteps}>{saving?"Sauvegarde…":"Suivant"}<ChevronRight className="ml-2 h-4 w-4"/></Button>:<Button size="lg" onClick={submit} disabled={saving}>{saving?"Enregistrement…":"✓ Enregistrer le Client"}</Button>}
