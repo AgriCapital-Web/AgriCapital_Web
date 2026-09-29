@@ -183,6 +183,9 @@ CREATE INDEX IF NOT EXISTS idx_portail_notifications_unread
 ALTER TABLE public.portail_notifications ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.portail_notifications FROM anon, authenticated;
 GRANT ALL ON public.portail_notifications TO service_role;
+DROP POLICY IF EXISTS "portal_notifications_no_direct_access" ON public.portail_notifications;
+CREATE POLICY "portal_notifications_no_direct_access" ON public.portail_notifications
+  FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 
 -- Dédoublonnage durable côté CRM.
 ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS dedupe_key text;
@@ -317,6 +320,52 @@ $$;
 
 REVOKE ALL ON FUNCTION public.notification_resolve_recipients(jsonb) FROM public,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.notification_resolve_recipients(jsonb) TO service_role;
+REVOKE EXECUTE ON FUNCTION public.ensure_beneficiaire_portal_active() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.sync_proprietaire_portal_client() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.notify_portail_message() FROM PUBLIC, anon, authenticated;
+
+-- Push outbox : une clé de déduplication métier empêche plusieurs événements
+-- pour la même notification, même si plusieurs déclencheurs/instances travaillent en parallèle.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_notification_event_outbox_dedupe
+  ON public.notification_event_outbox(event_code, ((context->>'dedupe_key')))
+  WHERE context ? 'dedupe_key';
+
+CREATE OR REPLACE FUNCTION public.trg_notification_push_event()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $
+BEGIN
+  INSERT INTO public.notification_event_outbox(event_code, context)
+  VALUES ('notification_push', jsonb_build_object(
+    'notification_id', NEW.id, 'user_id', NEW.user_id,
+    'dedupe_key', COALESCE(NEW.dedupe_key, NEW.id::text)
+  ))
+  ON CONFLICT DO NOTHING;
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  RAISE WARNING 'notification push outbox failed: %', SQLERRM;
+  RETURN NEW;
+END;
+$;
+
+CREATE OR REPLACE FUNCTION public.trg_portail_notification_push_event()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $
+BEGIN
+  INSERT INTO public.notification_event_outbox(event_code, context)
+  VALUES ('portail_notification_push', jsonb_build_object(
+    'portal_notification_id', NEW.id, 'client_id', NEW.client_id,
+    'message_id', NEW.message_id, 'dedupe_key', NEW.dedupe_key
+  ))
+  ON CONFLICT DO NOTHING;
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  RAISE WARNING 'portal push outbox failed: %', SQLERRM;
+  RETURN NEW;
+END;
+$;
+
+REVOKE EXECUTE ON FUNCTION public.trg_notification_push_event() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.trg_portail_notification_push_event() FROM PUBLIC, anon, authenticated;
 
 -- Realtime : les équipes CRM reçoivent les nouveaux messages immédiatement.
 DO $$
