@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -107,7 +107,7 @@ const TABLES = [
   "zone_assignments"
 ];
 
-const GestionBaseDonnees = () => {
+const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","portail_messages","documents_acquisition","interventions_techniques","profiles","user_roles","offres","promotions","configurations_systeme"];\n\nconst GestionBaseDonnees = () => {
   const { toast } = useToast();
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState("json");
@@ -147,7 +147,7 @@ const GestionBaseDonnees = () => {
     const last = lastBackup ? new Date(lastBackup).getTime() : 0;
     if (Date.now() - last < 24 * 60 * 60 * 1000) return;
     void createLocalAutoBackup().catch((error) => console.warn("Auto-backup local non disponible:", error));
-  }, [autoBackupEnabled]);
+  }, [autoBackupEnabled, createLocalAutoBackup, lastBackup]);
 
   const handleExport = async () => {
     if (selectedTables.length === 0) {
