@@ -17,7 +17,7 @@ import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
 import {
   LayoutDashboard, Users, Sprout, CreditCard, LogOut, Menu, Receipt,
   BarChart3, Ticket, Wallet, FileText, Settings, UserCircle, Wifi, WifiOff, RefreshCw, Signal,
-  LandPlot, Layers, Target, CloudUpload
+  LandPlot, Layers, Target, CloudUpload, MessageSquare
 } from "lucide-react";
 
 interface MainLayoutProps { children: ReactNode; }
@@ -36,6 +36,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: LayoutDashboard, label: "Tableau de bord", path: "/dashboard", permission: PERMISSIONS.VIEW_DASHBOARD },
     { icon: Target, label: "Prospects", path: "/leads", permission: PERMISSIONS.VIEW_LEADS },
     { icon: Users, label: "Acquisitions", path: "/acquisitions", permission: PERMISSIONS.VIEW_CLIENTS },
+    { icon: MessageSquare, label: "Messagerie", path: "/messagerie", permission: PERMISSIONS.VIEW_CLIENTS },
     { icon: LandPlot, label: "Propriétaires", path: "/proprietaires-terres", permission: PERMISSIONS.VIEW_CLIENTS },
     { icon: Layers, label: "Parcelles", path: "/parcelles", permission: PERMISSIONS.VIEW_PLANTATIONS },
     { icon: Sprout, label: "Plantations", path: "/plantations", permission: PERMISSIONS.VIEW_PLANTATIONS },
@@ -49,7 +50,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: CloudUpload, label: "Synchronisation", path: "/synchronisation", permission: PERMISSIONS.VIEW_DASHBOARD },
   ];
 
-  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"rapports.view_technique",    "/leads":"leads.view", "/acquisitions":"clients.view", "/proprietaires-terres":"clients.view",    "/parcelles":"plantations.view", "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => can(permissionCodeByPath[item.path] || "parametres.view") || hasPermission(userRoles, item.permission));
+  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"rapports.view_technique",    "/leads":"leads.view", "/acquisitions":"clients.view", "/messagerie":"clients.view", "/proprietaires-terres":"clients.view",    "/parcelles":"plantations.view", "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => can(permissionCodeByPath[item.path] || "parametres.view") || hasPermission(userRoles, item.permission));
   const handleLogout = async () => { await signOut(); navigate("/"); };
   const getInitials = (name: string) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AG';
 
@@ -100,7 +101,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           <div className="flex items-center justify-between gap-2"><NetworkIndicator />{pendingCount > 0 && <Badge className="bg-accent text-accent-foreground">{pendingCount}</Badge>}</div>
         </div>
         <div className="space-y-1">
-          <NotificationCenter />
           <Button variant="ghost" className={cn("h-10 w-full justify-start gap-3 rounded-md text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground", location.pathname === "/profil" && "bg-primary-foreground/15 text-primary-foreground")} onClick={() => { navigate("/profil"); setOpen(false); }}>
             <UserCircle className="h-4 w-4" /><span className="text-sm font-medium">Profil</span>
           </Button>
@@ -125,6 +125,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <div className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b bg-background/95 px-3 backdrop-blur md:hidden">
           <div className="flex items-center gap-2">
             <SheetTrigger asChild><Button variant="outline" size="icon"><Menu className="h-5 w-5" /></Button></SheetTrigger>
+            <NotificationCenter />
             <NetworkIndicator compact />
           </div>
           <Avatar className="h-8 w-8" onClick={() => navigate('/profil')}><AvatarImage src={photoUrl || ''} /><AvatarFallback className="bg-primary text-primary-foreground text-xs">{getInitials(profile?.nom_complet || '')}</AvatarFallback></Avatar>
@@ -136,6 +137,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <header className="sticky top-0 z-30 hidden h-16 items-center gap-4 border-b bg-background/80 px-6 backdrop-blur-xl shadow-sm md:flex">
           <div className="ml-auto flex min-w-0 items-center gap-3">
             <NetworkIndicator />
+            <NotificationCenter />
             {pendingCount > 0 && <Badge variant="outline" className="border-accent text-accent">{pendingCount} en attente</Badge>}
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={syncNow} disabled={isSyncing || !isOnline} title="Synchroniser">
               <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />

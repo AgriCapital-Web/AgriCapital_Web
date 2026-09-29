@@ -35,6 +35,7 @@ import DevCarteApercu from "./pages/__DevCarteApercu";
 import VerificationCarte from "./pages/VerificationCarte";
 import BeneficiaireParticulier from "./pages/BeneficiaireParticulier";
 import TechnicienTerrain from "./pages/TechnicienTerrain";
+import Messagerie from "./pages/Messagerie";
 
 const LegacyVerificationRedirect = () => {
   const path = window.location.pathname;
@@ -97,6 +98,7 @@ const DomainRouter = () => {
       <Route path="/acquisitions/:id" element={<ClientDetail />} />
       <Route path="/nouvelle-acquisition" element={<Navigate to="/acquisitions/nouveau" replace />} />
       <Route path="/beneficiaire-particulier" element={<BeneficiaireParticulier />} />
+      <Route path="/messagerie" element={<Messagerie />} />
       <Route path="/profil" element={<Profil />} />
       
       {/* Paiements */}
