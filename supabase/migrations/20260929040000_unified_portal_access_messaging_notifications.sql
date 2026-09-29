@@ -258,6 +258,7 @@ FOR EACH ROW EXECUTE FUNCTION public.notify_portail_message();
 
 -- Source de vérité unique pour les campagnes/automatisations : public.clients.
 -- Les anciennes tables historiques ne sont plus interrogées.
+DROP FUNCTION IF EXISTS public.notification_resolve_recipients(jsonb);
 CREATE OR REPLACE FUNCTION public.notification_resolve_recipients(_criteres jsonb DEFAULT '{}'::jsonb)
 RETURNS TABLE (
   source_type text, source_id uuid, user_id uuid, nom_complet text, email text, telephone text,
