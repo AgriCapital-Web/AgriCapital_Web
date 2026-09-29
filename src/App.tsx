@@ -31,8 +31,8 @@ import Documents from "./pages/Documents";
 import Leads from "./pages/Leads";
 import SyncQueue from "./pages/SyncQueue";
 import PublicLead from "./pages/PublicLead";
-import DevCarteApercu from "./pages/__DevCarteApercu";
 import VerificationCarte from "./pages/VerificationCarte";
+import DevCarteApercu from "./pages/__DevCarteApercu";
 import BeneficiaireParticulier from "./pages/BeneficiaireParticulier";
 import TechnicienTerrain from "./pages/TechnicienTerrain";
 import Messagerie from "./pages/Messagerie";
@@ -72,7 +72,7 @@ const DomainRouter = () => {
       <Route path="/prospect" element={<PublicLead />} />
 
       {/* Vérification publique d'une carte du personnel (QR code) */}
-      <Route path="/__dev-carte" element={<DevCarteApercu />} />
+      {import.meta.env.DEV && <Route path="/__dev-carte" element={<DevCarteApercu />} />}
       {/* Unique parcours public de scan/vérification : app.agricapital.ci/verify */}
       <Route path="/verify" element={<VerificationCarte />} />
       <Route path="/verify/:code" element={<VerificationCarte />} />

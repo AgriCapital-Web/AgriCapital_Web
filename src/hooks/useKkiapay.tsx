@@ -90,7 +90,6 @@ export const useKkiapay = () => {
         countries: ['CI'],
         paymentMethods: ['momo', 'card'],
         theme: '#00643C',
-        position: 'center',
       });
       return true;
     } catch (error) {

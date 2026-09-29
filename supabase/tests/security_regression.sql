@@ -14,4 +14,14 @@ BEGIN
   FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
   WHERE n.nspname='public' AND c.relkind='r' AND NOT c.relrowsecurity;
   IF v_count <> 0 THEN RAISE EXCEPTION 'Public tables without RLS: %',v_count; END IF;
-END $$;
+
+  SELECT count(*) INTO v_count
+  FROM (
+    SELECT schemaname, tablename, md5(indexdef) AS index_signature
+    FROM pg_indexes
+    WHERE schemaname='public'
+    GROUP BY schemaname, tablename, md5(indexdef)
+    HAVING count(*) > 1
+  ) duplicates;
+  IF v_count <> 0 THEN RAISE EXCEPTION 'Duplicate public indexes detected: %',v_count; END IF;
+END $;

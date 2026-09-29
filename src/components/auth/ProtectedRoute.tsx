@@ -19,14 +19,14 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission, requiredPe
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        navigate('/login');
+        navigate('/login', { replace: true });
       } else if (requiredRole && !hasRole(requiredRole)) {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else if (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission)) {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     }
-  }, [user, loading, requiredRole, requiredPermission, navigate, hasRole, userRoles]);
+  }, [user, loading, requiredRole, requiredPermission, requiredPermissionCode, navigate, hasRole, userRoles, can]);
 
   if (loading) {
     return (
