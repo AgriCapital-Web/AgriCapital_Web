@@ -20,6 +20,7 @@ import { SyncQueueContent as SyncQueue } from "@/pages/SyncQueue";
 import GestionZones from "@/pages/parametres/GestionZones";
 import JournalAudit from "@/pages/parametres/JournalAudit";
 import GestionCartes from "@/pages/parametres/GestionCartes";
+import GestionRemuneration from "@/pages/parametres/GestionRemuneration";
 import { useSearchParams } from "react-router-dom";
 
 interface TabConfig {
@@ -46,6 +47,7 @@ const Parametres = () => {
     { value: 'geographie', label: 'Géographie', icon: Map, permission: PERMISSIONS.MANAGE_GEO, component: GestionGeographie },
     { value: 'zones', label: 'Zones', icon: MapPinned, permission: PERMISSIONS.MANAGE_TEAMS, component: GestionZones },
     { value: 'offres', label: 'Offres', icon: Package, permission: PERMISSIONS.MANAGE_OFFERS, component: Offres },
+    { value: 'remuneration', label: 'Rémunération', mobileLabel: 'Rémun.', icon: Settings2, permission: PERMISSIONS.MANAGE_REMUNERATION, component: GestionRemuneration },
     { value: 'statuts', label: 'Statuts', icon: List, permission: PERMISSIONS.MANAGE_SYSTEM, component: GestionStatuts },
     { value: 'champs', label: 'Champs', icon: Settings2, permission: PERMISSIONS.MANAGE_SYSTEM, component: ChampsPersonnalises },
     { value: 'notifications', label: 'Notifs', icon: Bell, permission: PERMISSIONS.MANAGE_SYSTEM, component: GestionNotifications },
