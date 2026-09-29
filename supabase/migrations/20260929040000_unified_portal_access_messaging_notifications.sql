@@ -127,17 +127,40 @@ ON public.proprietaires_terres
 FOR EACH ROW EXECUTE FUNCTION public.sync_proprietaire_portal_client();
 
 -- Backfill idempotent des propriétaires déjà enregistrés.
-DO $$
-DECLARE r record;
-BEGIN
-  FOR r IN
-    SELECT * FROM public.proprietaires_terres
-    WHERE NULLIF(TRIM(COALESCE(telephone, whatsapp, '')), '') IS NOT NULL
-  LOOP
-    PERFORM public.sync_proprietaire_portal_client(r);
-  END LOOP;
-END;
-$$;
+INSERT INTO public.clients(
+  user_id, civilite, nom_famille, prenoms, nom_complet, nom,
+  type_client, type_client_foncier, telephone, whatsapp, email,
+  statut, statut_global, compte_actif, total_hectares, nombre_plantations,
+  parcours_code, contrat_acquisition_statut, contrat_accompagnement_statut,
+  proprietaire_id, created_by, updated_by
+)
+SELECT
+  NULL, p.civilite, p.nom, p.prenoms,
+  COALESCE(NULLIF(TRIM(p.nom_complet),''),NULLIF(TRIM(CONCAT_WS(' ',p.nom,p.prenoms)),''),'Propriétaire foncier'),
+  p.nom, 'proprietaire_foncier','EXT',
+  NULLIF(TRIM(COALESCE(p.telephone,p.whatsapp,'')),''),
+  p.whatsapp,p.email,'actif','actif',true,
+  COALESCE(p.surface_totale_ha,0),COALESCE(p.nombre_parcelles,0),
+  'proprietaire_foncier','non_requis','non_requis',
+  p.id,p.created_by,p.updated_by
+FROM public.proprietaires_terres p
+WHERE NULLIF(TRIM(COALESCE(p.telephone,p.whatsapp,'')),'') IS NOT NULL
+ON CONFLICT (proprietaire_id) WHERE proprietaire_id IS NOT NULL
+DO UPDATE SET
+  telephone=EXCLUDED.telephone,
+  whatsapp=EXCLUDED.whatsapp,
+  email=EXCLUDED.email,
+  nom=EXCLUDED.nom,
+  nom_famille=EXCLUDED.nom_famille,
+  prenoms=EXCLUDED.prenoms,
+  nom_complet=EXCLUDED.nom_complet,
+  statut='actif',
+  statut_global='actif',
+  compte_actif=true,
+  total_hectares=EXCLUDED.total_hectares,
+  nombre_plantations=EXCLUDED.nombre_plantations,
+  updated_by=EXCLUDED.updated_by,
+  updated_at=now();
 
 -- Notifications du portail : séparées des notifications Auth du CRM.
 CREATE TABLE IF NOT EXISTS public.portail_notifications (
