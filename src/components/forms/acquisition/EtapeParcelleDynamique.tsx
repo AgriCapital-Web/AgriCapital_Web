@@ -15,7 +15,7 @@ export const EtapeParcelleDynamique = ({ formData, updateFormData }: Props) => {
   const code = String(formData.offre_code || "").toLowerCase();
   // Source de vérité : configuration de l'offre en DB.
   // false => terre du Client ; true => foncier mis à disposition / externe.
-  const external = !Boolean(formData.offre?.necessite_foncier_client);
+  const external = !formData.offre?.necessite_foncier_client;
   const plus = code.endsWith("-plus");
 
   useEffect(() => {
