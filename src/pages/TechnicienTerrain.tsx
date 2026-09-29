@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/usePermissions";
 import { offlineInsert } from "@/lib/offlineWrite";
 import { uploadOrQueueFile } from "@/lib/offlineFiles";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","super_admin"];
+const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","super_admin","pdg"];
 const STAGES_AGRICAPITAL=[
   ["defrichage","Défrichage"],
   ["piquetage","Piquetage"],
@@ -37,8 +38,9 @@ const isPalmTerroir=(p:any)=>String(p?.formule_code||p?.client?.formule_code||""
 const TechnicienTerrain=()=>{
   const {user,userRoles}=useAuth();
   const {toast}=useToast();
-  const allowed=userRoles.some(r=>TECH_ROLES.includes(r));
-  const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin"].includes(r));
+  const {can}=usePermissions();
+  const allowed=can("rapports.view_technique") || userRoles.some(r=>TECH_ROLES.includes(r));
+  const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin","pdg"].includes(r));
   const [plantations,setPlantations]=useState<any[]>([]);
   const [clients,setClients]=useState<any[]>([]);
   const [parcelles,setParcelles]=useState<any[]>([]);
@@ -170,7 +172,7 @@ const TechnicienTerrain=()=>{
   if(!allowed)return <ProtectedRoute><MainLayout><Card><CardHeader><CardTitle>Accès technicien</CardTitle><CardDescription>Cette interface est réservée aux accès techniques autorisés.</CardDescription></CardHeader></Card></MainLayout></ProtectedRoute>;
 
   return <ProtectedRoute><MainLayout><div className="space-y-6">
-    <div><h1 className="text-3xl font-bold">Terrain & suivi technique</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
+    <div><h1 className="text-3xl font-bold">Technique — suivi des plantations</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
 
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList><TabsTrigger value="demandes">Demandes à traiter {tickets.length>0&&<Badge className="ml-2">{tickets.length}</Badge>}</TabsTrigger><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList>
