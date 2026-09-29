@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -112,7 +112,42 @@ const GestionBaseDonnees = () => {
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState("json");
   const [exporting, setExporting] = useState(false);
-  const [lastBackup, setLastBackup] = useState<string | null>(null);
+  const [lastBackup, setLastBackup] = useState<string | null>(() => localStorage.getItem("agricapital-auto-backup-last"));
+  const [autoBackupEnabled, setAutoBackupEnabled] = useState(() => localStorage.getItem("agricapital-auto-backup-enabled") !== "false");
+  const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","portail_messages","documents_acquisition","interventions_techniques","profiles","user_roles","offres","promotions","configurations_systeme"];
+
+  const createLocalAutoBackup = async () => {
+    const snapshot: Record<string, unknown[]> = {};
+    for (const table of AUTO_BACKUP_TABLES) {
+      const { data, error } = await (supabase as any).from(table).select("*");
+      if (error) throw error;
+      snapshot[table] = data || [];
+    }
+    const payload = JSON.stringify({ version: 1, created_at: new Date().toISOString(), tables: snapshot });
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const req = indexedDB.open("agricapital-backups", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("snapshots", { keyPath: "id" });
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("snapshots", "readwrite");
+      tx.objectStore("snapshots").put({ id: "latest", created_at: new Date().toISOString(), payload });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+    const stamp = new Date().toISOString();
+    localStorage.setItem("agricapital-auto-backup-last", stamp);
+    setLastBackup(stamp);
+  };
+
+  useEffect(() => {
+    if (!autoBackupEnabled || !navigator.onLine) return;
+    const last = lastBackup ? new Date(lastBackup).getTime() : 0;
+    if (Date.now() - last < 24 * 60 * 60 * 1000) return;
+    void createLocalAutoBackup().catch((error) => console.warn("Auto-backup local non disponible:", error));
+  }, [autoBackupEnabled]);
 
   const handleExport = async () => {
     if (selectedTables.length === 0) {
@@ -360,7 +395,7 @@ const GestionBaseDonnees = () => {
                 Sauvegarde Automatique
               </CardTitle>
               <CardDescription>
-                La sauvegarde automatique n’est pas activée dans cette version. Les exports manuels restent disponibles.
+                Une copie locale automatique des données critiques est créée au maximum une fois toutes les 24 heures sur cet appareil. Les exports manuels restent disponibles pour une sauvegarde externe.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -374,7 +409,7 @@ const GestionBaseDonnees = () => {
                     </p>
                   </div>
                 </div>
-                <Switch checked={false} disabled aria-label="Sauvegarde automatique non configurée" />
+                <Switch checked={autoBackupEnabled} onCheckedChange={(checked) => { setAutoBackupEnabled(checked); localStorage.setItem("agricapital-auto-backup-enabled", String(checked)); }} aria-label="Activer la sauvegarde automatique locale" />
               </div>
 
 
