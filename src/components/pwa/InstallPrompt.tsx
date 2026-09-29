@@ -140,7 +140,7 @@ const InstallPrompt = () => {
             </Button>
           )}
           <Button variant="outline" onClick={handleDismiss} className="w-full">
-            Plus tard
+            <X className="mr-2 h-4 w-4" />Fermer
           </Button>
         </div>
       </DialogContent>
