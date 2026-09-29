@@ -1,315 +1,84 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, DollarSign, TrendingUp, CheckCircle, XCircle } from "lucide-react";
+import { Search, DollarSign, TrendingUp, CheckCircle, Clock3, RefreshCw, CalendarClock } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useAuth } from "@/hooks/useAuth";
-import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
-import { getSafeErrorMessage } from "@/lib/safeError";
 
-const Commissions = () => {
-  const [commissions, setCommissions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
-  const { userRoles } = useAuth();
-  const canManage = userRoles.some((role) => DEFAULT_ROLE_PERMISSIONS[role]?.includes("commissions.validate"));
+const money=(n:any)=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"XOF",maximumFractionDigits:0}).format(Number(n||0));
+const period=()=>{const d=new Date();const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()<=15?1:16);const end=d.getDate()<=15?new Date(d.getFullYear(),d.getMonth(),15):new Date(d.getFullYear(),d.getMonth()+1,0);return {start,end};};
 
-  const fetchCommissions = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from("commissions")
-        .select(`
-          *,
-          profile:profiles!commissions_profile_id_fkey(nom_complet, telephone),
-          plantation:plantations(id_unique, nom_plantation)
-        `)
-        .order("date_calcul", { ascending: false });
-
-      if (error) throw error;
-      setCommissions(data || []);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: getSafeErrorMessage(error),
-      });
-    } finally {
-      setLoading(false);
-    }
+export default function Commissions(){
+  const {can}=usePermissions();
+  const {toast}=useToast();
+  const [rows,setRows]=useState<any[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [search,setSearch]=useState("");
+  const load=async()=>{
+    setLoading(true);
+    try{
+      const {data,error}=await (supabase as any).from("commissions").select("*,profile:profiles!commissions_profile_id_fkey(nom_complet,telephone),plantation:plantations(id_unique,nom_plantation)").order("date_calcul",{ascending:false}).limit(2000);
+      if(error)throw error;setRows(data||[]);
+    }catch(e:any){toast({variant:"destructive",title:"Commissions indisponibles",description:e?.message||"Erreur."});}
+    finally{setLoading(false);}
   };
-  useEffect(() => {
-    fetchCommissions();
-  }, []);
+  useEffect(()=>{void load();},[]);
+  useRealtime({table:"commissions",onChange:load});
 
-  useRealtime({ table: "commissions", onChange: fetchCommissions });
-
-  const handleValider = async (commissionId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Non authentifié");
-      const { data: profile, error: profileErr } = await (supabase as any)
-        .from("profils_annuaire")
-        .select("id")
-        .or(`user_id.eq.${user.id},id.eq.${user.id}`)
-        .maybeSingle();
-      if (profileErr) throw profileErr;
-      if (!profile?.id) throw new Error("Aucun profil staff trouvé pour valider cette commission");
-
-      const { error } = await (supabase as any)
-        .from("commissions")
-        .update({
-          statut: "valide",
-          date_validation: new Date().toISOString(),
-          valide_par: profile.id,
-        })
-        .eq("id", commissionId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "Commission validée avec succès",
-      });
-      fetchCommissions();
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: getSafeErrorMessage(error),
-      });
-    }
-  };
-  const handleRejeter = async (commissionId: string) => {
-    try {
-      const { error } = await (supabase as any)
-        .from("commissions")
-        .update({ statut: "annule" })
-        .eq("id", commissionId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "Commission annulée",
-      });
-      fetchCommissions();
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: getSafeErrorMessage(error),
-      });
-    }
-  };
-
-  const filteredCommissions = commissions.filter((c) =>
-    c.profile?.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.plantation?.id_unique?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.type_commission?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const stats = {
-    total: commissions.reduce((sum, c) => sum + Number(c.montant_commission), 0),
-    enAttente: commissions.filter(c => c.statut === "en_attente").reduce((sum, c) => sum + Number(c.montant_commission), 0),
-    validees: commissions.filter(c => c.statut === "valide").reduce((sum, c) => sum + Number(c.montant_commission), 0),
-    payees: commissions.filter(c => c.statut === "paye").reduce((sum, c) => sum + Number(c.montant_commission), 0),
-  };
-
-  const formatMontant = (montant: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "XOF",
-    }).format(montant);
-  };
-
-  const getStatutBadge = (statut: string) => {
-    const colors: any = {
-      en_attente: "bg-yellow-500",
-      valide: "bg-blue-500",
-      paye: "bg-green-500",
-      annule: "bg-red-500",
+  const stats=useMemo(()=>{
+    const {start,end}=period();
+    const startIso=start.toISOString().slice(0,10),endIso=end.toISOString().slice(0,10);
+    const inPeriod=rows.filter(r=>r.periode>=startIso&&r.periode<=endIso);
+    return {
+      total:rows.reduce((s,r)=>s+Number(r.montant_commission||0),0),
+      aValider:rows.filter(r=>r.statut==="calculee").reduce((s,r)=>s+Number(r.montant_commission||0),0),
+      validees:rows.filter(r=>r.statut==="validee").reduce((s,r)=>s+Number(r.montant_commission||0),0),
+      payees:rows.filter(r=>r.statut==="payee").reduce((s,r)=>s+Number(r.montant_commission||0),0),
+      quinzaine:inPeriod.reduce((s,r)=>s+Number(r.montant_commission||0),0),
     };
-    return colors[statut] || "bg-gray-500";
-  };
+  },[rows]);
 
-  const getTypeLabel = (type: string) => {
-    const labels: any = {
-      acquisition: "Acquisition",
-      suivi: "Suivi",
-      recolte: "Récolte",
-      paiement: "Paiement",
-    };
-    return labels[type] || type;
-  };
+  const filtered=rows.filter(r=>{
+    const q=search.toLowerCase();
+    return !q||r.profile?.nom_complet?.toLowerCase().includes(q)||r.type_commission?.toLowerCase().includes(q)||r.plantation?.id_unique?.toLowerCase().includes(q);
+  });
+  const typeLabel=(t:string)=>t==="acquisition"?"Activation / vente":t==="recouvrement_mensuel"?"Commission mensuelle (2,5%)":t;
+  const statusLabel=(s:string)=>s==="calculee"?"À valider":s==="validee"?"Validée":s==="payee"?"Payée":s==="annule"?"Annulée":s;
+  const statusVariant=(s:string)=>s==="payee"?"default":s==="validee"?"secondary":s==="calculee"?"outline":"destructive";
 
-  return (
-    <ProtectedRoute>
-      <MainLayout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Gestion des Commissions</h1>
-            <p className="text-muted-foreground mt-1">
-              {commissions.length} commission(s) enregistrée(s)
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Commissions
-                </CardTitle>
-                <DollarSign className="h-5 w-5 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatMontant(stats.total)}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  En Attente
-                </CardTitle>
-                <TrendingUp className="h-5 w-5 text-yellow-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatMontant(stats.enAttente)}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Validées
-                </CardTitle>
-                <CheckCircle className="h-5 w-5 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatMontant(stats.validees)}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Payées
-                </CardTitle>
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatMontant(stats.payees)}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par nom, plantation, type..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Utilisateur</TableHead>
-                  <TableHead>Plantation</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Base</TableHead>
-                  <TableHead>Taux</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Période</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
-                      Chargement...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredCommissions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
-                      Aucune commission trouvée
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredCommissions.map((commission) => (
-                    <TableRow key={commission.id}>
-                      <TableCell className="font-medium">
-                        {commission.profile?.nom_complet}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {commission.plantation?.id_unique}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {getTypeLabel(commission.type_commission)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatMontant(commission.montant_base)}</TableCell>
-                      <TableCell>{commission.taux_commission}%</TableCell>
-                      <TableCell className="font-bold">
-                        {formatMontant(commission.montant_commission)}
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(commission.periode), "MMM yyyy", { locale: fr })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatutBadge(commission.statut)}>
-                          {commission.statut.replace("_", " ")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {canManage && commission.statut === "en_attente" && (
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleValider(commission.id)}
-                            >
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRejeter(commission.id)}
-                            >
-                              <XCircle className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+  return <ProtectedRoute requiredPermissionCode="commissions.view">
+    <MainLayout>
+      <div className="min-w-0 space-y-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div><h1 className="text-2xl font-bold">Commissions</h1><p className="text-sm text-muted-foreground">Tableau de bord des commissions commerciales et de leur cycle de versement.</p></div>
+          <Button variant="outline" size="sm" onClick={()=>void load()}><RefreshCw className="mr-2 h-4 w-4"/>Actualiser</Button>
         </div>
-      </MainLayout>
-    </ProtectedRoute>
-  );
-};
 
-export default Commissions;
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[["Total calculé",stats.total,DollarSign],["À valider",stats.aValider,Clock3],["Validées",stats.validees,CheckCircle],["Payées",stats.payees,TrendingUp],["Quinzaine",stats.quinzaine,CalendarClock]].map(([label,value,Icon]:any)=><Card key={label as string}><CardContent className="p-4"><div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{label}</span><Icon className="h-4 w-4 text-primary"/></div><div className="mt-2 text-lg font-bold">{money(value)}</div></CardContent></Card>)}
+        </div>
+
+        <Card><CardContent className="p-4"><div className="relative max-w-xl"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/><Input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher un commercial, une plantation ou un type..." className="pl-10"/></div></CardContent></Card>
+
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table><TableHeader><TableRow><TableHead>Commercial</TableHead><TableHead>Type</TableHead><TableHead>Base</TableHead><TableHead>Taux</TableHead><TableHead>Commission</TableHead><TableHead>Période</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
+              <TableBody>{loading?<TableRow><TableCell colSpan={7} className="py-8 text-center">Chargement…</TableCell></TableRow>:filtered.length===0?<TableRow><TableCell colSpan={7} className="py-8 text-center text-muted-foreground">Aucune commission.</TableCell></TableRow>:filtered.map((c:any)=><TableRow key={c.id}><TableCell className="font-medium">{c.profile?.nom_complet||"—"}</TableCell><TableCell><Badge variant="outline">{typeLabel(c.type_commission)}</Badge></TableCell><TableCell>{money(c.montant_base)}</TableCell><TableCell>{Number(c.taux_commission||0)>0 ? String(c.taux_commission)+"%" : "—"}</TableCell><TableCell className="font-bold">{money(c.montant_commission)}</TableCell><TableCell>{c.periode?format(new Date(c.periode),"dd/MM/yyyy",{locale:fr}):"—"}</TableCell><TableCell><Badge variant={statusVariant(c.statut)}>{statusLabel(c.statut)}</Badge></TableCell></TableRow>)}</TableBody></Table>
+            </div>
+          </CardContent>
+        </Card>
+        <p className="text-xs text-muted-foreground">Les versements sont gérés séparément par quinzaine dans Portefeuilles. Cette page reste un tableau de bord et une piste de traçabilité.</p>
+      </div>
+    </MainLayout>
+  </ProtectedRoute>;
+}
