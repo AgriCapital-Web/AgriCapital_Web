@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Crown, TrendingUp, Leaf, Check, Sparkles, Loader2 } from "lucide-react";
+import { TrendingUp, Leaf, Sprout, Check, Sparkles, Loader2 } from "lucide-react";
 import { usePromotionActive } from "@/hooks/usePromotionActive";
 import { calculPrixEffectif } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
@@ -158,89 +159,85 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Choisissez votre Offre</CardTitle>
-          <CardDescription>Sélectionnez l'offre qui correspond au profil du client</CardDescription>
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Choisissez votre offre</CardTitle>
+          <CardDescription>Sélectionnez une offre puis sa formule. Les détails s'affichent uniquement après sélection.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <RadioGroup
-            value={formData.offre_id}
-            onValueChange={(value) => {
-              const selected = offres?.find((o: any) => o.id === value);
-              updateFormData({
-                offre_id: value,
-                offre_code: selected?.code || "",
-                offre: selected,
-                type_client: selected?.type_offre === "sans_terre" ? "sans_terre" : "avec_terre",
-                mode_paiement: ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(selected?.code || "").toLowerCase()) ? (formData.mode_paiement || "echeancier") : "echeancier",
-                ...(selected?.type_offre === "sans_terre" ? {} : { parcelle_id: null }),
-              });
-            }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4"
-          >
-            {offres?.map((offre: any) => {
-              const IconComponent = getIcone(offre.code);
-              const couleurs = getCouleur(offre.code);
-              const isSelected = formData.offre_id === offre.id;
-              const avantagesList = parseAvantages(offre.avantages);
-              
-              return (
-                <div key={offre.id}>
-                  <RadioGroupItem
-                    value={offre.id}
-                    id={offre.id}
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor={offre.id}
-                    className={`flex flex-col h-full p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      isSelected 
-                        ? `${couleurs.border} ${couleurs.bg} ring-2 ring-offset-2 ring-primary` 
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`p-2 rounded-full ${couleurs.bg}`}>
-                        <IconComponent className={`h-6 w-6 ${couleurs.text}`} />
-                      </div>
-                      <div>
-                        <h3 className={`font-bold ${couleurs.text}`}>{offre.nom}</h3>
-                        <p className="text-xs text-muted-foreground">{offre.description}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-auto space-y-2">
-                      {offre.montant_total_par_ha === 0 ? (
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-lg font-bold text-green-600">GRATUIT</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-lg font-bold">{formatMontant(offre.montant_total_par_ha)}F</span>
-                             <span className="text-xs text-muted-foreground">/ha · {offre.duree_paiement_mois} mois</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            PI: {formatMontant(offre.montant_pi_par_ha)}F/ha {["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(offre.code || "").toLowerCase()) ? `· Comptant: ${formatMontant(offre.montant_cash_par_ha)}F/ha` : ""}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {offre.gestion_type === 'deleguee' ? 'Gestion déléguée · 70% revenus' : 'Gestion propre · 100% revenus'}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {isSelected && (
-                      <div className="mt-3 flex items-center gap-1 text-primary text-sm font-medium">
-                        <Check className="h-4 w-4" /> Sélectionné
-                      </div>
-                    )}
-                  </Label>
-                </div>
-              );
-            })}
-          </RadioGroup>
+        <CardContent className="space-y-2">
+          {[
+            { key: "PALMINVEST", label: "PalmInvest", icon: TrendingUp, color: "text-primary", bg: "bg-primary/10", border: "border-primary/30" },
+            { key: "TERRAPALM", label: "TerraPalm", icon: Leaf, color: "text-emerald-700", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
+            { key: "PALMTERROIR", label: "PalmTerroir", icon: Sprout, color: "text-amber-700", bg: "bg-amber-500/10", border: "border-amber-500/30" },
+          ].map((family) => {
+            const familyOffers = (offres || []).filter((o: any) => String(o.famille_offre || "").toUpperCase() === family.key);
+            const selectedFamily = familyOffers.some((o: any) => o.id === formData.offre_id);
+            const Icon = family.icon;
+            return (
+              <div key={family.key} className={`rounded-xl border transition-all ${selectedFamily ? family.border + " " + family.bg : "border-border"}`}>
+                <button
+                  type="button"
+                  className="flex w-full min-w-0 items-center gap-3 p-3 text-left sm:p-4"
+                  onClick={() => {
+                    const first = familyOffers[0];
+                    if (!first) return;
+                    updateFormData({
+                      offre_id: selectedFamily ? formData.offre_id : first.id,
+                      offre_code: selectedFamily ? formData.offre_code : first.code,
+                      offre: selectedFamily ? formData.offre : first,
+                      type_client: first.type_offre === "sans_terre" ? "sans_terre" : "avec_terre",
+                      mode_paiement: ["PALMINVEST","TERRAPALM"].includes(family.key) ? (formData.mode_paiement || "echeancier") : "echeancier",
+                    });
+                  }}
+                >
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${family.bg}`}>
+                    <Icon className={`h-5 w-5 ${family.color}`} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className={`block truncate font-bold ${family.color}`}>{family.label}</span>
+                    <span className="block text-xs text-muted-foreground">{familyOffers.length} formule{familyOffers.length > 1 ? "s" : ""} disponible{familyOffers.length > 1 ? "s" : ""}</span>
+                  </span>
+                  <span className="text-xs font-medium text-muted-foreground">{selectedFamily ? "Ouvert" : "Choisir"}</span>
+                </button>
+
+                {selectedFamily && (
+                  <div className="border-t px-3 pb-3 pt-3 sm:px-4">
+                    <Label className="text-xs">Formule</Label>
+                    <Select
+                      value={formData.offre_id || ""}
+                      onValueChange={(value) => {
+                        const selected = familyOffers.find((o: any) => o.id === value);
+                        if (!selected) return;
+                        updateFormData({
+                          offre_id: value,
+                          offre_code: selected.code,
+                          offre: selected,
+                          type_client: selected.type_offre === "sans_terre" ? "sans_terre" : "avec_terre",
+                          mode_paiement: ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(String(selected.code || "").toLowerCase()) ? (formData.mode_paiement || "echeancier") : "echeancier",
+                          ...(selected.type_offre === "sans_terre" ? {} : { parcelle_id: null }),
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="mt-1 w-full min-w-0">
+                        <SelectValue placeholder="Sélectionner une formule" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {familyOffers.map((o: any) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            {o.formule_code === "PALMINVEST_PLUS" ? "Formule Déléguée (PalmInvest+)" :
+                             o.formule_code === "PALMINVEST" ? "Formule Autonome (PalmInvest)" :
+                             o.formule_code === "TERRAPALM_PLUS" ? "Formule Déléguée (TerraPalm+)" :
+                             o.formule_code === "TERRAPALM" ? "Formule Autonome (TerraPalm)" :
+                             o.formule_nom || o.nom}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {(() => {
             const selected = offres?.find((o: any) => o.id === formData.offre_id);
@@ -248,16 +245,12 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
             const cashEligible = ["palm-invest","palm-invest-plus","terra-palm","terra-palm-plus"].includes(code);
             if (!selected || !cashEligible || Number(selected.montant_cash_par_ha || 0) <= 0) return null;
             return (
-              <div className="mt-5 rounded-2xl border bg-muted/30 p-4">
+              <div className="mt-4 rounded-xl border bg-muted/30 p-3 sm:p-4">
                 <div className="text-sm font-semibold">Mode de paiement</div>
-                <p className="text-xs text-muted-foreground mt-1">Le client choisit entre l’échéancier de l’offre et le paiement comptant.</p>
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <Button type="button" variant={formData.mode_paiement !== "comptant" ? "default" : "outline"} onClick={() => updateFormData({ mode_paiement: "echeancier" })}>
-                    Échéancier — {selected.duree_paiement_mois} mois
-                  </Button>
-                  <Button type="button" variant={formData.mode_paiement === "comptant" ? "default" : "outline"} onClick={() => updateFormData({ mode_paiement: "comptant" })}>
-                    Comptant — {formatMontant(Number(selected.montant_cash_par_ha))} F/ha
-                  </Button>
+                <p className="text-xs text-muted-foreground mt-1">La modalité configurée pour l'offre s'applique à ses deux formules.</p>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Button type="button" variant={formData.mode_paiement !== "comptant" ? "default" : "outline"} onClick={() => updateFormData({ mode_paiement: "echeancier" })}>Échéancier — {selected.duree_paiement_mois} mois</Button>
+                  <Button type="button" variant={formData.mode_paiement === "comptant" ? "default" : "outline"} onClick={() => updateFormData({ mode_paiement: "comptant" })}>Comptant — {formatMontant(Number(selected.montant_cash_par_ha))} F/ha</Button>
                 </div>
               </div>
             );
