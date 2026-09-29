@@ -227,7 +227,7 @@ async function deliver(args: {
           if (!contact.user_id) throw new Error("Destinataire app sans user_id");
           const { error } = await admin.from("notifications").insert({
             user_id: contact.user_id, type: "communication", title: renderedSubject,
-            message: rendered, data: { campaign_id: args.campaignId, automation_id: args.automationId },
+            message: rendered, data: { campaign_id: args.campaignId, automation_id: args.automationId, dedupe_key: dedupeKey }, dedupe_key: dedupeKey,
           });
           if (error) throw error;
           await admin.from("notification_deliveries").update({ statut: "envoye", sent_at: new Date().toISOString() }).eq("id", delivery.id);
