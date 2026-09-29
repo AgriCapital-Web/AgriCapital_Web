@@ -4,7 +4,6 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useToast } from "@/hooks/use-toast";
-import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +17,6 @@ const money=(n:any)=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"X
 const period=()=>{const d=new Date();const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()<=15?1:16);const end=d.getDate()<=15?new Date(d.getFullYear(),d.getMonth(),15):new Date(d.getFullYear(),d.getMonth()+1,0);return {start,end};};
 
 export default function Commissions(){
-  const {can}=usePermissions();
   const {toast}=useToast();
   const [rows,setRows]=useState<any[]>([]);
   const [loading,setLoading]=useState(true);
