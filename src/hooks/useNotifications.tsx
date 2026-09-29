@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -20,6 +20,7 @@ export const useNotifications = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const seenIds = useRef<Set<string>>(new Set());
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -37,8 +38,10 @@ export const useNotifications = () => {
         return;
       }
 
-      setNotifications((data as Notification[]) || []);
-      setUnreadCount(data?.filter((n: Notification) => !n.read).length || 0);
+      const rows = (data as Notification[]) || [];
+      seenIds.current = new Set(rows.map(n => n.id));
+      setNotifications(rows);
+      setUnreadCount(rows.filter((n: Notification) => !n.read).length || 0);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -64,11 +67,10 @@ export const useNotifications = () => {
         },
         (payload) => {
           const newNotification = payload.new as Notification;
-          setNotifications(prev => {
-            if (prev.some(n => n.id === newNotification.id || (newNotification.data?.dedupe_key && n.data?.dedupe_key === newNotification.data.dedupe_key))) return prev;
-            return [newNotification, ...prev];
-          });
-          setUnreadCount(prev => notifications.some(n => n.id === newNotification.id) ? prev : prev + 1);
+          if (seenIds.current.has(newNotification.id)) return;
+          seenIds.current.add(newNotification.id);
+          setNotifications(prev => [newNotification, ...prev.filter(n => n.id !== newNotification.id)]);
+          setUnreadCount(prev => prev + (newNotification.read ? 0 : 1));
           
           // Notification native navigateur si l'utilisateur l'a déjà autorisée.
           if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
