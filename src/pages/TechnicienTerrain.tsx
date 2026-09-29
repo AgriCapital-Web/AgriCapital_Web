@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","super_admin","pdg"];
 const STAGES_AGRICAPITAL=[
+  ["validation_parcelle","Validation de la parcelle"],
   ["defrichage","Défrichage"],
   ["piquetage","Piquetage"],
   ["trouaison","Trouaison"],
@@ -31,7 +32,7 @@ const STAGES_AGRICAPITAL=[
   ["suivi_mensuel","Suivi mensuel"],
   ["autre","Autre"],
 ];
-const STAGES_PALMTERROIR_AVANT_PLANTATION=[["piquetage","Piquetage"],["trouaison","Trouaison"],["mise_en_terre","Planting / mise en terre"]];
+const STAGES_PALMTERROIR_AVANT_PLANTATION=[["validation_parcelle","Validation de la parcelle"],["piquetage","Piquetage"],["trouaison","Trouaison"],["mise_en_terre","Planting / mise en terre"]];
 const STAGES_PALMTERROIR_APRES_PLANTATION=[["suivi_mensuel","Suivi / encadrement technique"],["autre","Autre suivi technique"]];
 const isPalmTerroir=(p:any)=>String(p?.formule_code||p?.client?.formule_code||"").toLowerCase().includes("palm-terroir");
 
