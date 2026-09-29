@@ -64,8 +64,11 @@ export const useNotifications = () => {
         },
         (payload) => {
           const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+          setNotifications(prev => {
+            if (prev.some(n => n.id === newNotification.id || (newNotification.data?.dedupe_key && n.data?.dedupe_key === newNotification.data.dedupe_key))) return prev;
+            return [newNotification, ...prev];
+          });
+          setUnreadCount(prev => notifications.some(n => n.id === newNotification.id) ? prev : prev + 1);
           
           // Notification native navigateur si l'utilisateur l'a déjà autorisée.
           if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
