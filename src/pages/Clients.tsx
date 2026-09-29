@@ -23,8 +23,10 @@ import { Link } from "react-router-dom";
 import ClientForm from "@/components/forms/ClientForm";
 import KanbanPipeline from "@/components/acquisitions/KanbanPipeline";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const Clients = () => {
+  const { can } = usePermissions();
   const [clients, setClients] = useState<any[]>([]);
   const [attributions, setAttributions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,12 +212,12 @@ const Clients = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Link to="/beneficiaire-particulier">
+              {can("beneficiaires.create") && (\n            <Link to="/beneficiaire-particulier">
                 <Button variant="outline" className="w-full sm:w-auto">
                   <UserRound className="mr-2 h-4 w-4" />
                   Nouveau bénéficiaire
                 </Button>
-              </Link>
+              </Link>\n            )}
               <Link to="/nouvelle-acquisition">
                 <Button className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
                   <FileText className="mr-2 h-4 w-4" />
