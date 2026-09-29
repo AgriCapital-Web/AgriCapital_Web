@@ -267,9 +267,9 @@ RETURNS TABLE (
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
 AS $$
   WITH contacts AS (
-    SELECT 'equipe'::text, p.id, p.user_id, p.nom_complet, p.email,
-      COALESCE(p.telephone,p.whatsapp), ur.role,
-      NULL::uuid, NULL::text, NULL::text
+    SELECT 'equipe'::text AS source_type, p.id AS source_id, p.user_id AS user_id, p.nom_complet AS nom_complet, p.email AS email,
+      COALESCE(p.telephone,p.whatsapp) AS telephone, ur.role AS role_code,
+      NULL::uuid AS offre_id, NULL::text AS offre_code, NULL::text AS offre_nom
     FROM public.profiles p
     LEFT JOIN LATERAL (
       SELECT r.role FROM public.user_roles r
@@ -284,11 +284,11 @@ AS $$
         WHEN c.type_client='proprietaire_foncier' THEN 'proprietaire_foncier'
         WHEN c.type_client='beneficiaire_particulier' THEN 'beneficiaire_particulier'
         ELSE 'client'
-      END,
-      c.id, c.user_id,
-      COALESCE(NULLIF(c.nom_complet,''),concat_ws(' ',c.prenoms,c.nom_famille)),
-      c.email, COALESCE(c.telephone,c.whatsapp),
-      NULL::text, c.offre_id, o.code, o.nom
+      END AS source_type,
+      c.id AS source_id, c.user_id AS user_id,
+      COALESCE(NULLIF(c.nom_complet,''),concat_ws(' ',c.prenoms,c.nom_famille)) AS nom_complet,
+      c.email AS email, COALESCE(c.telephone,c.whatsapp) AS telephone,
+      NULL::text AS role_code, c.offre_id AS offre_id, o.code AS offre_code, o.nom AS offre_nom
     FROM public.clients c
     LEFT JOIN public.offres o ON o.id=c.offre_id
     WHERE COALESCE(c.statut_global,'actif') NOT IN ('archive','supprime')
@@ -306,7 +306,6 @@ AS $$
     OR (COALESCE(_criteres->>'audience','')='palminvest' AND lower(coalesce(c.offre_code,'')) LIKE 'palm-invest%')
     OR (COALESCE(_criteres->>'audience','')='terrapalm' AND lower(coalesce(c.offre_code,'')) LIKE 'terra-palm%')
     OR (COALESCE(_criteres->>'audience','') IN ('palmterroir','palmterroir_plus') AND lower(coalesce(c.offre_code,'')) LIKE 'palm-terroir%')
-  )
   AND (NULLIF(_criteres->>'offer_code','') IS NULL OR lower(coalesce(c.offre_code,''))=lower(_criteres->>'offer_code'))
   AND (NULLIF(_criteres->>'role_code','') IS NULL OR c.role_code=_criteres->>'role_code')
   AND (NULLIF(_criteres->>'has_email','') IS NULL OR
