@@ -90,19 +90,20 @@ serve(async(req)=>{
     const notificationRows=notificationRes.data||[];
 
     let parcelleIds:string[]=[];
+    let parcelles:any[]=[];
     if(owner?.id){
       const {data:ownerParcelles}=await supabase.from("parcelles").select("*")
         .eq("proprietaire_id",owner.id).order("created_at",{ascending:false});
-      var parcelles=ownerParcelles||[];
+      parcelles=ownerParcelles||[];
       parcelleIds=parcelles.map((p:any)=>p.id);
     } else {
       parcelleIds=[...new Set(attributions.map((a:any)=>a.parcelle_id).filter(Boolean))];
       if(parcelleIds.length){
         const {data:benefParcelles}=await supabase.from("parcelles").select("*")
           .in("id",parcelleIds).order("created_at",{ascending:false});
-        var parcelles=benefParcelles||[];
+        parcelles=benefParcelles||[];
       } else {
-        var parcelles:any[]=[];
+        parcelles=[];
       }
     }
 
@@ -120,7 +121,6 @@ serve(async(req)=>{
 
     // Attribution -> plantation est conservée explicitement pour que le portail
     // puisse afficher les droits du bénéficiaire même lorsque client_id de la plantation est NULL.
-    const attributionPlantationIds=new Set(attributions.map((a:any)=>a.plantation_id).filter(Boolean));
     for(const p of plantations){
       p.attributions=attributions.filter((a:any)=>a.plantation_id===p.id || (!a.plantation_id && a.parcelle_id===p.parcelle_id));
     }
