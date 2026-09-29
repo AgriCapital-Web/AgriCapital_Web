@@ -212,12 +212,14 @@ const Clients = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              {can("beneficiaires.create") && (\n            <Link to="/beneficiaire-particulier">
+              {can("beneficiaires.create") && (
+            <Link to="/beneficiaire-particulier">
                 <Button variant="outline" className="w-full sm:w-auto">
                   <UserRound className="mr-2 h-4 w-4" />
                   Nouveau bénéficiaire
                 </Button>
-              </Link>\n            )}
+              </Link>
+            )}
               <Link to="/nouvelle-acquisition">
                 <Button className="bg-primary hover:bg-primary-hover w-full sm:w-auto">
                   <FileText className="mr-2 h-4 w-4" />
