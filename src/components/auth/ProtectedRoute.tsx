@@ -13,6 +13,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requiredRole, requiredPermission, requiredPermissionCode }: ProtectedRouteProps) => {
   const { user, loading, hasRole, userRoles } = useAuth();
+  const privileged = userRoles.includes('super_admin') || userRoles.includes('pdg');
   const { can } = usePermissions();
   const navigate = useNavigate();
 
@@ -20,13 +21,13 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission, requiredPe
     if (!loading) {
       if (!user) {
         navigate('/login', { replace: true });
-      } else if (requiredRole && !hasRole(requiredRole)) {
+      } else if (!privileged && requiredRole && !hasRole(requiredRole)) {
         navigate('/dashboard', { replace: true });
-      } else if (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission)) {
+      } else if (!privileged && (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission))) {
         navigate('/dashboard', { replace: true });
       }
     }
-  }, [user, loading, requiredRole, requiredPermission, requiredPermissionCode, navigate, hasRole, userRoles, can]);
+  }, [user, loading, requiredRole, requiredPermission, requiredPermissionCode, navigate, hasRole, userRoles, can, privileged]);
 
   if (loading) {
     return (
@@ -37,8 +38,8 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission, requiredPe
   }
 
   if (!user) return null;
-  if (requiredRole && !hasRole(requiredRole)) return null;
-  if (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission)) return null;
+  if (!privileged && requiredRole && !hasRole(requiredRole)) return null;
+  if (!privileged && (requiredPermissionCode ? !can(requiredPermissionCode) : requiredPermission && !hasPermission(userRoles, requiredPermission))) return null;
 
   return <>{children}</>;
 };
