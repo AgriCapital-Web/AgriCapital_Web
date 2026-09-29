@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquare, Search, UserRound, LandPlot, UsersRound } from "lucide-react";
+import { MessageSquare, Search, UserRound } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/usePermissions";
 
 type ClientRow={id:string;nom_complet:string|null;telephone:string;type_client:string;type_client_foncier:string|null;compte_actif:boolean;proprietaire_id:string|null};
