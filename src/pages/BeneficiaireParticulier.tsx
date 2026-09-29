@@ -33,8 +33,8 @@ const BeneficiaireParticulier = () => {
     type_piece: "cni",
     numero_piece: "",
     date_delivrance_piece: "",
-    telephone: "",
-    whatsapp: "",
+    telephone: "", telephone_indicatif: "+225", telephone_local: "",
+    whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "",
     email: "",
     domicile: "",
   });
@@ -42,8 +42,8 @@ const BeneficiaireParticulier = () => {
     nom: "",
     prenoms: "",
     nom_complet: "",
-    telephone: "",
-    whatsapp: "",
+    telephone: "", telephone_indicatif: "+225", telephone_local: "",
+    whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "",
     statut_foncier: "coutumier",
     village: "", district_id: "", region_id: "", departement_id: "", sous_prefecture_id: "", village_id: "",
   });
