@@ -65,6 +65,7 @@ const Offres = () => {
   const [isOffreDialogOpen, setIsOffreDialogOpen] = useState(false);
   const [isPromoDialogOpen, setIsPromoDialogOpen] = useState(false);
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
+  const [detailsFamily, setDetailsFamily] = useState<string | null>(null);
 
   const [promoFormData, setPromoFormData] = useState({
     nom: "",
@@ -109,12 +110,15 @@ const Offres = () => {
   // Update offre
   const updateOffreMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Offre> }) => {
-      const { error } = await supabase
-        .from('offres')
-        .update(updates)
-        .eq('id', id);
-      
-      if (error) throw error;
+      const current = (offres || []).find((o: any) => o.id === id) as any;
+      const family = String(current?.famille_offre || "").toUpperCase();
+      const targets = ["PALMINVEST","TERRAPALM"].includes(family)
+        ? (offres || []).filter((o: any) => String(o.famille_offre || "").toUpperCase() === family)
+        : [current];
+      for (const target of targets) {
+        const { error } = await supabase.from('offres').update(updates).eq('id', target.id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['offres'] });
