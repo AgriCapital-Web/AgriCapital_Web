@@ -63,16 +63,20 @@ BEGIN
   WHERE proprietaire_id = NEW.id
   LIMIT 1;
 
+  IF v_client_id IS NULL AND v_phone IS NOT NULL THEN
+    SELECT c.id INTO v_client_id
+    FROM public.clients c
+    WHERE regexp_replace(COALESCE(c.telephone,''),'\\D','','g') =
+          regexp_replace(v_phone,'\\D','','g')
+    ORDER BY CASE WHEN c.type_client='beneficiaire_particulier' THEN 0 ELSE 1 END, c.created_at
+    LIMIT 1;
+  END IF;
+
   IF v_phone IS NULL THEN
     IF v_client_id IS NOT NULL THEN
       UPDATE public.clients
-      SET nom_complet = v_name,
-          nom = COALESCE(NULLIF(TRIM(NEW.nom), ''), nom),
-          prenoms = COALESCE(NULLIF(TRIM(NEW.prenoms), ''), prenoms),
-          email = COALESCE(NULLIF(TRIM(NEW.email), ''), email),
-          whatsapp = COALESCE(NULLIF(TRIM(NEW.whatsapp), ''), whatsapp),
-          compte_actif = false,
-          statut_global = 'actif',
+      SET proprietaire_id = NEW.id,
+          updated_by = NEW.updated_by,
           updated_at = now()
       WHERE id = v_client_id;
     END IF;
@@ -97,19 +101,16 @@ BEGIN
     RETURNING id INTO v_client_id;
   ELSE
     UPDATE public.clients
-    SET civilite = NEW.civilite,
-        nom_famille = NEW.nom,
-        prenoms = NEW.prenoms,
-        nom = NEW.nom,
-        nom_complet = v_name,
+    SET civilite = COALESCE(NEW.civilite,civilite),
+        nom_famille = COALESCE(NEW.nom,nom_famille),
+        prenoms = COALESCE(NEW.prenoms,prenoms),
+        nom_complet = CASE WHEN type_client='proprietaire_foncier' THEN v_name ELSE nom_complet END,
+        nom = COALESCE(NEW.nom,nom),
         telephone = v_phone,
-        whatsapp = NEW.whatsapp,
-        email = NEW.email,
-        statut = 'actif',
+        whatsapp = COALESCE(NEW.whatsapp,whatsapp),
+        email = COALESCE(NEW.email,email),
         statut_global = 'actif',
         compte_actif = true,
-        total_hectares = COALESCE(NEW.surface_totale_ha,0),
-        nombre_plantations = COALESCE(NEW.nombre_parcelles,0),
         proprietaire_id = NEW.id,
         updated_by = NEW.updated_by,
         updated_at = now()
@@ -126,7 +127,20 @@ AFTER INSERT OR UPDATE OF civilite,nom,prenoms,nom_complet,telephone,whatsapp,em
 ON public.proprietaires_terres
 FOR EACH ROW EXECUTE FUNCTION public.sync_proprietaire_portal_client();
 
--- Backfill idempotent des propriétaires déjà enregistrés.
+-- Backfill : réutilise un dossier client existant lorsque le téléphone correspond.
+UPDATE public.clients c
+SET proprietaire_id = p.id,
+    updated_by = COALESCE(p.updated_by,c.updated_by),
+    updated_at = now()
+FROM public.proprietaires_terres p
+WHERE c.proprietaire_id IS NULL
+  AND NULLIF(TRIM(COALESCE(p.telephone,p.whatsapp,'')),'') IS NOT NULL
+  AND regexp_replace(COALESCE(c.telephone,''),'\\D','','g') =
+      regexp_replace(COALESCE(p.telephone,p.whatsapp,''),'\\D','','g')
+  AND NOT EXISTS (
+    SELECT 1 FROM public.clients x WHERE x.proprietaire_id = p.id
+  );
+
 INSERT INTO public.clients(
   user_id, civilite, nom_famille, prenoms, nom_complet, nom,
   type_client, type_client_foncier, telephone, whatsapp, email,
@@ -145,22 +159,7 @@ SELECT
   p.id,p.created_by,p.updated_by
 FROM public.proprietaires_terres p
 WHERE NULLIF(TRIM(COALESCE(p.telephone,p.whatsapp,'')),'') IS NOT NULL
-ON CONFLICT (proprietaire_id) WHERE proprietaire_id IS NOT NULL
-DO UPDATE SET
-  telephone=EXCLUDED.telephone,
-  whatsapp=EXCLUDED.whatsapp,
-  email=EXCLUDED.email,
-  nom=EXCLUDED.nom,
-  nom_famille=EXCLUDED.nom_famille,
-  prenoms=EXCLUDED.prenoms,
-  nom_complet=EXCLUDED.nom_complet,
-  statut='actif',
-  statut_global='actif',
-  compte_actif=true,
-  total_hectares=EXCLUDED.total_hectares,
-  nombre_plantations=EXCLUDED.nombre_plantations,
-  updated_by=EXCLUDED.updated_by,
-  updated_at=now();
+  AND NOT EXISTS (SELECT 1 FROM public.clients c WHERE c.proprietaire_id=p.id);
 
 -- Notifications du portail : séparées des notifications Auth du CRM.
 CREATE TABLE IF NOT EXISTS public.portail_notifications (
