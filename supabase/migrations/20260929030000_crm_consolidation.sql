@@ -42,7 +42,7 @@ create index if not exists idx_commissions_profile_statut_periode on public.comm
 create unique index if not exists uq_commissions_payment_type_profile on public.commissions(paiement_id,type_commission,profile_id) where paiement_id is not null;
 
 delete from public.grille_remuneration
-where role_cible='commercial' and type_remuneration in ('commission_cash','commission_ha_signature','commission_recouvrement','commission_surplus_pi','cash');
+where role_cible='commercial' and type_remuneration in ('commission_cash','commission_ha_signature','commission_recouvrement','commission_surplus_pi','cash','acquisition','recouvrement_mensuel');
 
 insert into public.grille_remuneration(role_cible,type_remuneration,montant,taux_pourcentage,description,actif)
 values
