@@ -14,6 +14,8 @@ import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { ArrowLeft, FileCheck2, LandPlot, UserRound, Sprout, Upload } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import MainLayout from "@/components/layout/MainLayout";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import GeographieCascade from "@/components/common/GeographieCascade";
 
 type UploadState = { file: File | null; preview: string };
