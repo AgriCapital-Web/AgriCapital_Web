@@ -423,50 +423,6 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Synthèse cycle 28 ans — v_client_synthese */}
-          {synthese.length > 0 && !isClientOnly && (
-            <Card className="border-l-4 border-l-primary">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  Synthèse contrats — Cycle 28 ans (3 ans installation + 25 ans production)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-center">
-                  <div className="p-2 bg-muted/50 rounded">
-                    <div className="text-xl font-bold">{syntheseAgg.contratsActifs}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Contrats actifs</div>
-                  </div>
-                  <div className="p-2 bg-muted/50 rounded">
-                    <div className="text-xl font-bold text-blue-600">{syntheseAgg.enInstallation}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Installation (36 mois)</div>
-                  </div>
-                  <div className="p-2 bg-muted/50 rounded">
-                    <div className="text-xl font-bold text-green-600">{syntheseAgg.enProduction}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Production (25 ans)</div>
-                  </div>
-                  <div className="p-2 bg-muted/50 rounded">
-                    <div className="text-xl font-bold">{syntheseAgg.joursRestantsMoy.toLocaleString()}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Jours restants (moy.)</div>
-                  </div>
-                  <div className="p-2 bg-muted/50 rounded">
-                    <div className="text-xl font-bold text-amber-600">{syntheseAgg.avancementMoy}%</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Avancement moy.</div>
-                  </div>
-                  <div className="p-2 bg-muted/50 rounded">
-                    <div className="text-xl font-bold text-red-600">{syntheseAgg.echeancesRetardTotal}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Échéances en retard</div>
-                  </div>
-                  <div className="p-2 bg-muted/50 rounded">
-                    <div className="text-sm font-bold">{formatMontant(syntheseAgg.restantDuTotal)}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase">Reste à percevoir</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* KPIs adaptés au rôle */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             <Link to="/acquisitions" className="block h-full" aria-label="Ouvrir le registre des acquisitions">
@@ -535,6 +491,51 @@ const Dashboard = () => {
               </Card>
             </Link>
           </div>
+
+          {/* Synthèse cycle 28 ans — v_client_synthese */}
+          {synthese.length > 0 && !isClientOnly && (
+            <Card className="border-l-4 border-l-primary">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  Synthèse contrats — Cycle 28 ans (3 ans installation + 25 ans production)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-center">
+                  <div className="p-2 bg-muted/50 rounded">
+                    <div className="text-xl font-bold">{syntheseAgg.contratsActifs}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Contrats actifs</div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded">
+                    <div className="text-xl font-bold text-blue-600">{syntheseAgg.enInstallation}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Installation (36 mois)</div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded">
+                    <div className="text-xl font-bold text-green-600">{syntheseAgg.enProduction}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Production (25 ans)</div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded">
+                    <div className="text-xl font-bold">{syntheseAgg.joursRestantsMoy.toLocaleString()}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Jours restants (moy.)</div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded">
+                    <div className="text-xl font-bold text-amber-600">{syntheseAgg.avancementMoy}%</div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Avancement moy.</div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded">
+                    <div className="text-xl font-bold text-red-600">{syntheseAgg.echeancesRetardTotal}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Échéances en retard</div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded">
+                    <div className="text-sm font-bold">{formatMontant(syntheseAgg.restantDuTotal)}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase">Reste à percevoir</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* KPIs de zone — uniquement pour les profils ayant un périmètre opérationnel. */}
           {!userRoles.some((r) => ["super_admin", "pdg", "directeur_tc", "responsable_operations"].includes(r)) && <RoleDashboard />}
