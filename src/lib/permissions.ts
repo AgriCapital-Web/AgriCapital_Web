@@ -155,7 +155,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.TECHNICIEN]: only("clients.view","plantations.view","plantations.update","documents.view","documents.upload","rapports.view_technique","tickets.view","tickets.create","tickets.update","portefeuilles.view","commissions.view"),
   [ROLES.CHEF_EQUIPE_TECHNIQUE]: only(
     "plantations.", "documents.view", "documents.upload", "rapports.view_technique",
-    "tickets.view", "portefeuilles.view", "commissions.view",, "tickets.create", "tickets.update", "clients.view",
+    "tickets.view", "portefeuilles.view", "commissions.view", "tickets.create", "tickets.update", "clients.view",
   ),
   [ROLES.CHEF_EQUIPE_SERVICE_CLIENT]: only(
     "tickets.", "clients.view", "clients.update", "paiements.view", "paiements.record",
@@ -164,7 +164,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.COMMERCIAL]: only(
     "leads.view", "leads.create", "leads.update",
     "clients.view", "clients.create", "clients.update",
-    "plantations.view", "offres.view", "promotions.view", "commissions.view", "portefeuilles.view", "portefeuilles.view",
+    "plantations.view", "offres.view", "promotions.view", "commissions.view", "portefeuilles.view",
     "documents.view", "documents.upload",
   ),
   [ROLES.SERVICE_CLIENT]: only(
