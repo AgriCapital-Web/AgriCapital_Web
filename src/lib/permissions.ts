@@ -135,7 +135,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "utilisateurs.", "offres.", "promotions.", "leads.", "clients.", "plantations.",
     "documents.", "rapports.", "tickets.", "commissions.view",
     "paiements.view", "paiements.record", "paiements.validate",
-    "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit", "commissions.manage_payouts", "portefeuilles.view", "portefeuilles.manage_payouts",
+    "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit", "portefeuilles.view",
   ).filter((c) => !["utilisateurs.delete", "utilisateurs.manage_roles"].includes(c)),
   [ROLES.RESPONSABLE_COMMERCIAL]: only(
     "leads.", "clients.view", "portefeuilles.view", "clients.create", "clients.update",
@@ -144,7 +144,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "documents.view", "tickets.view", "utilisateurs.view", "parametres.manage_teams",
   ),
   [ROLES.COMPTABLE]: only(
-    "paiements.", "commissions.", "portefeuilles.", "rapports.view_financier", "rapports.export",
+    "paiements.", "commissions.", "commissions.manage_payouts", "portefeuilles.", "portefeuilles.manage_payouts", "rapports.view_financier", "rapports.export",
     "clients.view", "offres.view", "promotions.view", "documents.view", "documents.validate",
   ),
   [ROLES.CHEF_EQUIPE_COMMERCIAL]: only(
