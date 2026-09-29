@@ -1,5 +1,5 @@
 import { forwardRef, type ReactNode } from "react";
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import logo from "@/assets/logo-agricapital-v2.png";
@@ -255,7 +255,8 @@ const InfoRow = ({
         fontSize: 11.5,
         fontWeight: 600,
         lineHeight: "15px",
-        overflow: "hidden",
+        overflowWrap: "anywhere",
+        wordBreak: "break-word",
       }}
     >
       {value}
@@ -276,7 +277,7 @@ const QR = ({ code, size }: { code: string; size: number }) => (
       flexShrink: 0,
     }}
   >
-    <QRCodeCanvas
+    <QRCodeSVG
       value={verificationUrl(code)}
       size={1024}
       level="H"
@@ -396,10 +397,13 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                 color: VERT,
                 fontSize: nom.length > 28 ? 22 : 25,
                 fontWeight: 800,
-                lineHeight: "28px",
+                lineHeight: "27px",
                 textTransform: "uppercase",
                 overflow: "hidden",
-                whiteSpace: "nowrap",
+                whiteSpace: "normal",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
               }}
             >
               {coupe(nom, 28)}
@@ -408,12 +412,12 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
               style={{
                 margin: "7px 0 0",
                 color: GRIS_MOYEN,
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 700,
-                lineHeight: "16px",
+                lineHeight: "17px",
                 textTransform: "uppercase",
-                minHeight: 16,
-                whiteSpace: "nowrap",
+                minHeight: 17,
+                whiteSpace: "normal",
                 overflow: "hidden",
               }}
             >
@@ -523,7 +527,7 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             zIndex: 1,
             height: "100%",
             boxSizing: "border-box",
-            padding: "40px 42px 34px",
+            padding: "34px 42px 30px",
             display: "flex",
             flexDirection: "column",
           }}
@@ -568,7 +572,7 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
               alignItems: "center",
             }}
           >
-            <QR code={carte.code_verification} size={228} />
+            <QR code={carte.code_verification} size={250} />
           </div>
 
           <div style={{ textAlign: "center", marginTop: 15 }}>
@@ -622,10 +626,10 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
               borderRadius: "0 8px 8px 0",
             }}
           >
-            <p style={{ margin: 0, color: VERT, fontSize: 9.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <p style={{ margin: 0, color: VERT, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5 }}>
               Contrôle de la carte
             </p>
-            <p style={{ margin: "5px 0 0", color: GRIS, fontSize: 9, lineHeight: "13px" }}>
+            <p style={{ margin: "5px 0 0", color: GRIS, fontSize: 10, lineHeight: "14px" }}>
               La page officielle affiche l'identité du titulaire, son statut et les informations de validité enregistrées par AgriCapital.
             </p>
           </div>
