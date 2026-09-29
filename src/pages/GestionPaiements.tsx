@@ -115,7 +115,7 @@ const GestionPaiements = () => {
   const canManage = hasRole('super_admin') || hasRole('service_client') || hasRole('comptable');
 
   // KKiaPay payment handler
-  const handleKkiapayPayment = (paiement: Paiement) => {
+  const handleKkiapayPayment = async (paiement: Paiement) => {
     setSelectedPaiement(paiement);
     setKkiapayLoading(true);
 
@@ -174,7 +174,7 @@ const GestionPaiements = () => {
     });
 
     // Open the widget
-    const success = openPayment({
+    const success = await openPayment({
       amount: paiement.montant,
       name: paiement.clients?.nom_complet || 'Client AgriCapital',
       phone: paiement.clients?.telephone || '',
