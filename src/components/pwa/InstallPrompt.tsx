@@ -74,7 +74,13 @@ const InstallPrompt = () => {
     setShowPrompt(false);
   };
 
-  useEffect(() => {\n    if (!showPrompt) return;\n    const timer = window.setTimeout(() => setShowPrompt(false), 3000);\n    return () => window.clearTimeout(timer);\n  }, [showPrompt]);\n\n  const handleDismiss = () => {
+  useEffect(() => {
+    if (!showPrompt) return;
+    const timer = window.setTimeout(() => setShowPrompt(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [showPrompt]);
+
+  const handleDismiss = () => {
     setShowPrompt(false);
     localStorage.setItem('pwa-install-dismissed-crm', Date.now().toString());
   };
