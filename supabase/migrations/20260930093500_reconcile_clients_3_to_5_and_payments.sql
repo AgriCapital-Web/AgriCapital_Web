@@ -51,7 +51,8 @@ set offre_id='4a062827-a1d1-476d-9789-16bcdae54f5f',
     mensualite_montant=3500,
     prochaine_echeance=null,
     jours_retard=0,
-    phase_actuelle='pre_activation'
+    phase_actuelle='pre_activation',
+    paiement_personnalise='{"actif":true,"motif":"Mensualités déclenchées 3 mois après la mise en terre. Aucune mensualité exigible tant que la mise en terre n''est pas validée.","offre_reference":"PALMTERROIR_ESSENTIELLE","mensualite":{"active":true,"nombre":33,"montant":3500,"decalage_mois":3,"date_debut":null,"date_fin":null},"paiement_initial":{"montant_officiel":230000,"montant_verse":100000,"solde":130000}}'::jsonb
 where id_unique='AGC-000003';
 
 update public.clients
