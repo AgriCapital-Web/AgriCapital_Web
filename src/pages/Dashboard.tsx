@@ -137,29 +137,49 @@ const Dashboard = () => {
 
       const { data: paiements } = await (supabase as any)
         .from("paiements")
-        .select("montant, statut, created_at, plantation_id, plantations(clients(nom_complet))");
-      
-      const totalPaiements = paiements?.filter((p) => p.statut === "valide")
-        .reduce((sum, p) => sum + (p.montant || 0), 0) || 0;
-      
-      const paiementsEnAttenteCount = paiements?.filter((p) => p.statut === "en_attente").length || 0;
-      const montantEnAttente = paiements?.filter((p) => p.statut === "en_attente")
-        .reduce((sum, p) => sum + (p.montant || 0), 0) || 0;
+        .select("id, client_id, montant, montant_paye, statut, created_at, date_paiement, date_echeance, type_paiement, mode_paiement, reference")
+        .order("created_at", { ascending: false });
 
-      // Clients récents
+      const totalPaiements = (paiements || [])
+        .filter((p: any) => p.statut === "valide")
+        .reduce((sum: number, p: any) => sum + Number(p.montant_paye ?? p.montant ?? 0), 0);
+
+      // Une échéance future n'est jamais un paiement « en attente ».
+      // Seule une échéance arrivée et non réglée constitue un retard réel.
+      const paiementsEnRetard = (paiements || []).filter((p: any) =>
+        p.statut !== "valide" &&
+        p.date_echeance &&
+        new Date(p.date_echeance) < new Date() &&
+        Number(p.montant_paye || 0) < Number(p.montant || 0)
+      );
+      const paiementsEnAttenteCount = paiementsEnRetard.length;
+      const montantEnAttente = paiementsEnRetard.reduce(
+        (sum: number, p: any) => sum + Math.max(0, Number(p.montant || 0) - Number(p.montant_paye || 0)),
+        0
+      );
+
+      // Clients : l'ordre métier est celui du numéro d'ordre global.
       const { data: clients } = await (supabase as any)
         .from("clients")
-        .select("id_unique, nom_complet, created_at, statut_global, nombre_plantations")
-        .order("created_at", { ascending: false })
+        .select("id, id_unique, nom_complet, created_at, statut_global, nombre_plantations, numero_ordre_global")
+        .order("numero_ordre_global", { ascending: true })
         .limit(5);
 
       setRecentClients(clients || []);
 
-      // Paiements récents
-      const paiementsRecents = paiements?.slice(0, 5).map((p: any) => ({
-        ...p,
-        client_nom: p.plantations?.clients?.nom_complet || "N/A"
-      })) || [];
+      // Paiements récents : uniquement les paiements réellement encaissés.
+      const { data: paymentClients } = await (supabase as any)
+        .from("clients")
+        .select("id, nom_complet");
+      const paymentClientMap = new Map((paymentClients || []).map((c: any) => [c.id, c.nom_complet]));
+
+      const paiementsRecents = (paiements || [])
+        .filter((p: any) => p.statut === "valide" && p.date_paiement && Number(p.montant_paye || p.montant || 0) > 0)
+        .slice(0, 5)
+        .map((p: any) => ({
+          ...p,
+          client_nom: paymentClientMap.get(p.client_id) || "Client"
+        }));
       setRecentPaiements(paiementsRecents);
 
       // Stats par département
@@ -217,14 +237,14 @@ const Dashboard = () => {
       if (paiementsEnAttenteCount > 0) {
         alertesArray.push({
           type: "warning",
-          message: `${paiementsEnAttenteCount} paiement(s) en attente - ${formatMontant(montantEnAttente)}`,
+          message: `${paiementsEnAttenteCount} échéance(s) en retard - ${formatMontant(montantEnAttente)}`,
           date: new Date()
         });
       }
 
       const { data: plantationsAlerte } = await (supabase as any)
         .from("plantations")
-        .select("*")
+        .select("id, client_id, alerte_non_paiement, alerte_visite_retard")
         .or("alerte_non_paiement.eq.true,alerte_visite_retard.eq.true");
 
       if (plantationsAlerte && plantationsAlerte.length > 0) {
