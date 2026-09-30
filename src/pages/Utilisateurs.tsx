@@ -306,22 +306,24 @@ const Utilisateurs = () => {
                             </DropdownMenuItem>
                           </>
                         )}
-                        {user.actif ? (
-                          <DropdownMenuItem 
-                            onClick={() => handleStatusChange(user.id, false)}
-                            className="text-orange-600"
-                          >
-                            <UserX className="h-4 w-4 mr-2" />
-                            Suspendre
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem 
-                            onClick={() => handleStatusChange(user.id, true)}
-                            className="text-green-600"
-                          >
-                            <UserCheck className="h-4 w-4 mr-2" />
-                            Activer
-                          </DropdownMenuItem>
+                        {!['8d616fdc-6f25-43e9-baaa-51ead746222e','bd9579fd-1d07-4431-9cc4-b57dfeeab593'].includes(user.user_id || user.id) && (
+                          user.actif ? (
+                            <DropdownMenuItem 
+                              onClick={() => handleStatusChange(user.id, false)}
+                              className="text-orange-600"
+                            >
+                              <UserX className="h-4 w-4 mr-2" />
+                              Suspendre
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              onClick={() => handleStatusChange(user.id, true)}
+                              className="text-green-600"
+                            >
+                              <UserCheck className="h-4 w-4 mr-2" />
+                              Activer
+                            </DropdownMenuItem>
+                          )
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
