@@ -558,7 +558,7 @@ const Dashboard = () => {
                       <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Installation</p><p className="text-xl font-bold">{stats.installationContracts}</p></div>
                       <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Production</p><p className="text-xl font-bold">{stats.productionContracts}</p></div>
                       <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Jours restants (contrats renseignés)</p><p className="text-xl font-bold">{stats.avgDaysRemaining == null ? "—" : stats.avgDaysRemaining}</p></div>
-                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Avancement moyen</p><p className="text-xl font-bold">{contractRows.length ? stats.avgProgress + "%" : "—"}</p></div>
+                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Avancement moyen</p><p className="text-xl font-bold">{stats.avgDaysRemaining == null && stats.avgProgress === 0 ? "—" : stats.avgProgress + "%"}</p></div>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">Les durées sont lues depuis l’offre/formule. Le dashboard n’impose plus un cycle global : les paramètres diffèrent selon l’offre et les dossiers sans données contractuelles restent visibles sans valeur inventée.</p>
                   </CardContent>
