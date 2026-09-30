@@ -287,7 +287,7 @@ const Utilisateurs = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Modifier
                         </DropdownMenuItem>
-                        {isSuperAdmin && (
+                        {isSuperAdmin && !['8d616fdc-6f25-43e9-baaa-51ead746222e','bd9579fd-1d07-4431-9cc4-b57dfeeab593'].includes(user.user_id || user.id) && (
                           <>
                             <DropdownMenuItem onClick={() => openAdminAction(user, "roles")}>
                               <Shield className="h-4 w-4 mr-2" />
