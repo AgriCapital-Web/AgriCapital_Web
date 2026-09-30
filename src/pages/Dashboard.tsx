@@ -291,7 +291,7 @@ const Dashboard = () => {
         d.setHours(0, 0, 0, 0);
         const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
         const mPlant = plantations.filter((p: any) => {
-          const dt = new Date(p.created_at);
+          const dt = new Date(p.date_plantation || p.date_activation || p.created_at);
           return dt >= d && dt <= end;
         }).reduce((s: number, p: any) => s + Number(p.superficie_reellement_plantee || p.superficie_activee || p.superficie_ha || 0), 0);
         const mPay = validPayments.filter((p: any) => {
