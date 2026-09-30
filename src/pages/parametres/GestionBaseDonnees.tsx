@@ -104,7 +104,9 @@ const TABLES = [
   "zone_assignments"
 ];
 
-const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","portail_messages","documents_acquisition","interventions_techniques","profiles","user_roles","offres","promotions","configurations_systeme"];\n\nconst GestionBaseDonnees = () => {
+const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","portail_messages","documents_acquisition","interventions_techniques","profiles","user_roles","offres","promotions","configurations_systeme"];
+
+const GestionBaseDonnees = () => {
   const { toast } = useToast();
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState("json");
