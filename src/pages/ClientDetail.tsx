@@ -279,6 +279,26 @@ const ClientDetail = () => {
             </Card>
           </div>
 
+          {client.paiement_personnalise?.actif && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Conditions de règlement personnalisées
+                  <Badge variant="outline" className="text-primary border-primary/30">Exception individuelle</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">{client.paiement_personnalise.motif}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-xl border bg-background p-3"><p className="text-xs text-muted-foreground">Solde du PI</p><p className="font-bold text-lg">{formatMontant(Number(client.paiement_personnalise.paiement_initial?.solde || 0))}</p></div>
+                  <div className="rounded-xl border bg-background p-3"><p className="text-xs text-muted-foreground">Mensualité</p><p className="font-bold">{client.paiement_personnalise.mensualite?.active ? formatMontant(Number(client.paiement_personnalise.mensualite.montant || 0)) + ' × ' + client.paiement_personnalise.mensualite.nombre : 'Aucune'}</p></div>
+                  <div className="rounded-xl border bg-background p-3"><p className="text-xs text-muted-foreground">Début échéancier</p><p className="font-bold">{client.paiement_personnalise.mensualite?.date_debut ? new Date(client.paiement_personnalise.mensualite.date_debut).toLocaleDateString('fr-FR') : '—'}</p></div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Tabs defaultValue="plantations" className="space-y-4">
             <TabsList>
               <TabsTrigger value="plantations">
