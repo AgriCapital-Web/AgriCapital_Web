@@ -78,6 +78,7 @@ const Dashboard = () => {
     installationContracts: 0,
     productionContracts: 0,
     avgProgress: 0,
+    avgDaysRemaining: null as number | null,
     commissions: 0,
     portfolio: 0,
   });
@@ -91,6 +92,7 @@ const Dashboard = () => {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [topClients, setTopClients] = useState<any[]>([]);
   const [regional, setRegional] = useState<any[]>([]);
+  const [futurePayments, setFuturePayments] = useState<any[]>([]);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -111,7 +113,7 @@ const Dashboard = () => {
         regionsRes
       ] = await Promise.all([
         canClients || globalAdmin
-          ? (supabase as any).from("clients").select("id,id_unique,nom_complet,created_at,updated_at,statut_global,nombre_plantations,total_hectares,formule_nom,formule_code,phase_actuelle,compte_actif")
+          ? (supabase as any).from("clients").select("id,id_unique,nom_complet,created_at,updated_at,statut_global,nombre_plantations,total_hectares,formule_nom,formule_code,phase_actuelle,compte_actif,numero_ordre_global")
           : Promise.resolve({ data: [], count: 0 }),
         canPlantations || globalAdmin
           ? (supabase as any).from("plantations").select("id,id_unique,client_id,superficie_ha,superficie_activee,superficie_reellement_plantee,statut_global,created_at,region_id,departement_id,village_nom,village,alerte_non_paiement,alerte_visite_retard")
@@ -182,10 +184,17 @@ const Dashboard = () => {
       const remainingHa = Math.max(0, engagedHa - plantedHa);
 
       const activeSynthese = synthese.filter((r: any) => r.compte_actif);
-      const avgProgress = activeSynthese.length
-        ? Math.round(activeSynthese.reduce((s: number, r: any) => s + Number(r.avancement_pct || 0), 0) / activeSynthese.length)
+      const contractRows = activeSynthese.filter((r: any) => Number(r.montant_total_contrat || 0) > 0);
+      const avgProgress = contractRows.length
+        ? Math.round(contractRows.reduce((s: number, r: any) => s + Number(r.pourcentage_avancement || 0), 0) / contractRows.length)
         : 0;
-      const dueAmount = activeSynthese.reduce((s: number, r: any) => s + Number(r.restant_du || 0), 0);
+      const dueAmount = contractRows.reduce((s: number, r: any) => s + Number(r.reste_a_payer || 0), 0);
+      const contractEndDates = contractRows
+        .map((r: any) => r.contrat_fin_at ? new Date(r.contrat_fin_at) : null)
+        .filter((d: Date | null): d is Date => Boolean(d && d.getTime() > Date.now()));
+      const avgDaysRemaining = contractEndDates.length
+        ? Math.round(contractEndDates.reduce((s: number, d: Date) => s + Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86400000)), 0) / contractEndDates.length)
+        : null;
       const recoveryRate = dueAmount + collected > 0 ? Math.round((collected / (collected + dueAmount)) * 100) : 0;
 
       const commissionTotal = commissions
@@ -214,6 +223,7 @@ const Dashboard = () => {
         installationContracts: activeSynthese.filter((r: any) => r.phase_actuelle === "installation").length,
         productionContracts: activeSynthese.filter((r: any) => r.phase_actuelle === "production").length,
         avgProgress,
+        avgDaysRemaining,
         commissions: commissionTotal,
         portfolio: portfolioTotal,
       });
@@ -221,7 +231,10 @@ const Dashboard = () => {
       // IMPORTANT: "Clients récents" = ordre de création récent, pas numéro métier.
       setRecentClients(
         [...clients]
-          .sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+          .sort((a: any, b: any) => {
+            const byDate = new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+            return byDate || Number(b.numero_ordre_global || 0) - Number(a.numero_ordre_global || 0);
+          })
           .slice(0, 5)
       );
 
@@ -292,6 +305,19 @@ const Dashboard = () => {
         });
       }
       setMonthly(months);
+
+      const future = payments
+        .filter((p: any) => p.statut === "planifie" && p.date_echeance && new Date(p.date_echeance) > today() && Number(p.montant || 0) > 0)
+        .reduce((acc: Map<string, any>, p: any) => {
+          const d = new Date(String(p.date_echeance) + "T00:00:00");
+          const key = String(d.getFullYear()) + "-" + String(d.getMonth() + 1).padStart(2, "0");
+          const row = acc.get(key) || { key, mois: d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }), montant: 0, nombre: 0 };
+          row.montant += Number(p.montant || 0);
+          row.nombre += 1;
+          acc.set(key, row);
+          return acc;
+        }, new Map());
+      setFuturePayments([...future.values()].sort((a: any, b: any) => a.key.localeCompare(b.key)).slice(0, 6));
 
       const newAlerts: any[] = [];
       if (canPayments && overdue.length) newAlerts.push({ type: "error", message: `${overdue.length} paiement(s) arrivé(s) à échéance et non réglé(s) — ${money(overdueAmount)}`, href: "/paiements" });
@@ -444,15 +470,32 @@ const Dashboard = () => {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="mois" tick={{ fontSize: 11 }} />
                           <YAxis yAxisId="left" tick={{ fontSize: 10 }} />
-                          <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
-                          <Tooltip />
+                          <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} tickFormatter={(v) => Number(v).toFixed(2) + " M"} />
+                          <Tooltip formatter={(value: any, name: any) => name === "Paiements encaissés (M XOF)" ? [Number(value).toFixed(2) + " M XOF", name] : [value, name]} />
                           <Line yAxisId="left" type="monotone" dataKey="hectares" name="Hectares plantés" stroke="hsl(var(--primary))" strokeWidth={2} />
-                          <Line yAxisId="right" type="monotone" dataKey="paiements" name="Paiements (M XOF)" stroke="hsl(var(--foreground))" strokeWidth={2} />
+                          <Line yAxisId="right" type="monotone" dataKey="paiements" name="Paiements encaissés (M XOF)" stroke="hsl(var(--foreground))" strokeWidth={2} />
                         </LineChart>
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
                 </div>
+              )}
+
+              {canPayments && futurePayments.length > 0 && (
+                <Card>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock3 className="h-5 w-5 text-primary" />Échéances futures — prévisionnel</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Mois</TableHead><TableHead>Échéances</TableHead><TableHead className="text-right">Montant prévu</TableHead></TableRow></TableHeader>
+                        <TableBody>{futurePayments.map((p) => (
+                          <TableRow key={p.key}><TableCell className="capitalize">{p.mois}</TableCell><TableCell>{p.nombre}</TableCell><TableCell className="text-right font-semibold">{money(p.montant)}</TableCell></TableRow>
+                        ))}</TableBody>
+                      </Table>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">Prévisionnel uniquement : ces échéances ne sont jamais comptées comme encaissées.</p>
+                  </CardContent>
+                </Card>
               )}
 
               {canFinance || canPayments ? (
@@ -508,15 +551,16 @@ const Dashboard = () => {
 
               {canFinance && (
                 <Card>
-                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><Calendar className="h-5 w-5 text-primary" />Contrats et cycle de vie</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><Calendar className="h-5 w-5 text-primary" />Synthèse des contrats</CardTitle></CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Contrats actifs</p><p className="text-xl font-bold">{stats.activeContracts}</p></div>
-                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">En installation</p><p className="text-xl font-bold">{stats.installationContracts}</p></div>
-                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">En production</p><p className="text-xl font-bold">{stats.productionContracts}</p></div>
-                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Avancement moyen</p><p className="text-xl font-bold">{stats.avgProgress}%</p></div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Dossiers actifs</p><p className="text-xl font-bold">{stats.activeContracts}</p></div>
+                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Installation</p><p className="text-xl font-bold">{stats.installationContracts}</p></div>
+                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Production</p><p className="text-xl font-bold">{stats.productionContracts}</p></div>
+                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Jours restants (contrats renseignés)</p><p className="text-xl font-bold">{stats.avgDaysRemaining == null ? "—" : stats.avgDaysRemaining}</p></div>
+                      <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Avancement moyen</p><p className="text-xl font-bold">{contractRows.length ? stats.avgProgress + "%" : "—"}</p></div>
                     </div>
-                    <p className="mt-3 text-xs text-muted-foreground">Les durées d'installation, de paiement et de production sont calculées selon la formule/offre du dossier ; aucune durée globale n'est imposée au dashboard.</p>
+                    <p className="mt-3 text-xs text-muted-foreground">Les durées sont lues depuis l’offre/formule. Le dashboard n’impose plus un cycle global : les paramètres diffèrent selon l’offre et les dossiers sans données contractuelles restent visibles sans valeur inventée.</p>
                   </CardContent>
                 </Card>
               )}
