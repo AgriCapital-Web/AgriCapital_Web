@@ -137,7 +137,7 @@ const GestionBaseDonnees = () => {
     const stamp = new Date().toISOString();
     localStorage.setItem("agricapital-auto-backup-last", stamp);
     setLastBackup(stamp);
-  };
+  }, []);
 
   useEffect(() => {
     if (!autoBackupEnabled || !navigator.onLine) return;
