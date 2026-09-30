@@ -17,7 +17,7 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 import { resolveStorageUrl } from "@/utils/storage";
 import ClientMessagingPanel from "@/components/clients/ClientMessagingPanel";
 
-const ClientDetail = () => {
+const formatMontant = (m: number) => new Intl.NumberFormat("fr-FR").format(Math.round(m || 0));\n\nconst ClientDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
