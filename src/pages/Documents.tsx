@@ -81,17 +81,26 @@ const Documents = () => {
     else toast.error("Fichier introuvable");
   };
 
-  const filtered = docs.filter((d) => filter === "all" || d.statut === filter);
+  const normalizedDocs = docs.map((d) => ({ ...d, statut: d.statut === "soumis" ? "en_attente" : d.statut }));
+  const filtered = normalizedDocs.filter((d) => filter === "all" || d.statut === filter);
+  const pendingCount = normalizedDocs.filter((d) => d.statut === "en_attente").length;
+  const validCount = normalizedDocs.filter((d) => d.statut === "valide").length;
+  const rejectedCount = normalizedDocs.filter((d) => d.statut === "rejete").length;
 
   return (
     <ProtectedRoute>
       <MainLayout>
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="w-full max-w-7xl mx-auto min-w-0 space-y-6">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <FileCheck className="h-7 w-7 text-primary" /> Documents
             </h1>
-            <p className="text-muted-foreground">Validation des pièces déposées par les clients</p>
+            <p className="text-muted-foreground">Validation des pièces réellement téléversées dans les dossiers clients.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">En attente</p><p className="mt-1 text-2xl font-bold">{pendingCount}</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Validés</p><p className="mt-1 text-2xl font-bold">{validCount}</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Refusés</p><p className="mt-1 text-2xl font-bold">{rejectedCount}</p></CardContent></Card>
+          </div>
           </div>
 
           <Tabs value={filter} onValueChange={setFilter}>
@@ -112,8 +121,8 @@ const Documents = () => {
                   ) : filtered.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">Aucun document</p>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
+                    <div className="overflow-x-auto rounded-lg">
+                      <Table className="min-w-[760px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead>Client</TableHead>
