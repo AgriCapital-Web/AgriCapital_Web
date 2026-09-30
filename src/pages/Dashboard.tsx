@@ -730,7 +730,7 @@ const Dashboard = () => {
                       <TableRow>
                         <TableHead>Client</TableHead>
                         <TableHead>Montant</TableHead>
-                        <TableHead>Statut</TableHead>
+                        <TableHead>Mode</TableHead>\n                        <TableHead>Statut</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
