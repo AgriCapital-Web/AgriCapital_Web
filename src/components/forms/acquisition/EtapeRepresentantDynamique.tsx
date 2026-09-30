@@ -8,6 +8,9 @@ import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import RelationshipSelect from "@/components/common/RelationshipSelect";
 interface Props{formData:any;updateFormData:(data:any)=>void}
+
+const upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
+
 export const EtapeRepresentantDynamique=({formData,updateFormData}:Props)=>{
  const active=Boolean(formData.has_representant);
  const file=(field:string,label:string,ocr=false)=><FileUploadVisual label={label} field={field} accept=".pdf,image/jpeg,image/png" required currentFile={formData[field+"_file"]||null} currentPreview={formData[field+"_preview"]||""} onFileChange={(f,v,p)=>updateFormData({[field+"_file"]:v,[field+"_preview"]:p})} onIdentityNumberDetected={ocr?n=>updateFormData({representant_numero_piece:n}):undefined} identityDocumentType={formData.representant_type_piece}/>;
