@@ -49,7 +49,7 @@ export default function Commissions(){
     const q=search.toLowerCase();
     return !q||r.profile?.nom_complet?.toLowerCase().includes(q)||r.type_commission?.toLowerCase().includes(q)||r.plantation?.id_unique?.toLowerCase().includes(q);
   });
-  const typeLabel=(t:string)=>t==="acquisition"?"Activation / vente":t==="recouvrement_mensuel"?"Commission mensuelle (2,5%)":t;
+  const typeLabel=(t:string)=>t==="acquisition"?"Acquisition / paiement initial":t==="recouvrement_mensuel"?"Commission mensuelle (2,5%)":t;
   const statusLabel=(s:string)=>s==="calculee"?"À valider":s==="validee"?"Validée":s==="payee"?"Payée":s==="annule"?"Annulée":s;
   const statusVariant=(s:string)=>s==="payee"?"default":s==="validee"?"secondary":s==="calculee"?"outline":"destructive";
 
