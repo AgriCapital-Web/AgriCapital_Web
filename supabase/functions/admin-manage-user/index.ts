@@ -37,6 +37,15 @@ serve(async (req) => {
     const { action, user_id, password, username, roles } = await req.json();
     if (!action || !user_id) return json({ error: "action et user_id requis", step }, 400);
 
+    const protectedRootIds = new Set([
+      "8d616fdc-6f25-43e9-baaa-51ead746222e",
+      "bd9579fd-1d07-4431-9cc4-b57dfeeab593",
+    ]);
+    const isProtectedRoot = protectedRootIds.has(String(user_id));
+    if (isProtectedRoot && (action === "delete_user" || action === "set_roles")) {
+      return json({ error: "Ce compte racine est protégé : suppression, révocation ou modification des rôles interdite.", step }, 403);
+    }
+
     if (action === "set_password") {
       step = "set_password";
       if (!password || String(password).length < 12 || String(password).length > 128) {
