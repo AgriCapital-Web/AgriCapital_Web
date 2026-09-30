@@ -11,7 +11,7 @@ set search_path = public
 as $function$
 declare
   p record;
-  c record;
+  v_client record;
   v_profile_id uuid;
   v_montant numeric := 0;
   v_base numeric := 0;
@@ -37,23 +37,23 @@ begin
   end if;
 
   select
-    c.id,
+    v_client.id,
     c.created_by,
     c.total_hectares,
     c.formule_code,
     c.montant_total_contrat
-  into c
+  into v_client
   from public.clients c
   where c.id = p.client_id;
 
-  if not found or c.created_by is null then
+  if not found or v_client.created_by is null then
     return;
   end if;
 
   select pr.id
   into v_profile_id
   from public.profiles pr
-  where pr.user_id = c.created_by
+  where pr.user_id = v_client.created_by
   limit 1;
 
   if v_profile_id is null then
@@ -82,9 +82,9 @@ begin
     return;
   end if;
 
-  v_base := coalesce(c.montant_total_contrat,p.montant_theorique,p.montant_paye,p.montant,0);
+  v_base := coalesce(v_client.montant_total_contrat,p.montant_theorique,p.montant_paye,p.montant,0);
 
-  v_formule := upper(coalesce(c.formule_code,''));
+  v_formule := upper(coalesce(v_client.formule_code,''));
 
   -- La grille reste la source des montants de commission.
   -- Les variantes + suivent la grille de leur famille.
@@ -161,7 +161,7 @@ begin
     coalesce(p.date_validation,now()),
     now(),
     p.id,
-    c.id,
+    v_client.id,
     v_taux,
     1
   );
