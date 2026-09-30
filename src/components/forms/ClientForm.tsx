@@ -18,7 +18,9 @@ import { AlertCircle, LandPlot, UserRound } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
 
-interface ClientFormProps { client?: any; onSuccess: () => void; onCancel: () => void; }\n\nconst upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
+interface ClientFormProps { client?: any; onSuccess: () => void; onCancel: () => void; }
+
+const upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
 
 const CODES = [
   ["+225","Côte d’Ivoire"],["+33","France"],["+1","USA / Canada"],["+32","Belgique"],
