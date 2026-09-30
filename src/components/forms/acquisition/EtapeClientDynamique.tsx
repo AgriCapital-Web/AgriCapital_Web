@@ -9,7 +9,9 @@ import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Props{formData:any;updateFormData:(data:any)=>void;}\n\nconst upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
+interface Props{formData:any;updateFormData:(data:any)=>void;}
+
+const upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
 const CODES=[["+225","Côte d’Ivoire"],["+33","France"],["+1","USA / Canada"],["+32","Belgique"],["+41","Suisse"],["+44","Royaume-Uni"],["+221","Sénégal"],["+224","Guinée"],["+226","Burkina Faso"],["+223","Mali"],["+237","Cameroun"],["+228","Togo"],["+229","Bénin"]];
 
 export const EtapeClientDynamique=({formData,updateFormData}:Props)=>{
