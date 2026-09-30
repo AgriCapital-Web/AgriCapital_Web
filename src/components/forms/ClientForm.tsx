@@ -18,7 +18,7 @@ import { AlertCircle, LandPlot, UserRound } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
 
-interface ClientFormProps { client?: any; onSuccess: () => void; onCancel: () => void; }
+interface ClientFormProps { client?: any; onSuccess: () => void; onCancel: () => void; }\n\nconst upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
 
 const CODES = [
   ["+225","Côte d’Ivoire"],["+33","France"],["+1","USA / Canada"],["+32","Belgique"],
@@ -170,8 +170,8 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
         <CardHeader><CardTitle>Identité</CardTitle><CardDescription>Informations personnelles du dossier.</CardDescription></CardHeader>
         <CardContent className="grid md:grid-cols-3 gap-4">
           <div><Label>Civilité</Label><Select value={form.civilite || ""} onValueChange={v=>setField("civilite",v)}><SelectTrigger><SelectValue placeholder="Sélectionner"/></SelectTrigger><SelectContent><SelectItem value="M">Monsieur</SelectItem><SelectItem value="Mme">Madame</SelectItem><SelectItem value="Mlle">Mademoiselle</SelectItem></SelectContent></Select></div>
-          <div><Label>Nom de famille</Label><Input value={form.nom_famille || form.nom || ""} onChange={e=>{setField("nom_famille",e.target.value);setField("nom_complet",[e.target.value,form.prenoms].filter(Boolean).join(" "));}}/></div>
-          <div><Label>Prénoms</Label><Input value={form.prenoms || ""} onChange={e=>{setField("prenoms",e.target.value);setField("nom_complet",[form.nom_famille || form.nom,e.target.value].filter(Boolean).join(" "));}}/></div>
+          <div><Label>Nom de famille</Label><Input value={form.nom_famille || form.nom || ""} onChange={e=>{setField("nom_famille",upperName(e.target.value));setField("nom_complet",[upperName(e.target.value),form.prenoms].filter(Boolean).join(" "));}}/></div>
+          <div><Label>Prénoms</Label><Input value={form.prenoms || ""} onChange={e=>{setField("prenoms",upperName(e.target.value));setField("nom_complet",[form.nom_famille || form.nom,upperName(e.target.value)].filter(Boolean).join(" "));}}/></div>
           <div><Label>Date de naissance</Label><Input type="date" value={form.date_naissance || ""} onChange={e=>setField("date_naissance",e.target.value)}/></div>
           <div><Label>Lieu de naissance</Label><Input value={form.lieu_naissance || ""} onChange={e=>setField("lieu_naissance",e.target.value)}/></div>
           <div><Label>Nationalité</Label><Input value={form.nationalite || ""} onChange={e=>setField("nationalite",e.target.value)}/></div>
