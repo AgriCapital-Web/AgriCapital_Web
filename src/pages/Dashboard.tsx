@@ -276,7 +276,7 @@ const Dashboard = () => {
         return { label, total: rows.length, done, pct: rows.length ? Math.round((done / rows.length) * 100) : 0 };
       }));
 
-      const regionMap = new Map(regions.map((r: any) => [r.id, r.nom]));
+      const regionMap = new Map<string, string>(regions.map((r: any) => [String(r.id), String(r.nom)]));
       const regionCounts = new Map<string, number>();
       plantations.forEach((p: any) => {
         const name = regionMap.get(p.region_id) || "Non renseignée";
