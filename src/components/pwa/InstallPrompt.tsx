@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Download, Smartphone, WifiOff, Zap, HardDrive } from 'lucide-react';
+import { Download, Smartphone, WifiOff, Zap, HardDrive, X, Sparkles } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -46,7 +46,7 @@ const InstallPrompt = () => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       if (shouldShowPrompt()) {
-        setTimeout(() => setShowPrompt(true), 2000);
+        setTimeout(() => setShowPrompt(true), 1200);
       }
     };
 
@@ -54,7 +54,7 @@ const InstallPrompt = () => {
 
     // iOS: also prompt installation
     if (isIOSDevice && !isStandalone && shouldShowPrompt()) {
-      setTimeout(() => setShowPrompt(true), 3000);
+      setTimeout(() => setShowPrompt(true), 1800);
     }
 
     return () => {
@@ -74,6 +74,12 @@ const InstallPrompt = () => {
     setShowPrompt(false);
   };
 
+  useEffect(() => {
+    if (!showPrompt) return;
+    const timer = window.setTimeout(() => setShowPrompt(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [showPrompt]);
+
   const handleDismiss = () => {
     setShowPrompt(false);
     localStorage.setItem('pwa-install-dismissed-crm', Date.now().toString());
@@ -83,11 +89,11 @@ const InstallPrompt = () => {
 
   return (
     <Dialog open={showPrompt} onOpenChange={setShowPrompt}>
-      <DialogContent className="max-w-sm mx-auto rounded-2xl p-5">
+      <DialogContent className="w-[calc(100vw-1.25rem)] max-w-sm rounded-[28px] border-primary/20 p-4 shadow-2xl sm:p-5">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-base">
-            <div className="p-2.5 bg-primary/10 rounded-xl">
-              <Smartphone className="h-6 w-6 text-primary" />
+            <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/5 animate-pulse">
+              <Smartphone className="h-7 w-7 text-primary" /><Sparkles className="absolute -right-1 -top-1 h-4 w-4 text-accent" />
             </div>
             <div>
               <span className="block">Installer AgriCapital</span>
@@ -128,13 +134,13 @@ const InstallPrompt = () => {
         </DialogHeader>
         <div className="flex flex-col gap-2 mt-3">
           {!isIOS && deferredPrompt && (
-            <Button onClick={handleInstall} size="lg" className="w-full gap-2">
+            <Button onClick={handleInstall} size="lg" className="w-full gap-2 animate-pulse bg-gradient-to-r from-red-600 via-primary to-red-600 text-white shadow-lg">
               <Download className="h-5 w-5" />
               Installer maintenant
             </Button>
           )}
           <Button variant="outline" onClick={handleDismiss} className="w-full">
-            Plus tard
+            <X className="mr-2 h-4 w-4" />Fermer
           </Button>
         </div>
       </DialogContent>

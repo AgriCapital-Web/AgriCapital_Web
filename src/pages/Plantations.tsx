@@ -71,7 +71,12 @@ const Plantations = () => {
   const visiblePlantations = plantations.filter(statusMatches);
   const nombreTotal = visiblePlantations.length;
   const superficieTotale = visiblePlantations.reduce((sum, p) => sum + (Number(p.superficie_ha) || 0), 0);
-  const superficiePlantee = visiblePlantations.filter(p => ['en_cours', 'en_production', 'actif'].includes(p.statut_global || p.statut)).reduce((sum, p) => sum + (Number(p.superficie_ha) || 0), 0);
+  const superficiePlantee = visiblePlantations.reduce((sum, p) => {
+    const declared = Number(p.superficie_ha) || 0;
+    const real = Number(p.surface_reellement_plantee);
+    const plantedFromPlants = Number(p.nombre_plants_mis_en_terre) > 0 ? declared : 0;
+    return sum + (Number.isFinite(real) && real > 0 ? real : plantedFromPlants);
+  }, 0);
   const superficieEnProduction = visiblePlantations.filter(p => p.statut_global === "en_production" || p.statut === "en_production").reduce((sum, p) => sum + (Number(p.superficie_ha) || 0), 0);
   const nombreEnProduction = visiblePlantations.filter(p => p.statut_global === "en_production" || p.statut === "en_production").length;
 

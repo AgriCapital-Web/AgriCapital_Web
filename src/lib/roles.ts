@@ -94,7 +94,9 @@ export const TERRITORIAL_ROLES: string[] = [
  */
 export function hasPermission(userRoles: string[], permission: readonly string[]): boolean {
   const normalized = normalizeRoles(userRoles);
-  return normalized.includes(ROLES.PDG) || normalized.some((role) => (permission as readonly string[]).includes(role));
+  // Super Admin et PDG sont des rôles de niveau global : aucun écran métier ne doit leur être refusé par une matrice de permission.
+  if (normalized.includes(ROLES.SUPER_ADMIN) || normalized.includes(ROLES.PDG)) return true;
+  return normalized.some((role) => (permission as readonly string[]).includes(role));
 }
 
 export const PERMISSIONS = {

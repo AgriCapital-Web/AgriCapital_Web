@@ -79,21 +79,21 @@ const Login = () => {
 
 
       {/* Panneau droit - Formulaire de connexion */}
-      <div className="relative flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-background min-h-screen lg:min-h-0">
+      <div className="relative flex-1 flex flex-col items-center justify-center p-4 sm:p-8 bg-gradient-to-b from-background via-background to-primary/5 min-h-screen lg:min-h-0">
 {/* Logo mobile — sans cadre */}
 
-        <div className="lg:hidden mb-8 w-full flex flex-col items-center">
+        <div className="lg:hidden mb-6 w-full flex flex-col items-center rounded-3xl border bg-card/95 px-5 py-6 shadow-sm backdrop-blur">
           <img
             src={logoV2}
             alt="AgriCapital"
-            className="w-full max-w-[280px] sm:max-w-xs h-auto"
+            className="w-full max-w-[230px] sm:max-w-xs h-auto"
           />
           <p className="text-muted-foreground text-sm mt-3 text-center">
             Gestion des clients & plantations
           </p>
         </div>
 
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm rounded-3xl border bg-card/95 p-5 shadow-lg sm:p-7 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
           <div className="mb-8 text-center lg:text-left">
             <h2 className="text-2xl font-bold text-foreground">Connexion</h2>
             <p className="text-muted-foreground mt-1 text-sm">

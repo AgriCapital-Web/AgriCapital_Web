@@ -331,3 +331,18 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-medium);
   }
 }
+
+
+/* Responsive personnel-card preview: keeps the physical 54×85.6 ratio while fitting any viewport. */
+.id-card-preview {
+  flex: 0 0 auto;
+  width: 540px;
+  max-width: 540px;
+  zoom: clamp(0.55, calc((100vw - 32px) / 540px), 1);
+}
+@media (max-width: 767px) {
+  .id-card-preview { margin-bottom: calc(-856px * (1 - clamp(0.55, calc((100vw - 32px) / 540px), 1))); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse { animation: none !important; }
+}

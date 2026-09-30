@@ -453,14 +453,14 @@ const GestionCartes = () => {
                 <TabsTrigger value="both">Recto / Verso</TabsTrigger>
               </TabsList>
               <TabsContent value="recto" className="flex justify-center overflow-x-auto py-4">
-                <CarteRecto ref={rectoRef} carte={dataSelection} />
+                <div className="id-card-preview"><CarteRecto ref={rectoRef} carte={dataSelection} /></div>
               </TabsContent>
               <TabsContent value="verso" className="flex justify-center overflow-x-auto py-4">
-                <CarteVerso ref={versoRef} carte={dataSelection} />
+                <div className="id-card-preview"><CarteVerso ref={versoRef} carte={dataSelection} /></div>
               </TabsContent>
-              <TabsContent value="both" className="flex flex-wrap justify-center gap-4 py-4">
-                <CarteRecto ref={rectoRef} carte={dataSelection} />
-                <CarteVerso ref={versoRef} carte={dataSelection} />
+              <TabsContent value="both" className="flex flex-wrap justify-center gap-4 overflow-x-auto py-4">
+                <div className="id-card-preview"><CarteRecto ref={rectoRef} carte={dataSelection} /></div>
+                <div className="id-card-preview"><CarteVerso ref={versoRef} carte={dataSelection} /></div>
               </TabsContent>
             </Tabs>
             </>

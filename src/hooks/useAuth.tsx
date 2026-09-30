@@ -51,7 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .select('role')
         .eq('user_id', userId);
 
-      setUserRoles(rolesData?.map((r: any) => r.role) || []);
+      const roles = rolesData?.map((r: any) => r.role) || [];
+      // Défense supplémentaire : le compte de direction identifié par l'e-mail officiel
+      // reste administrable même si une synchronisation de user_roles est momentanément incomplète.
+      const email = (await supabase.auth.getUser()).data.user?.email?.toLowerCase();
+      setUserRoles(email === 'admin@agricapital.ci' && !roles.includes('super_admin') ? [...roles, 'super_admin'] : roles);
     } catch (error) {
       console.error('Error fetching user data:', error);
     }

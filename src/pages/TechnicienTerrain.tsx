@@ -172,11 +172,11 @@ const TechnicienTerrain=()=>{
 
   if(!allowed)return <ProtectedRoute><MainLayout><Card><CardHeader><CardTitle>Accès technicien</CardTitle><CardDescription>Cette interface est réservée aux accès techniques autorisés.</CardDescription></CardHeader></Card></MainLayout></ProtectedRoute>;
 
-  return <ProtectedRoute><MainLayout><div className="space-y-6">
+  return <ProtectedRoute><MainLayout><div className="min-w-0 w-full max-w-full space-y-6 overflow-hidden">
     <div><h1 className="text-3xl font-bold">Technique — suivi des plantations</h1><p className="text-muted-foreground">Visites, interventions, rapports et médias des plantations.</p></div>
 
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList><TabsTrigger value="demandes">Demandes à traiter {tickets.length>0&&<Badge className="ml-2">{tickets.length}</Badge>}</TabsTrigger><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 w-full">
+      <div className="w-full min-w-0 overflow-x-auto pb-1"><TabsList className="inline-flex min-w-max whitespace-nowrap"><TabsTrigger value="demandes">Demandes à traiter {tickets.length>0&&<Badge className="ml-2">{tickets.length}</Badge>}</TabsTrigger><TabsTrigger value="rapport">Rapport de visite</TabsTrigger><TabsTrigger value="intervention">Intervention</TabsTrigger><TabsTrigger value="historique">Historique</TabsTrigger></TabsList></div>
 
       <TabsContent value="demandes" className="space-y-4">
         <Card><CardHeader><CardTitle>Demandes clients à traiter</CardTitle><CardDescription>Les demandes qui vous sont affectées apparaissent ici. Ouvrez une demande pour préparer directement votre rapport.</CardDescription></CardHeader><CardContent className="space-y-3">
