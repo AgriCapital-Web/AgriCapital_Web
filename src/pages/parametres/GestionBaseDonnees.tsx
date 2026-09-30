@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +13,6 @@ import {
   Database, 
 
   Download, 
-  Upload, 
   Cloud, 
   Clock, 
   HardDrive, 
@@ -22,7 +20,6 @@ import {
   Shield,
   RefreshCw,
   CheckCircle,
-  AlertTriangle
 } from "lucide-react";
 
 // Catalogue synchronisé avec le schéma Supabase du projet.
@@ -114,9 +111,7 @@ const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","por
   const [exporting, setExporting] = useState(false);
   const [lastBackup, setLastBackup] = useState<string | null>(() => localStorage.getItem("agricapital-auto-backup-last"));
   const [autoBackupEnabled, setAutoBackupEnabled] = useState(() => localStorage.getItem("agricapital-auto-backup-enabled") !== "false");
-  const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","portail_messages","documents_acquisition","interventions_techniques","profiles","user_roles","offres","promotions","configurations_systeme"];
-
-  const createLocalAutoBackup = async () => {
+  const createLocalAutoBackup = useCallback(async () => {
     const snapshot: Record<string, unknown[]> = {};
     for (const table of AUTO_BACKUP_TABLES) {
       const { data, error } = await (supabase as any).from(table).select("*");
@@ -405,7 +400,7 @@ const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","por
                   <div>
                     <p className="font-medium">Sauvegarde automatique</p>
                     <p className="text-sm text-muted-foreground">
-                      Fonction non connectée
+                      {autoBackupEnabled ? "Activée sur cet appareil" : "Désactivée"}
                     </p>
                   </div>
                 </div>
@@ -413,13 +408,13 @@ const AUTO_BACKUP_TABLES = ["clients","plantations","paiements","parcelles","por
               </div>
 
 
-              <div className="p-4 border rounded-lg">
+              <Button type="button" variant="outline" onClick={() => void createLocalAutoBackup()} disabled={!autoBackupEnabled} className="w-full sm:w-auto">\n                <HardDrive className="h-4 w-4 mr-2" />\n                Créer une copie maintenant\n              </Button>\n\n              <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="h-5 w-5 text-muted-foreground" />
                   <p className="font-medium">Historique des sauvegardes</p>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Aucune sauvegarde automatique : utilisez l’export manuel pour créer une copie vérifiable.
+                  {lastBackup ? `Dernière copie locale : ${new Date(lastBackup).toLocaleString("fr-FR")}` : "Aucune copie locale créée pour le moment."}
                 </p>
               </div>
             </CardContent>
