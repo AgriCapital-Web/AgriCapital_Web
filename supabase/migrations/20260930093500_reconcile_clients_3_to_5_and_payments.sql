@@ -71,9 +71,15 @@ set statut='planifie',
 where client_id=(select id from public.clients where id_unique='AGC-000004')
   and type_paiement='REDEVANCE';
 
-delete from public.paiements
-where client_id=(select id from public.clients where id_unique='AGC-000005')
-  and type_paiement='REDEVANCE';
+update public.paiements
+set statut='annule',
+    date_echeance=null,
+    montant_paye=0,
+    notes='Échéancier suspendu jusqu’à la validation de la mise en terre. Les mensualités démarreront 3 mois après la mise en terre.',
+    updated_at=now()
+where client_id=(select id from public.clients where id_unique='AGC-000003')
+  and type_paiement='REDEVANCE'
+  and statut<>'valide';
 
 update public.clients
 set mensualite_montant=0,
