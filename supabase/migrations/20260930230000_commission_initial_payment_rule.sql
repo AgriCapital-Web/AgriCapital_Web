@@ -37,7 +37,7 @@ begin
   end if;
 
   select
-    v_client.id,
+    c.id,
     c.created_by,
     c.total_hectares,
     c.formule_code,
@@ -71,7 +71,7 @@ begin
   if v_commission_id is not null then
     update public.commissions
     set profile_id = coalesce(profile_id,v_profile_id),
-        client_id = c.id,
+        client_id = v_client.id,
         montant_base = coalesce(montant_base,v_base),
         montant_commission = greatest(coalesce(montant_commission,0),v_montant),
         statut = 'validee',
