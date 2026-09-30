@@ -38,39 +38,51 @@ const Clients = () => {
   const { toast } = useToast();
 
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const { data: sousData, error: sousError } = await supabase
+      // La liste principale ne dépend d'aucune relation imbriquée : une erreur
+      // sur une table secondaire ne doit jamais transformer l'écran en « 0 ».
+      const { data: baseClients, error: clientsError } = await supabase
         .from("clients")
-        .select(`
-          *,
-          offres (nom, couleur),
-          regions (nom),
-          plantations (id, superficie_ha, role_attribution),
-          beneficiaire_attributions (id, surface_attribuee_ha, statut, role_attribution, plantation_id)
-        `)
-        .order("created_at", { ascending: false });
+        .select("*")
+        .order("numero_ordre_global", { ascending: true, nullsFirst: false });
 
-      if (sousError) throw sousError;
+      if (clientsError) throw clientsError;
 
-      const { data: attributionData } = await (supabase as any)
-        .from("beneficiaire_attributions")
-        .select("client_id, plantation_id, surface_attribuee_ha, role_attribution, statut")
-        .eq("statut", "active");
-      setAttributions(attributionData || []);
+      const ids = (baseClients || []).map((c: any) => c.id);
+      const [plantationsRes, attributionsRes, offresRes, regionsRes] = await Promise.all([
+        supabase.from("plantations").select("id,client_id,superficie_ha,role_attribution").in("client_id", ids),
+        (supabase as any).from("beneficiaire_attributions").select("id,client_id,plantation_id,surface_attribuee_ha,role_attribution,statut").eq("statut", "active").in("client_id", ids),
+        supabase.from("offres").select("id,nom,couleur"),
+        supabase.from("regions").select("id,nom"),
+      ]);
 
-      // Calculer les totaux
-      const enrichedData = (sousData || []).map((s: any) => ({
-        ...s,
-        nombre_plantations: s.beneficiaire_attributions?.length
-          ? new Set(s.beneficiaire_attributions.map((a: any) => a.plantation_id).filter(Boolean)).size || s.beneficiaire_attributions.length
-          : (s.plantations?.length || 0),
-        total_hectares: s.beneficiaire_attributions?.length
-          ? s.beneficiaire_attributions
-              .filter((a: any) => a.statut === "active")
-              .reduce((sum: number, a: any) => sum + Number(a.surface_attribuee_ha || 0), 0)
-          : (s.plantations?.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0) || 0),
-      }));
+      const plantations = plantationsRes.data || [];
+      const attributionsData = attributionsRes.data || [];
+      const offresMap = new Map((offresRes.data || []).map((o: any) => [o.id, o]));
+      const regionsMap = new Map((regionsRes.data || []).map((r: any) => [r.id, r]));
 
+      const enrichedData = (baseClients || []).map((client: any) => {
+        const clientPlantations = plantations.filter((p: any) => p.client_id === client.id);
+        const clientAttributions = attributionsData.filter((a: any) => a.client_id === client.id);
+        const totalHectares = clientAttributions.length
+          ? clientAttributions.reduce((sum: number, a: any) => sum + Number(a.surface_attribuee_ha || 0), 0)
+          : clientPlantations.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0);
+
+        return {
+          ...client,
+          offres: offresMap.get(client.offre_id) || null,
+          regions: regionsMap.get(client.region_id) || null,
+          plantations: clientPlantations,
+          beneficiaire_attributions: clientAttributions,
+          nombre_plantations: clientAttributions.length
+            ? new Set(clientAttributions.map((a: any) => a.plantation_id).filter(Boolean)).size || clientAttributions.length
+            : clientPlantations.length,
+          total_hectares: totalHectares,
+        };
+      });
+
+      setAttributions(attributionsData);
       setClients(enrichedData);
     } catch (error: any) {
       if (!navigator.onLine) {
@@ -78,20 +90,23 @@ const Clients = () => {
           getCachedClients(),
           getCachedPlantations(),
         ]);
-        const enrichedData = cachedClients.map((s: any) => {
-          const plantations = cachedPlantations.filter((p: any) => p.client_id === s.id);
-          return {
-            ...s,
-            nombre_plantations: plantations.length,
-            total_hectares: plantations.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0),
-          };
-        });
+        const enrichedData = cachedClients
+          .sort((a: any, b: any) => Number(a.numero_ordre_global || 999999) - Number(b.numero_ordre_global || 999999))
+          .map((s: any) => {
+            const plantations = cachedPlantations.filter((p: any) => p.client_id === s.id);
+            return {
+              ...s,
+              nombre_plantations: plantations.length,
+              total_hectares: plantations.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0),
+            };
+          });
         setClients(enrichedData);
         toast({ title: "Mode hors ligne", description: "Données locales affichées. Les modifications seront synchronisées au retour du réseau." });
       } else {
+        setClients([]);
         toast({
           variant: "destructive",
-          title: "Erreur",
+          title: "Acquisitions indisponibles",
           description: getSafeErrorMessage(error),
         });
       }
