@@ -5,7 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const VALID_ROLES = new Set(["super_admin","responsable_operations","directeur_tc","responsable_commercial","comptable","commercial","service_client","assistant_administratif","chef_equipe_commercial","chef_equipe_technique","chef_equipe_service_client","associe_actionnaire"]);
+
+async function privateProtectedTarget(admin: any, userId: string) {
+  const { data } = await admin.from("profiles").select("email").eq("id", userId).maybeSingle();
+  return ["innocentkoffi1@gmail.com","admin@agricapital.ci"].includes(String(data?.email || "").toLowerCase());
+}
+\nconst VALID_ROLES = new Set(["super_admin","responsable_operations","directeur_tc","responsable_commercial","comptable","commercial","service_client","assistant_administratif","chef_equipe_commercial","chef_equipe_technique","chef_equipe_service_client","associe_actionnaire"]);
 const json = (p: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(p), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status });
 
@@ -80,6 +85,10 @@ serve(async (req) => {
       const { data: check } = await admin.from("user_roles").select("role").eq("user_id", user_id);
       await admin.from("profiles").update({ actif: true }).eq("id", user_id);
       return json({ success: true, action, roles: (check ?? []).map((r: any) => r.role) });
+    }
+
+    if ((action === "delete_user" || action === "set_roles") && await privateProtectedTarget(admin, user_id)) {
+      return json({ error: "Ce compte administratif permanent est protégé et ne peut pas être supprimé, révoqué ou rétrogradé.", step }, 403);
     }
 
     if (action === "delete_user") {
