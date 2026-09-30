@@ -82,10 +82,7 @@ begin
     return;
   end if;
 
-  v_base := coalesce(p.montant_paye,p.montant,0) + greatest(
-    0,
-    coalesce(c.montant_total_contrat,0) - coalesce(p.montant_paye,p.montant,0)
-  );
+  v_base := coalesce(c.montant_total_contrat,p.montant_theorique,p.montant_paye,p.montant,0);
 
   v_formule := upper(coalesce(c.formule_code,''));
 
