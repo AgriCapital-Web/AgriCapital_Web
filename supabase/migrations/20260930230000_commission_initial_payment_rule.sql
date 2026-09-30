@@ -168,6 +168,8 @@ begin
 end;
 $function$;
 
+drop trigger if exists set_updated_at_commissions on public.commissions;
+
 -- Recalcule immédiatement les commissions historiques des paiements initiaux
 -- déjà validés mais sans commission, et fait passer les commissions existantes
 -- de "calculée" à "validée".
