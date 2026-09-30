@@ -1,7 +1,7 @@
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Shield, Settings2, List, Bell, Globe, Package, UsersRound, UserPlus, Database, HardDrive, MapPinned, History, IdCard, Map } from "lucide-react";
+import { Users, Shield, Settings2, List, Bell, Globe, Package, UsersRound, UserPlus, Database, HardDrive, MapPinned, History, IdCard, Map, KeyRound } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PERMISSIONS, hasPermission } from "@/lib/roles";
 import Utilisateurs from "@/pages/Utilisateurs";
@@ -21,6 +21,7 @@ import GestionZones from "@/pages/parametres/GestionZones";
 import JournalAudit from "@/pages/parametres/JournalAudit";
 import GestionCartes from "@/pages/parametres/GestionCartes";
 import GestionRemuneration from "@/pages/parametres/GestionRemuneration";
+import ReinitialiserCodesAcces from "@/pages/parametres/ReinitialiserCodesAcces";
 import { useSearchParams } from "react-router-dom";
 
 interface TabConfig {
@@ -48,6 +49,7 @@ const Parametres = () => {
     { value: 'zones', label: 'Zones', icon: MapPinned, permission: PERMISSIONS.MANAGE_TEAMS, component: GestionZones },
     { value: 'offres', label: 'Offres', icon: Package, permission: PERMISSIONS.MANAGE_OFFERS, component: Offres },
     { value: 'remuneration', label: 'Rémunération', mobileLabel: 'Rémun.', icon: Settings2, permission: PERMISSIONS.MANAGE_REMUNERATION, component: GestionRemuneration },
+    { value: 'codes-acces', label: 'Codes d’accès', mobileLabel: 'Codes', icon: KeyRound, permission: PERMISSIONS.MANAGE_SYSTEM, component: ReinitialiserCodesAcces },
     { value: 'statuts', label: 'Statuts', icon: List, permission: PERMISSIONS.MANAGE_SYSTEM, component: GestionStatuts },
     { value: 'champs', label: 'Champs', icon: Settings2, permission: PERMISSIONS.MANAGE_SYSTEM, component: ChampsPersonnalises },
     { value: 'notifications', label: 'Notifs', icon: Bell, permission: PERMISSIONS.MANAGE_SYSTEM, component: GestionNotifications },
