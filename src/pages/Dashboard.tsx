@@ -137,12 +137,12 @@ const Dashboard = () => {
 
       const { data: paiements } = await (supabase as any)
         .from("paiements")
-        .select("montant, statut, created_at, plantation_id, plantations(clients(nom_complet))");
+        .select("id, client_id, montant, montant_paye, statut, created_at, date_paiement, date_echeance, reference, mode_paiement, type_paiement, plantation_id, clients(nom_complet, id_unique)");
       
       const totalPaiements = paiements?.filter((p) => p.statut === "valide")
         .reduce((sum, p) => sum + (p.montant || 0), 0) || 0;
       
-      const paiementsEnAttenteCount = paiements?.filter((p) => p.statut === "en_attente").length || 0;
+      const paiementsEnAttente = paiements?.filter((p) => p.statut === "en_attente" && p.date_echeance && new Date(p.date_echeance).getTime() <= Date.now()) || [];\n      const paiementsEnAttenteCount = paiementsEnAttente.length;
       const montantEnAttente = paiements?.filter((p) => p.statut === "en_attente")
         .reduce((sum, p) => sum + (p.montant || 0), 0) || 0;
 
@@ -156,10 +156,16 @@ const Dashboard = () => {
       setRecentClients(clients || []);
 
       // Paiements récents
-      const paiementsRecents = paiements?.slice(0, 5).map((p: any) => ({
-        ...p,
-        client_nom: p.plantations?.clients?.nom_complet || "N/A"
-      })) || [];
+      const paiementsRecents = (paiements || [])
+        .filter((p: any) => p.statut === "valide")
+        .sort((a: any, b: any) => new Date(b.date_paiement || b.created_at).getTime() - new Date(a.date_paiement || a.created_at).getTime())
+        .slice(0, 5)
+        .map((p: any) => ({
+          ...p,
+          client_nom: p.clients?.nom_complet || "—",
+          client_id_unique: p.clients?.id_unique || "—",
+          montant_affiche: Number(p.montant_paye || p.montant || 0)
+        }));
       setRecentPaiements(paiementsRecents);
 
       // Stats par département
@@ -716,7 +722,7 @@ const Dashboard = () => {
                     <TableBody>
                       {recentPaiements.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground">
+                          <TableCell colSpan={4} className="text-center text-muted-foreground">
                             Aucun paiement
                           </TableCell>
                         </TableRow>
