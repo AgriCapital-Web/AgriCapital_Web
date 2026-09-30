@@ -730,7 +730,7 @@ const Dashboard = () => {
                       <TableRow>
                         <TableHead>Client</TableHead>
                         <TableHead>Montant</TableHead>
-                        <TableHead>Statut</TableHead>
+                        <TableHead>Mode</TableHead>\n                        <TableHead>Statut</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -744,7 +744,8 @@ const Dashboard = () => {
                         recentPaiements.map((p, i) => (
                           <TableRow key={i}>
                             <TableCell className="font-medium">{p.client_nom}</TableCell>
-                            <TableCell>{formatMontant(p.montant_paye || 0)}</TableCell>
+                            <TableCell>{formatMontant(p.montant_paye || p.montant || 0)}</TableCell>
+                            <TableCell className="text-xs">{p.mode_paiement || "—"}</TableCell>
                             <TableCell>
                               <Badge 
                                 variant={
