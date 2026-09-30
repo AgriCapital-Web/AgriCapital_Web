@@ -93,7 +93,7 @@ export default function Portefeuilles(){
     if(!canManage)return;
     setSaving(true);
     try{
-      const eligible=commissions.filter((c:any)=>c.statut==="calculee"&&!commissionIdsAlreadyLinked.has(c.id)&&c.periode>=periodStart&&c.periode<=periodEnd&&visibleProfiles.some((p:any)=>p.id===c.profile_id));
+      const eligible=commissions.filter((c:any)=>(c.statut==="calculee"||c.statut==="validee")&&!commissionIdsAlreadyLinked.has(c.id)&&c.periode>=periodStart&&c.periode<=periodEnd&&visibleProfiles.some((p:any)=>p.id===c.profile_id));
       const groups=new Map<string,any[]>();
       eligible.forEach((c:any)=>(groups.get(c.profile_id)||groups.set(c.profile_id,[]).get(c.profile_id)!).push(c));
       for(const [profileId,items] of groups){
