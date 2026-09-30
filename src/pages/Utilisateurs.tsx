@@ -165,8 +165,11 @@ const Utilisateurs = () => {
     }
   };
 
+  const isImmutableAdmin = (user: any) =>
+    ['innocentkoffi1@gmail.com', 'admin@agricapital.ci'].includes(String(user?.email || '').toLowerCase());
+
   const deleteUser = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget) return;\n    if (isImmutableAdmin(deleteTarget)) {\n      toast({ variant: "destructive", title: "Compte protégé", description: "Ce compte administratif permanent ne peut pas être supprimé." });\n      return;\n    }
     setBusy(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-manage-user", { body: { action: "delete_user", user_id: deleteTarget.user_id || deleteTarget.id } });
