@@ -165,8 +165,11 @@ const Utilisateurs = () => {
     }
   };
 
+  const isImmutableAdmin = (user: any) =>
+    ['innocentkoffi1@gmail.com', 'admin@agricapital.ci'].includes(String(user?.email || '').toLowerCase());
+
   const deleteUser = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget) return;\n    if (isImmutableAdmin(deleteTarget)) {\n      toast({ variant: "destructive", title: "Compte protégé", description: "Ce compte administratif permanent ne peut pas être supprimé." });\n      return;\n    }
     setBusy(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-manage-user", { body: { action: "delete_user", user_id: deleteTarget.user_id || deleteTarget.id } });
@@ -284,7 +287,7 @@ const Utilisateurs = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Modifier
                         </DropdownMenuItem>
-                        {isSuperAdmin && (
+                        {isSuperAdmin && !['8d616fdc-6f25-43e9-baaa-51ead746222e','bd9579fd-1d07-4431-9cc4-b57dfeeab593'].includes(user.user_id || user.id) && (
                           <>
                             <DropdownMenuItem onClick={() => openAdminAction(user, "roles")}>
                               <Shield className="h-4 w-4 mr-2" />
@@ -303,22 +306,24 @@ const Utilisateurs = () => {
                             </DropdownMenuItem>
                           </>
                         )}
-                        {user.actif ? (
-                          <DropdownMenuItem 
-                            onClick={() => handleStatusChange(user.id, false)}
-                            className="text-orange-600"
-                          >
-                            <UserX className="h-4 w-4 mr-2" />
-                            Suspendre
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem 
-                            onClick={() => handleStatusChange(user.id, true)}
-                            className="text-green-600"
-                          >
-                            <UserCheck className="h-4 w-4 mr-2" />
-                            Activer
-                          </DropdownMenuItem>
+                        {!['8d616fdc-6f25-43e9-baaa-51ead746222e','bd9579fd-1d07-4431-9cc4-b57dfeeab593'].includes(user.user_id || user.id) && (
+                          user.actif ? (
+                            <DropdownMenuItem 
+                              onClick={() => handleStatusChange(user.id, false)}
+                              className="text-orange-600"
+                            >
+                              <UserX className="h-4 w-4 mr-2" />
+                              Suspendre
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              onClick={() => handleStatusChange(user.id, true)}
+                              className="text-green-600"
+                            >
+                              <UserCheck className="h-4 w-4 mr-2" />
+                              Activer
+                            </DropdownMenuItem>
+                          )
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
