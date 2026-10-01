@@ -184,7 +184,7 @@ const NouvelleSouscription = () => {
 
   // Étapes de 1 à 7 (numérotation affichée)
   const etapes = [
-    { num: 1, titre: "Souscripteur", component: Etape1Souscripteur },
+    { num: 1, titre: "Client", component: Etape1Souscripteur },
     { num: 2, titre: "Co-titulaire", component: Etape2Cotitulaire },
     { num: 3, titre: "Offre", component: Etape0Offre },
     { num: 4, titre: "Parcelle", component: Etape3Parcelle },
