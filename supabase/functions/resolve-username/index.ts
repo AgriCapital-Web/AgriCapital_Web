@@ -1,6 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
-import { adminClient, corsHeaders, json } from "../_shared/auth.ts";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-internal-secret, x-cron-secret, x-api-key",
+};
+
+export const adminClient = () =>
+  createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  );
+
+export const json = (p: Record<string, unknown>, status = 200) =>
+  new Response(JSON.stringify(p), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status,
+  });
+
 
 /**
  * Résolution identifiant → email.
