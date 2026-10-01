@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,9 +15,9 @@ import { X } from "lucide-react";
 
 const userFormSchema = z.object({
   username: z.string()
-    .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères")
-    .max(50, "Le nom d'utilisateur ne peut pas dépasser 50 caractères")
-    .regex(/^[a-zA-Z0-9_]+$/, "Le nom d'utilisateur ne peut contenir que des lettres, chiffres et underscore"),
+    .trim()
+    .min(2, "Le nom d'utilisateur est obligatoire")
+    .max(64, "Le nom d'utilisateur ne peut pas dépasser 64 caractères"),
   email: z.string()
     .email("Email invalide")
     .max(255, "L'email ne peut pas dépasser 255 caractères"),
@@ -81,6 +82,11 @@ const isRelationRh = (value: string): value is "Employé" | "Prestataire" =>
   value === "Employé" || value === "Prestataire";
 
 const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFormProps) => {
+  const localFromPhone = (value?: string, callingCode = "+225") => {
+    const raw = String(value || "").replace(/\D/g, "");
+    const cc = callingCode.replace(/\D/g, "");
+    return raw.startsWith(cc) && raw.length > cc.length ? raw.slice(cc.length) : raw.slice(-15);
+  };
   const defaultValues: Partial<UtilisateurFormValues> = utilisateur
     ? {
         username: utilisateur.username ?? "",
@@ -271,7 +277,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
         <CardHeader>
           <CardTitle>Informations Personnelles</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Nom Complet *</Label>
             <Input {...register("nom_complet", { required: true })} />
@@ -304,13 +310,13 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
           <div className="space-y-2">
             <Label>Téléphone</Label>
-            <Input {...register("telephone")} placeholder="0XXXXXXXXX" />
+            <CountryPhoneInput label="" countryCode={watch("telephone_indicatif") || "+225"} localValue={watch("telephone_local") || ""} onChange={(v) => { setValue("telephone_indicatif", v.callingCode); setValue("telephone_local", v.localValue); setValue("telephone", v.internationalValue); }} />
             {errors.telephone?.message && <p className="text-sm text-destructive">{String(errors.telephone.message)}</p>}
           </div>
 
           <div className="space-y-2">
             <Label>WhatsApp</Label>
-            <Input {...register("whatsapp")} placeholder="0XXXXXXXXX" />
+            <CountryPhoneInput label="" countryCode={watch("whatsapp_indicatif") || "+225"} localValue={watch("whatsapp_local") || ""} onChange={(v) => { setValue("whatsapp_indicatif", v.callingCode); setValue("whatsapp_local", v.localValue); setValue("whatsapp", v.internationalValue); }} />
             {errors.whatsapp?.message && <p className="text-sm text-destructive">{String(errors.whatsapp.message)}</p>}
           </div>
 
