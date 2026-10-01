@@ -351,6 +351,7 @@ const Dashboard = () => {
   useRealtime({ table: "clients", onChange: fetchStats });
   useRealtime({ table: "plantations", onChange: fetchStats });
   useRealtime({ table: "paiements", onChange: fetchStats });
+  useRealtime({ table: "interventions_techniques", onChange: fetchStats });
 
   const progress = stats.engagedHa > 0 ? Math.min(100, Math.round((stats.plantedHa / stats.engagedHa) * 100)) : 0;
   const roleLabel = userRoles.map((r) => ROLE_SHORT_LABELS[r] || r).join(" / ");
