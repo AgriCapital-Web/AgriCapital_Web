@@ -38,7 +38,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: Users, label: "Acquisitions", path: "/acquisitions", permission: PERMISSIONS.VIEW_CLIENTS },
     { icon: MessageSquare, label: "Messagerie", path: "/messagerie", permission: PERMISSIONS.VIEW_CLIENTS },
     { icon: LandPlot, label: "Propriétaires", path: "/proprietaires-terres", permission: PERMISSIONS.VIEW_CLIENTS },
-    { icon: Layers, label: "Parcelles", path: "/parcelles", permission: PERMISSIONS.VIEW_PLANTATIONS },
     { icon: Sprout, label: "Plantations", path: "/plantations", permission: PERMISSIONS.VIEW_PLANTATIONS },
     { icon: CreditCard, label: "Paiements", path: "/paiements", permission: PERMISSIONS.VIEW_PAIEMENTS },
     { icon: Receipt, label: "Commissions", path: "/commissions", permission: PERMISSIONS.VIEW_COMMISSIONS },
@@ -50,7 +49,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: CloudUpload, label: "Synchronisation", path: "/synchronisation", permission: PERMISSIONS.VIEW_DASHBOARD },
   ];
 
-  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"dashboard.view",    "/leads":"leads.view", "/acquisitions":"clients.view", "/messagerie":"clients.view", "/proprietaires-terres":"clients.view",    "/parcelles":"plantations.view", "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => item.path === "/dashboard" ? hasPermission(userRoles, item.permission) || can("clients.view") : can(permissionCodeByPath[item.path] || "parametres.view") || hasPermission(userRoles, item.permission));
+  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"dashboard.view",    "/leads":"leads.view", "/acquisitions":"clients.view", "/messagerie":"clients.view", "/proprietaires-terres":"clients.view",    "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => item.path === "/dashboard" ? hasPermission(userRoles, item.permission) || can("clients.view") : can(permissionCodeByPath[item.path] || "parametres.view") || hasPermission(userRoles, item.permission));
   const handleLogout = async () => { await signOut(); navigate("/"); };
   const getInitials = (name: string) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AG';
 
