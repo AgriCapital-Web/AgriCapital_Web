@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 
 type Country = { code: string; name: string; callingCode: string; flag: string };
 
-const COUNTRIES: Country[] = [
+const FALLBACK_COUNTRIES: Country[] = [
   { code: "CI", name: "Côte d’Ivoire", callingCode: "+225", flag: "🇨🇮" },
   { code: "FR", name: "France", callingCode: "+33", flag: "🇫🇷" },
   { code: "US", name: "États-Unis", callingCode: "+1", flag: "🇺🇸" },
@@ -42,9 +42,41 @@ export default function CountryPhoneInput({
   disabled,
   onChange,
 }: CountryPhoneInputProps) {
+  const [countries, setCountries] = useState<Country[]>(FALLBACK_COUNTRIES);
+
+  useEffect(() => {
+    const cached = localStorage.getItem("agricapital:countries:v1");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 150) setCountries(parsed);
+      } catch {
+        // Ignore an invalid local cache and use the fallback list.
+      }
+    }
+    fetch("https://restcountries.com/v3.1/all?fields=name,cca2,idd,flags")
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((rows: any[]) => {
+        const mapped = rows
+          .map((row) => ({
+            code: row.cca2,
+            name: row.name?.common || row.cca2,
+            callingCode: row.idd?.root ? row.idd.root + (row.idd.suffixes?.[0] || "") : "",
+            flag: row.flags?.emoji || "🌐",
+          }))
+          .filter((country: Country) => country.code && country.callingCode)
+          .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+        if (mapped.length > 150) {
+          setCountries(mapped);
+          localStorage.setItem("agricapital:countries:v1", JSON.stringify(mapped));
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
   const selected = useMemo(
-    () => COUNTRIES.find((c) => c.code === countryCode || c.callingCode === countryCode) || COUNTRIES[0],
-    [countryCode],
+    () => countries.find((c) => c.code === countryCode || c.callingCode === countryCode) || countries[0],
+    [countries, countryCode],
   );
   const max = selected.callingCode === "+225" ? 10 : 15;
   const min = selected.callingCode === "+225" ? 10 : 7;
@@ -70,7 +102,7 @@ export default function CountryPhoneInput({
           onChange={(e) => emit(COUNTRIES.find((c) => c.code === e.target.value) || COUNTRIES[0], localValue)}
           className="h-10 w-[92px] min-[390px]:w-[108px] sm:w-[122px] shrink-0 rounded-md border bg-background px-2 text-sm"
         >
-          {COUNTRIES.map((country) => (
+          {countries.map((country) => (
             <option key={country.code} value={country.code}>
               {country.flag} {country.callingCode}
             </option>
