@@ -111,8 +111,8 @@ const Dashboard = () => {
         portfoliosRes,
         regionsRes
       ] = await Promise.all([
-        canClients || globalAdmin
-          ? (supabase as any).from("clients").select("id,id_unique,nom_complet,created_at,updated_at,statut_global,nombre_plantations,total_hectares,formule_nom,formule_code,phase_actuelle,compte_actif,numero_ordre_global")
+        canClients || canTechnical || canPlantations || globalAdmin
+          ? (supabase as any).from("clients").select("id,id_unique,nom_complet,created_at,updated_at,statut_global,nombre_plantations,total_hectares,formule_nom,formule_code,phase_actuelle,compte_actif,numero_ordre_global,paiement_initial_paye_at,pi_paye_at,type_client")
           : Promise.resolve({ data: [], count: 0 }),
         canPlantations || globalAdmin
           ? (supabase as any).from("plantations").select("id,id_unique,client_id,superficie_ha,superficie_activee,surface_reellement_plantee,statut_global,created_at,region_id,departement_id,village_nom,village,alerte_non_paiement,alerte_visite_retard")
@@ -139,7 +139,7 @@ const Dashboard = () => {
           ? (supabase as any).from("beneficiaire_attributions").select("id,client_id,statut,surface_attribuee_ha")
           : Promise.resolve({ data: [] }),
         canTechnical || canPlantations || globalAdmin
-          ? (supabase as any).from("interventions_techniques").select("id,type_intervention,statut,date_intervention,plantation_id")
+          ? (supabase as any).from("interventions_techniques").select("id,type_intervention,statut,date_intervention,plantation_id,client_id")
           : Promise.resolve({ data: [] }),
         canCommissions || canFinance || globalAdmin
           ? (supabase as any).from("commissions").select("montant_commission,statut")
@@ -262,6 +262,19 @@ const Dashboard = () => {
       leads.forEach((l: any) => funnelMap.set(l.statut || "non renseigné", (funnelMap.get(l.statut || "non renseigné") || 0) + 1));
       setLeadFunnel([...funnelMap.entries()].map(([name, value]) => ({ name, value })));
 
+      // Le pilotage technique est un parcours CLIENT, pas un simple comptage de lignes d'intervention.
+      // Dès que le paiement initial est validé, le dossier entre dans le périmètre technique.
+      // Les bénéficiaires particuliers actifs sont également suivis techniquement sans PI.
+      const technicalClients = clients.filter((c: any) =>
+        c.compte_actif === true &&
+        !["archive", "supprime", "supprimé"].includes(String(c.statut_global || "").toLowerCase()) &&
+        (
+          Boolean(c.paiement_initial_paye_at || c.pi_paye_at) ||
+          String(c.type_client || "").toLowerCase() === "beneficiaire_particulier"
+        )
+      );
+      const technicalClientIds = new Set(technicalClients.map((c: any) => c.id).filter(Boolean));
+
       const cycleTypes = [
         ["validation_parcelle", "Parcelles validées"],
         ["defrichage", "Défrichage"],
@@ -270,8 +283,11 @@ const Dashboard = () => {
         ["mise_en_terre", "Mise en terre"],
       ];
       setCycle(cycleTypes.map(([code, label]) => {
-        const rows = interventions.filter((i: any) => String(i.type_intervention || "").toLowerCase() === code);
-        const done = rows.filter((i: any) => {
+        const rows = interventions.filter((i: any) =>
+          technicalClientIds.has(i.client_id) &&
+          String(i.type_intervention || "").toLowerCase() === code
+        );
+        const doneClientIds = new Set(rows.filter((i: any) => {
           const statut = String(i.statut || "")
             .toLowerCase()
             .normalize("NFD")
@@ -288,8 +304,10 @@ const Dashboard = () => {
             "acheve",
             "achevee",
           ].includes(statut);
-        }).length;
-        return { label, total: rows.length, done, pct: rows.length ? Math.round((done / rows.length) * 100) : 0 };
+        }).map((i: any) => i.client_id).filter(Boolean));
+        const total = technicalClients.length;
+        const done = doneClientIds.size;
+        return { label, total, done, pct: total ? Math.round((done / total) * 100) : 0 };
       }));
 
       const regionMap = new Map<string, string>(regions.map((r: any) => [String(r.id), String(r.nom)]));
