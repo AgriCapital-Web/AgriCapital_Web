@@ -97,10 +97,10 @@ const PlantationDetail = () => {
   );
 
   if (loading) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}><MainLayout><div className="py-20 text-center">Chargement…</div></MainLayout></ProtectedRoute>;
-  if (!plantation) return <ProtectedRoute><MainLayout><Card><CardContent className="py-10 text-center">Plantation introuvable.</CardContent></Card></MainLayout></ProtectedRoute>;
+  if (!plantation) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}><MainLayout><Card><CardContent className="py-10 text-center">Plantation introuvable.</CardContent></Card></MainLayout></ProtectedRoute>;
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}>
       <MainLayout>
         <div className="min-w-0 space-y-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
