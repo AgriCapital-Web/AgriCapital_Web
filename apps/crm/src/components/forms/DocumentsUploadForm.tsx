@@ -115,10 +115,10 @@ const DocumentsUploadForm = ({ onSuccess }: DocumentsUploadFormProps) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <Label>Souscripteur *</Label>
+        <Label>Client *</Label>
         <Select onValueChange={(value) => setValue("souscripteur_id", value)}>
           <SelectTrigger>
-            <SelectValue placeholder="Sélectionner un souscripteur" />
+            <SelectValue placeholder="Sélectionner un client" />
           </SelectTrigger>
           <SelectContent>
             {souscripteurs.map((s) => (
