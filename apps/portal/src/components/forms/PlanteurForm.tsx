@@ -303,7 +303,7 @@ const PlanteurForm = ({ planteur, onSuccess, onCancel }: PlanteurFormProps) => {
           Annuler
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? "Enregistrement..." : planteur ? "Modifier le souscripteur" : "Enregistrer le souscripteur"}
+          {loading ? "Enregistrement..." : planteur ? "Modifier le client" : "Enregistrer le client"}
         </Button>
       </div>
     </form>
