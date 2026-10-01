@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/roles";
 import { ActivityLog } from "@/components/common/ActivityLog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -100,6 +101,7 @@ const ClientDetail = () => {
           .from("paiements")
           .select("*")
           .in("plantation_id", plantationIds)
+          .neq("statut", "planifie")
           .order("created_at", { ascending: false });
 
         setPaiements(paiementsData || []);
@@ -164,7 +166,7 @@ const ClientDetail = () => {
 
   if (loading) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
         <MainLayout>
           <div className="flex items-center justify-center h-96">
             <p>Chargement...</p>
@@ -176,7 +178,7 @@ const ClientDetail = () => {
 
   if (!client) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
         <MainLayout>
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
             <p>Client non trouvé</p>
@@ -190,7 +192,7 @@ const ClientDetail = () => {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
       <MainLayout>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -275,31 +277,11 @@ const ClientDetail = () => {
               </CardHeader>
               <CardContent>
                 <Badge className={getStatutBadge(client.statut_global)}>
-                  {client.statut_global}
+                  {client.statut_global === "active" ? "Actif" : (client.statut_global || "—").replaceAll("_", " ")}
                 </Badge>
               </CardContent>
             </Card>
           </div>
-
-          {client.paiement_personnalise?.actif && (
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  Conditions de règlement personnalisées
-                  <Badge variant="outline" className="text-primary border-primary/30">Exception individuelle</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">{client.paiement_personnalise.motif}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="rounded-xl border bg-background p-3"><p className="text-xs text-muted-foreground">Solde du PI</p><p className="font-bold text-lg">{formatMontant(Number(client.paiement_personnalise.paiement_initial?.solde || 0))}</p></div>
-                  <div className="rounded-xl border bg-background p-3"><p className="text-xs text-muted-foreground">Mensualité</p><p className="font-bold">{client.paiement_personnalise.mensualite?.active ? formatMontant(Number(client.paiement_personnalise.mensualite.montant || 0)) + ' × ' + client.paiement_personnalise.mensualite.nombre : 'Aucune'}</p></div>
-                  <div className="rounded-xl border bg-background p-3"><p className="text-xs text-muted-foreground">Début échéancier</p><p className="font-bold">{client.paiement_personnalise.mensualite?.date_debut ? new Date(client.paiement_personnalise.mensualite.date_debut).toLocaleDateString('fr-FR') : '—'}</p></div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           <Tabs defaultValue="plantations" className="space-y-4">
             <TabsList>
@@ -363,7 +345,7 @@ const ClientDetail = () => {
                             <TableCell>{plantation.superficie_ha} ha</TableCell>
                             <TableCell>
                               <Badge className={getStatutBadge(plantation.statut_global)}>
-                                {plantation.statut_global}
+                                {plantation.statut_global === "active" ? "Actif" : (plantation.statut_global || plantation.statut || "—").replaceAll("_", " ")}
                               </Badge>
                             </TableCell>
                           </TableRow>
@@ -405,11 +387,11 @@ const ClientDetail = () => {
                             </TableCell>
                             <TableCell>{paiement.type_paiement}</TableCell>
                             <TableCell className="font-semibold">
-                              {formatMontant(paiement.montant_theorique)}
+                              {formatMontant(Number(paiement.montant_paye ?? paiement.montant ?? 0))}
                             </TableCell>
                             <TableCell>
                               <Badge className={getStatutBadge(paiement.statut)}>
-                                {paiement.statut}
+                                {paiement.statut === "active" ? "Actif" : (paiement.statut || "—").replaceAll("_", " ")}
                               </Badge>
                             </TableCell>
                           </TableRow>
@@ -504,7 +486,7 @@ const ClientDetail = () => {
                       <p className="font-semibold">{parcelle?.proprietaires_terres?.nom_complet || "À compléter"}</p>
                       <p className="text-sm text-muted-foreground">Statut foncier : {parcelle?.proprietaires_terres?.statut_foncier || "—"}</p>
                       <p className="text-sm text-muted-foreground">Téléphone : {parcelle?.proprietaires_terres?.telephone || "À compléter"}</p>
-                      <p className="text-sm text-muted-foreground">Documents et photo du propriétaire : à compléter depuis sa fiche.</p>
+                      
                     </CardContent>
                   </Card>
 
@@ -516,7 +498,7 @@ const ClientDetail = () => {
                       <p className="font-mono text-sm">{parcelle?.code_parc || parcelle?.id_unique || "—"}</p>
                       <p><span className="font-medium">{Number(parcelle?.surface_totale_ha || 0).toFixed(2)} ha</span> · {parcelle?.village || "—"}</p>
                       <p className="text-sm text-muted-foreground">Mode : {parcelle?.mode_surface === "actif_agricole" ? "Actif agricole" : "Foncier"}</p>
-                      <p className="text-sm text-muted-foreground">Plan, GPS et annexes foncières : à compléter ultérieurement.</p>
+                      
                     </CardContent>
                   </Card>
 

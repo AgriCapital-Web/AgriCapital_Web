@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -170,14 +171,14 @@ const RapportsFinanciers = () => {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_RAPPORTS_FINANCIERS}>
       <MainLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Rapports Financiers</h1>
+        <div className="min-w-0 space-y-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-2xl font-bold">Rapports financiers</h1>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {statsCards.map((card, index) => (
               <Card key={index}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -202,7 +203,7 @@ const RapportsFinanciers = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Région</label>
                   <Select value={filtreRegion} onValueChange={setFiltreRegion}>
@@ -249,7 +250,7 @@ const RapportsFinanciers = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Technico-commercial</label>
+                  <label className="text-sm font-medium">Commercial</label>
                   <Select value={filtreUser} onValueChange={setFiltreUser}>
                     <SelectTrigger>
                       <SelectValue placeholder="Tous les commerciaux" />
@@ -267,11 +268,11 @@ const RapportsFinanciers = () => {
           </Card>
 
           <Tabs defaultValue="liste" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="liste">Liste des Commissions</TabsTrigger>
-              <TabsTrigger value="par-commercial">Par Commercial</TabsTrigger>
-              <TabsTrigger value="par-equipe">Par Équipe</TabsTrigger>
-              <TabsTrigger value="synthese-28">Synthèse 28 ans</TabsTrigger>
+            <TabsList className="flex h-auto flex-wrap justify-start">
+              <TabsTrigger value="liste">Liste des commissions</TabsTrigger>
+              <TabsTrigger value="par-commercial">Par commercial</TabsTrigger>
+              <TabsTrigger value="par-equipe">Par équipe</TabsTrigger>
+              <TabsTrigger value="synthese">Synthèse clients</TabsTrigger>
             </TabsList>
 
             <TabsContent value="liste" className="space-y-4">
@@ -280,7 +281,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Toutes les Commissions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[900px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
@@ -319,7 +320,7 @@ const RapportsFinanciers = () => {
                         ))
                       )}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -330,7 +331,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Commissions par Commercial</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[620px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nom</TableHead>
@@ -349,7 +350,7 @@ const RapportsFinanciers = () => {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -360,7 +361,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Commissions par Équipe</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[560px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Équipe</TableHead>
@@ -377,18 +378,18 @@ const RapportsFinanciers = () => {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="synthese-28" className="space-y-4">
+            <TabsContent value="synthese" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Synthèse contrats — Cycle 28 ans</CardTitle>
+                  <CardTitle>Synthèse clients</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[760px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Client</TableHead>
@@ -398,13 +399,11 @@ const RapportsFinanciers = () => {
                         <TableHead>Payé</TableHead>
                         <TableHead>Restant dû</TableHead>
                         <TableHead>Avancement</TableHead>
-                        <TableHead>Jours restants</TableHead>
-                        <TableHead>Retard</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {synthese.length === 0 ? (
-                        <TableRow><TableCell colSpan={9} className="text-center py-8">Aucune donnée</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center py-8">Aucune donnée</TableCell></TableRow>
                       ) : synthese.map((r: any) => (
                         <TableRow key={r.id}>
                           <TableCell>
@@ -417,20 +416,14 @@ const RapportsFinanciers = () => {
                           <TableCell>{Number(r.total_hectares || 0).toFixed(2)}</TableCell>
                           <TableCell>{formatMontant(Number(r.montant_total_contrat || 0))}</TableCell>
                           <TableCell className="text-green-600 font-medium">{formatMontant(Number(r.total_paye || 0))}</TableCell>
-                          <TableCell className="text-amber-600 font-medium">{formatMontant(Number(r.restant_du || 0))}</TableCell>
+                          <TableCell className="text-amber-600 font-medium">{formatMontant(Math.max(0, Number(r.montant_total_contrat || 0) - Number(r.total_paye || 0)))}</TableCell>
                           <TableCell>
-                            <Badge className="bg-primary">{Number(r.avancement_pct || 0).toFixed(1)}%</Badge>
-                          </TableCell>
-                          <TableCell>{Number(r.jours_restants || 0).toLocaleString()} j</TableCell>
-                          <TableCell>
-                            {Number(r.echeances_en_retard || 0) > 0
-                              ? <Badge className="bg-red-500">{r.echeances_en_retard} en retard</Badge>
-                              : <Badge variant="outline">À jour</Badge>}
+                            <Badge className="bg-primary">{(Number(r.montant_total_contrat || 0) > 0 ? Math.min(100, Number(r.total_paye || 0) / Number(r.montant_total_contrat || 0) * 100) : 0).toFixed(1)}%</Badge>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>

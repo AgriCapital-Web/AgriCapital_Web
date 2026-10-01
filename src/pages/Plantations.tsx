@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { offlineUpdate, offlineDelete } from "@/lib/offlineWrite";
 import { getCachedPlantations } from "@/lib/offlineDb";
@@ -38,7 +39,7 @@ const Plantations = () => {
           regions (nom),
           departements (nom)
         `)
-        .order("created_at", { ascending: false });
+        .order("id_unique", { ascending: true });
 
       if (error) throw error;
       setPlantations(data || []);
@@ -106,6 +107,8 @@ const Plantations = () => {
     }
   };
 
+  const formatStatut = (statut: string) => statut === "active" ? "Actif" : (statut || "—").replaceAll("_", " ");
+
   const getStatutBadge = (statut: string) => {
     const colors: Record<string, string> = {
       en_attente_da: "bg-yellow-100 text-yellow-800",
@@ -122,7 +125,7 @@ const Plantations = () => {
   const productionOnly = statutFilter === "en_production";
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}>
       <MainLayout>
         <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center gap-3">
@@ -178,7 +181,7 @@ const Plantations = () => {
                     <TableCell>{plantation.parcelles?.id_unique || plantation.parcelles?.nom || "—"}</TableCell>
                     <TableCell><span className="font-semibold">{Number(plantation.superficie_ha || 0).toFixed(2)}</span> ha</TableCell>
                     <TableCell><div className="flex items-center gap-1"><MapPin className="h-3 w-3 text-muted-foreground" /><span className="text-sm">{plantation.regions?.nom || "-"}</span></div></TableCell>
-                    <TableCell><Badge className={getStatutBadge(plantation.statut_global || plantation.statut)}>{(plantation.statut_global || plantation.statut || "actif").replaceAll("_", " ")}</Badge></TableCell>
+                    <TableCell><Badge className={getStatutBadge(plantation.statut_global || plantation.statut)}>{formatStatut(plantation.statut_global || plantation.statut || "actif")}</Badge></TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Button variant="ghost" size="sm" asChild><Link to={`/plantations/${plantation.id}`} title="Voir la fiche"><Eye className="h-4 w-4" /></Link></Button>

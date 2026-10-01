@@ -69,12 +69,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Ne laissez jamais une route métier s'évaluer avec une liste de rôles vide
+          // pendant la phase de connexion : les comptes Super Admin / PDG doivent
+          // disposer de leurs droits avant le rendu des écrans protégés.
+          setLoading(true);
           setTimeout(async () => {
-            await loadProfileAndRoles(session.user.id);
+            try {
+              await loadProfileAndRoles(session.user.id);
+            } finally {
+              setLoading(false);
+            }
           }, 0);
         } else {
           setProfile(null);
           setUserRoles([]);
+          setLoading(false);
         }
       }
     );

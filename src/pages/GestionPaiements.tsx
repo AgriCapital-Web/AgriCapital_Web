@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
+import { PERMISSIONS } from "@/lib/roles";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -215,6 +216,7 @@ const GestionPaiements = () => {
           clients (nom_complet, telephone),
           plantations (id_unique, nom_plantation)
         `)
+        .neq('statut', 'planifie')
         .order('created_at', { ascending: false })
         .limit(500);
 
@@ -573,7 +575,7 @@ const GestionPaiements = () => {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PAIEMENTS}>
       <MainLayout>
         <div className="space-y-6">
           {/* Header */}
