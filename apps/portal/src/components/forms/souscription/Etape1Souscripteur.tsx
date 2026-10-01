@@ -136,7 +136,7 @@ export const Etape1Souscripteur = ({ formData, updateFormData }: Etape1Props) =>
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Identité du Souscripteur</CardTitle>
+          <CardTitle>Identité du Client</CardTitle>
           <CardDescription>Informations personnelles obligatoires</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
