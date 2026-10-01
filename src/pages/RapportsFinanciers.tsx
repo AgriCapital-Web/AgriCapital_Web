@@ -417,7 +417,7 @@ const RapportsFinanciers = () => {
                           <TableCell className="text-green-600 font-medium">{formatMontant(Number(r.total_paye || 0))}</TableCell>
                           <TableCell className="text-amber-600 font-medium">{formatMontant(Math.max(0, Number(r.montant_total_contrat || 0) - Number(r.total_paye || 0)))}</TableCell>
                           <TableCell>
-                            <Badge className="bg-primary">{Number(r.avancement_pct || 0).toFixed(1)}%</Badge>
+                            <Badge className="bg-primary">{(Number(r.montant_total_contrat || 0) > 0 ? Math.min(100, Number(r.total_paye || 0) / Number(r.montant_total_contrat || 0) * 100) : 0).toFixed(1)}%</Badge>
                           </TableCell>
                         </TableRow>
                       ))}
