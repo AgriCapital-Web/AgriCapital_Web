@@ -436,7 +436,7 @@ const GestionPaiements = () => {
 
     try {
       const souscripteur = souscripteursMonnaie.find((s: any) => s?.id === selectedSouscripteurId);
-      if (!souscripteur) throw new Error('Souscripteur non trouvé');
+      if (!souscripteur) throw new Error('Client non trouvé');
 
       // Calcul du montant basé sur la grille progressive de l'offre
       const tarifs = computeTarifs(souscripteur);
@@ -527,7 +527,7 @@ const GestionPaiements = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -638,7 +638,7 @@ const GestionPaiements = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Souscripteur</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Montant</TableHead>
                       <TableHead>Statut</TableHead>
@@ -745,7 +745,7 @@ const GestionPaiements = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Souscripteur</TableHead>
+                          <TableHead>Client</TableHead>
                           <TableHead>Téléphone</TableHead>
                           <TableHead>Total payé</TableHead>
                           <TableHead>Attendu</TableHead>
@@ -847,7 +847,7 @@ const GestionPaiements = () => {
               </DialogHeader>
               {selectedPaiement && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Référence</p>
                       <p className="font-mono text-sm">{selectedPaiement.reference}</p>
@@ -865,7 +865,7 @@ const GestionPaiements = () => {
                       <p className="font-bold text-primary">{formatMontant(selectedPaiement.montant_paye || selectedPaiement.montant)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Souscripteur</p>
+                      <p className="text-sm text-muted-foreground">Client</p>
                       <p>{selectedPaiement.souscripteurs?.nom_complet}</p>
                     </div>
                     <div>
@@ -986,7 +986,7 @@ const GestionPaiements = () => {
               <div className="space-y-4">
                 {/* Source - Souscripteur */}
                 <div className="space-y-2">
-                  <Label>Numéro téléphone du souscripteur</Label>
+                  <Label>Numéro de téléphone du client</Label>
                   <Input
                     type="tel"
                     placeholder="Ex: 0759566087"
@@ -1032,7 +1032,7 @@ const GestionPaiements = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Mode de remboursement</Label>
                     <Select value={refundMode} onValueChange={setRefundMode}>
@@ -1099,10 +1099,10 @@ const GestionPaiements = () => {
               <div className="space-y-4">
                 {!selectedSouscripteurId && (
                   <div className="space-y-2">
-                    <Label>Sélectionner un souscripteur</Label>
+                    <Label>Sélectionner un client</Label>
                     <Select value={selectedSouscripteurId} onValueChange={setSelectedSouscripteurId}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Choisir un souscripteur" />
+                        <SelectValue placeholder="Choisir un client" />
                       </SelectTrigger>
                       <SelectContent>
                         {souscripteursMonnaie.map((sous: any) => (
@@ -1131,7 +1131,7 @@ const GestionPaiements = () => {
                       const montantConv = (tarifs as any)[convertPeriod] * convertCount;
                       return (
                         <>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label>Période ({tarifs.label})</Label>
                               <Select value={convertPeriod} onValueChange={(v) => setConvertPeriod(v as any)}>
