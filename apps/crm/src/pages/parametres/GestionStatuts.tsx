@@ -36,12 +36,12 @@ const STATUTS_PLANTATION = [
   { valeur: "abandonnee", label: "Abandonnée", color: "destructive", description: "Plantation abandonnée" },
 ];
 
-const STATUTS_SOUSCRIPTEUR = [
-  { valeur: "actif", label: "Actif", color: "default", description: "Souscripteur actif" },
-  { valeur: "inactif", label: "Inactif", color: "secondary", description: "Souscripteur inactif temporairement" },
+const STATUTS_CLIENT = [
+  { valeur: "actif", label: "Actif", color: "default", description: "Client actif" },
+  { valeur: "inactif", label: "Inactif", color: "secondary", description: "Client inactif temporairement" },
   { valeur: "suspendu", label: "Suspendu", color: "destructive", description: "Compte suspendu" },
   { valeur: "resilie", label: "Résilié", color: "destructive", description: "Contrat résilié" },
-  { valeur: "blacklist", label: "Liste noire", color: "destructive", description: "Souscripteur en liste noire" },
+  { valeur: "blacklist", label: "Liste noire", color: "destructive", description: "Client en liste noire" },
 ];
 
 const STATUTS_PAIEMENT = [
@@ -119,7 +119,7 @@ const GestionStatuts = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="plantation">Plantation</SelectItem>
-                        <SelectItem value="souscripteur">Souscripteur</SelectItem>
+                        <SelectItem value="client">Client</SelectItem>
                         <SelectItem value="paiement">Paiement</SelectItem>
                         <SelectItem value="ticket">Ticket</SelectItem>
                         <SelectItem value="commission">Commission</SelectItem>
@@ -184,7 +184,7 @@ const GestionStatuts = () => {
           <Tabs defaultValue="plantation">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="plantation">Plantations</TabsTrigger>
-              <TabsTrigger value="souscripteur">Souscripteurs</TabsTrigger>
+              <TabsTrigger value="client">Clients</TabsTrigger>
               <TabsTrigger value="paiement">Paiements</TabsTrigger>
             </TabsList>
             
@@ -225,7 +225,7 @@ const GestionStatuts = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="souscripteur" className="space-y-4">
+            <TabsContent value="client" className="space-y-4">
               <div className="rounded-lg border">
                 <Table>
                   <TableHeader>
@@ -237,7 +237,7 @@ const GestionStatuts = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {STATUTS_SOUSCRIPTEUR.map((statut, index) => (
+                    {STATUTS_CLIENT.map((statut, index) => (
                       <TableRow key={index}>
                         <TableCell>
                           <Badge variant={statut.color as any}>{statut.label}</Badge>
