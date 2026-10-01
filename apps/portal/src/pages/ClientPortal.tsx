@@ -24,7 +24,7 @@ interface PaymentOptions {
 const ClientPortal = () => {
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<View>('home');
-  const [souscripteur, setSouscripteur] = useState<any>(null);
+  const [client, setClient] = useState<any>(null);
   const [plantations, setPlantations] = useState<any[]>([]);
   const [paiements, setPaiements] = useState<any[]>([]);
   const [paymentOptions, setPaymentOptions] = useState<PaymentOptions>({});
@@ -48,14 +48,14 @@ const ClientPortal = () => {
       if (!token) return;
       const { data, error } = await supabase.functions.invoke("client-portal-data", { body: { access_token: token } });
       if (!error && data?.success) {
-        setSouscripteur(data.client || data.souscripteur);
+        setClient(data.client || data.client);
         setPlantations(data.plantations || []);
         setPaiements(data.paiements || []);
         setView("dashboard");
       } else {
         sessionStorage.removeItem("agri_portal_access_token");
         sessionStorage.removeItem("agri_client");
-        sessionStorage.removeItem("agri_souscripteur");
+        sessionStorage.removeItem("agri_client");
         sessionStorage.removeItem("agri_plantations");
         sessionStorage.removeItem("agri_paiements");
         sessionStorage.removeItem("agri_demo");
@@ -102,9 +102,9 @@ const ClientPortal = () => {
   // Garantit que tout changement CRM (prix, offre, promo, plantation, paiement)
   // est répercuté sur le portail sans action manuelle du client.
   const { status, lastSync } = useAutoRefresh(
-    souscripteur?.telephone,
+    client?.telephone,
     (s, plts, pays) => {
-      setSouscripteur(s);
+      setClient(s);
       setPlantations(plts);
       setPaiements(pays);
     },
@@ -112,17 +112,17 @@ const ClientPortal = () => {
 
 
   const handleLogin = (sous: any, plants: any[], paies: any[]) => {
-    setSouscripteur(sous);
+    setClient(sous);
     setPlantations(plants);
     setPaiements(paies);
     setView('dashboard');
   };
 
   const handleLogout = () => {
-    setSouscripteur(null);
+    setClient(null);
     setPlantations([]);
     setPaiements([]);
-    sessionStorage.removeItem('agri_souscripteur');
+    sessionStorage.removeItem('agri_client');
     sessionStorage.removeItem('agri_plantations');
     sessionStorage.removeItem('agri_paiements');
     sessionStorage.removeItem("agri_portal_access_token");
@@ -132,7 +132,7 @@ const ClientPortal = () => {
 
   const handleBackFromPaymentReturn = () => {
     window.history.replaceState({}, '', window.location.pathname);
-    if (souscripteur) {
+    if (client) {
       setView('dashboard');
     } else {
       setView('home');
@@ -143,21 +143,21 @@ const ClientPortal = () => {
     <>
       <InstallPrompt />
 
-      {souscripteur && <SyncStatusBanner status={status} lastSync={lastSync} />}
+      {client && <SyncStatusBanner status={status} lastSync={lastSync} />}
 
       
       {view === 'home' && <ClientHome onLogin={handleLogin} />}
       
-      {view === 'dashboard' && souscripteur?.portal_primary_role !== "client" ? (
+      {view === 'dashboard' && client?.portal_primary_role !== "client" ? (
         <StakeholderDashboard
-          souscripteur={souscripteur}
+          client={client}
           plantations={plantations}
           onPlantationHub={() => setView('plantation-hub')}
           onLogout={handleLogout}
         />
       ) : view === 'dashboard' && (
         <ClientDashboard
-          souscripteur={souscripteur}
+          client={client}
           plantations={plantations}
           paiements={paiements}
           syncStatus={status}
@@ -177,7 +177,7 @@ const ClientPortal = () => {
 
       {view === 'plantation-hub' && (
         <ClientPlantationHub
-          souscripteur={souscripteur}
+          client={client}
           plantations={plantations}
           onBack={() => setView('dashboard')}
         />
@@ -185,7 +185,7 @@ const ClientPortal = () => {
       
       {view === 'payment' && (
         <ClientPayment
-          souscripteur={souscripteur}
+          client={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
@@ -196,7 +196,7 @@ const ClientPortal = () => {
       
       {view === 'portfolio' && (
         <ClientPortfolio
-          souscripteur={souscripteur}
+          client={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
@@ -205,7 +205,7 @@ const ClientPortal = () => {
 
       {view === 'history' && (
         <ClientPaymentHistory
-          souscripteur={souscripteur}
+          client={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
@@ -214,7 +214,7 @@ const ClientPortal = () => {
 
       {view === 'statistics' && (
         <ClientStatistics
-          souscripteur={souscripteur}
+          client={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
