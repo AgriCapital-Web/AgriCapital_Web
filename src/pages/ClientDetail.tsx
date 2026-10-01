@@ -485,7 +485,7 @@ const ClientDetail = () => {
                       <p className="font-semibold">{parcelle?.proprietaires_terres?.nom_complet || "À compléter"}</p>
                       <p className="text-sm text-muted-foreground">Statut foncier : {parcelle?.proprietaires_terres?.statut_foncier || "—"}</p>
                       <p className="text-sm text-muted-foreground">Téléphone : {parcelle?.proprietaires_terres?.telephone || "À compléter"}</p>
-                      <p className="text-sm text-muted-foreground">Documents et photo du propriétaire : à compléter depuis sa fiche.</p>
+                      
                     </CardContent>
                   </Card>
 
@@ -497,7 +497,7 @@ const ClientDetail = () => {
                       <p className="font-mono text-sm">{parcelle?.code_parc || parcelle?.id_unique || "—"}</p>
                       <p><span className="font-medium">{Number(parcelle?.surface_totale_ha || 0).toFixed(2)} ha</span> · {parcelle?.village || "—"}</p>
                       <p className="text-sm text-muted-foreground">Mode : {parcelle?.mode_surface === "actif_agricole" ? "Actif agricole" : "Foncier"}</p>
-                      <p className="text-sm text-muted-foreground">Plan, GPS et annexes foncières : à compléter ultérieurement.</p>
+                      
                     </CardContent>
                   </Card>
 
