@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Etape1Souscripteur } from "@/components/forms/souscription/Etape1Souscripteur";
+import { Etape1Client } from "@/components/forms/souscription/Etape1Client";
 import { Etape2Cotitulaire } from "@/components/forms/souscription/Etape2Cotitulaire";
 import { Etape0Offre } from "@/components/forms/souscription/Etape0Offre";
 import { Etape3Parcelle } from "@/components/forms/souscription/Etape3Parcelle";
@@ -184,7 +184,7 @@ const NouvelleSouscription = () => {
 
   // Étapes de 1 à 7 (numérotation affichée)
   const etapes = [
-    { num: 1, titre: "Client", component: Etape1Souscripteur },
+    { num: 1, titre: "Client", component: Etape1Client },
     { num: 2, titre: "Co-titulaire", component: Etape2Cotitulaire },
     { num: 3, titre: "Offre", component: Etape0Offre },
     { num: 4, titre: "Parcelle", component: Etape3Parcelle },
