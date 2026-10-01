@@ -666,7 +666,7 @@ const ProprietairesTerres = () => {
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 bg-accent/10 rounded-lg"><Layers className="h-5 w-5 text-accent" /></div>
-                <div><div className="text-2xl font-bold">{proprietaires.reduce((s, p) => s + (p.nombre_parcelles || 0), 0)}</div><div className="text-xs text-muted-foreground">Parcelles</div></div>
+                <div><div className="text-2xl font-bold">{proprietaires.reduce((s, p) => s + Number(p.parcelles?.[0]?.count || 0), 0)}</div><div className="text-xs text-muted-foreground">Parcelles</div></div>
               </CardContent>
             </Card>
             <Card>
