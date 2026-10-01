@@ -38,7 +38,7 @@ const Plantations = () => {
           regions (nom),
           departements (nom)
         `)
-        .order("created_at", { ascending: false });
+        .order("id_unique", { ascending: true });
 
       if (error) throw error;
       setPlantations(data || []);
