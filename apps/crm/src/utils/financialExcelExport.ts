@@ -13,7 +13,7 @@ const zip=(files:{name:string;data:string}[])=>{
  for(const f of files){const b=enc.encode(f.data),crc=crc32(b),nb=enc.encode(f.name);const head=[0x50,0x4b,3,4,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(b.length),...u32(b.length),...u16(nb.length),0,0];push(head);push([...nb]);push([...b]);central.push({nb,crc,size:b.length,off});off+=head.length+nb.length+b.length;}
  const cdStart=off;for(const x of central){push([0x50,0x4b,1,2,20,0,20,0,0,0,0,0,0,0,...u32(x.crc),...u32(x.size),...u32(x.size),...u16(x.nb.length),0,0,0,0,0,0,...u32(x.off)]);push([...x.nb]);}const cdSize=off-cdStart;push([0x50,0x4b,5,6,0,0,0,0,...u16(central.length),...u16(central.length),...u32(cdSize),...u32(cdStart),0,0]);return new Blob([new Uint8Array(chunks)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
 };
-export type Sheet={name:string;rows:any[][];widths?:number[];freeze?:number;autoFilter?:boolean;conditional?:{range:string;formula:string;style:number}[];merges?:string[]};
+export type Sheet={name:string;rows:any[][];widths?:number[];freeze?:number;autoFilter?:boolean;conditional?:{range:string;formula:string;style:number}[];merges?:string[];moneyCols?:number[];percentCols?:number[]};
 export async function exportFinancialWorkbook(sheets:Sheet[],filename:string){
  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="#,##0 &quot;FCFA&quot;"/><numFmt numFmtId="165" formatCode="0.0%"/></numFmts>
