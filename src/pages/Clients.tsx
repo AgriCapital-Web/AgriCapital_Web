@@ -51,7 +51,7 @@ const Clients = () => {
 
       const ids = (baseClients || []).map((c: any) => c.id);
       const [plantationsRes, attributionsRes, offresRes, regionsRes] = await Promise.all([
-        supabase.from("plantations").select("id,client_id,superficie_ha,role_attribution").in("client_id", ids),
+        supabase.from("plantations").select("id,client_id,superficie_ha,superficie_activee,surface_reellement_plantee,role_attribution").in("client_id", ids),
         (supabase as any).from("beneficiaire_attributions").select("id,client_id,plantation_id,surface_attribuee_ha,role_attribution,statut").eq("statut", "active").in("client_id", ids),
         supabase.from("offres").select("id,nom,couleur"),
         supabase.from("regions").select("id,nom"),
@@ -67,7 +67,7 @@ const Clients = () => {
         const clientAttributions = attributionsData.filter((a: any) => a.client_id === client.id);
         const totalHectares = clientAttributions.length
           ? clientAttributions.reduce((sum: number, a: any) => sum + Number(a.surface_attribuee_ha || 0), 0)
-          : clientPlantations.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0);
+          : clientPlantations.reduce((sum: number, p: any) => sum + Number(p.surface_reellement_plantee ?? p.superficie_activee ?? p.superficie_ha ?? 0), 0);
 
         return {
           ...client,
@@ -97,7 +97,7 @@ const Clients = () => {
             return {
               ...s,
               nombre_plantations: plantations.length,
-              total_hectares: plantations.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0),
+              total_hectares: plantations.reduce((sum: number, p: any) => sum + Number(p.surface_reellement_plantee ?? p.superficie_activee ?? p.superficie_ha ?? 0), 0),
             };
           });
         setClients(enrichedData);
