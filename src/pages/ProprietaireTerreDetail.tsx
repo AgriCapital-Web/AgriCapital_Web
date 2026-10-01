@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,11 +104,11 @@ const ProprietaireTerreDetail = () => {
     }
   };
 
-  if (loading) return <ProtectedRoute><MainLayout><div className="py-20 text-center">Chargement…</div></MainLayout></ProtectedRoute>;
-  if (!owner) return <ProtectedRoute><MainLayout><Card><CardContent className="py-10 text-center">Propriétaire introuvable.</CardContent></Card></MainLayout></ProtectedRoute>;
+  if (loading) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}><MainLayout><div className="py-20 text-center">Chargement…</div></MainLayout></ProtectedRoute>;
+  if (!owner) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}><MainLayout><Card><CardContent className="py-10 text-center">Propriétaire introuvable.</CardContent></Card></MainLayout></ProtectedRoute>;
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
       <MainLayout>
         <div className="min-w-0 space-y-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

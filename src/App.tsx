@@ -27,7 +27,6 @@ import AccountRequest from "./pages/AccountRequest";
 import Tickets from "./pages/Tickets";
 import ProprietairesTerres from "./pages/ProprietairesTerres";
 import ProprietaireTerreDetail from "./pages/ProprietaireTerreDetail";
-import Parcelles from "./pages/Parcelles";
 import Documents from "./pages/Documents";
 import Leads from "./pages/Leads";
 import SyncQueue from "./pages/SyncQueue";

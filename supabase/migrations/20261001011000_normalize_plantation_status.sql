@@ -1,5 +1,6 @@
 UPDATE public.plantations SET statut='actif' WHERE lower(coalesce(statut,''))='active';
 UPDATE public.plantations SET statut_global='actif' WHERE lower(coalesce(statut_global,''))='active';
+UPDATE public.plantations SET statut_global=statut WHERE statut='en_attente_pi' AND statut_global='actif';
 
 CREATE OR REPLACE FUNCTION public.trg_sync_technical_plantation()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
@@ -12,8 +13,8 @@ begin
     target_count := coalesce(new.nombre_plants_realises, round(coalesce(p.superficie_ha,0)*coalesce(new.densite_plants,p.densite_cible,143)));
     update public.plantations
       set date_plantation=coalesce(date_plantation,new.date_intervention),
-          date_activation=coalesce(date_activation,new.date_intervention),
-          statut_global='actif',
+          date_activation=case when p.statut='actif' then coalesce(date_activation,new.date_intervention) else null end,
+          statut_global=case when p.statut='actif' then 'actif' else coalesce(p.statut,'en_attente_pi') end,
           densite_cible=coalesce(new.densite_plants,densite_cible,143),
           densite_plants=coalesce(new.densite_plants,densite_cible,143),
           nombre_plants_prevus=coalesce(new.nombre_plants_prevus,nombre_plants_prevus,round(superficie_ha*coalesce(new.densite_plants,densite_cible,143))),
