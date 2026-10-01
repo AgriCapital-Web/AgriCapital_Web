@@ -178,7 +178,7 @@ const ClientDetail = () => {
 
   if (!client) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
         <MainLayout>
           <div className="flex flex-col items-center justify-center h-96 space-y-4">
             <p>Client non trouvé</p>
@@ -192,7 +192,7 @@ const ClientDetail = () => {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
       <MainLayout>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
