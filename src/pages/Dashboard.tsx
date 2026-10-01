@@ -115,7 +115,7 @@ const Dashboard = () => {
           ? (supabase as any).from("clients").select("id,id_unique,nom_complet,created_at,updated_at,statut_global,nombre_plantations,total_hectares,formule_nom,formule_code,phase_actuelle,compte_actif,numero_ordre_global")
           : Promise.resolve({ data: [], count: 0 }),
         canPlantations || globalAdmin
-          ? (supabase as any).from("plantations").select("id,id_unique,client_id,superficie_ha,superficie_activee,superficie_reellement_plantee,statut_global,created_at,region_id,departement_id,village_nom,village,alerte_non_paiement,alerte_visite_retard")
+          ? (supabase as any).from("plantations").select("id,id_unique,client_id,superficie_ha,superficie_activee,surface_reellement_plantee,statut_global,created_at,region_id,departement_id,village_nom,village,alerte_non_paiement,alerte_visite_retard")
           : Promise.resolve({ data: [] }),
         canPayments || globalAdmin
           ? (supabase as any).from("paiements").select("id,client_id,montant,montant_paye,statut,date_paiement,date_echeance,type_paiement,mode_paiement,reference,est_paiement_initial,est_depot_initial,created_at").order("date_paiement", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false })
@@ -177,7 +177,7 @@ const Dashboard = () => {
 
       const engagedHa = clients.reduce((s: number, c: any) => s + Number(c.total_hectares || 0), 0);
       const plantedHa = plantations.reduce((s: number, p: any) =>
-        s + Number(p.superficie_reellement_plantee || p.superficie_activee || p.superficie_ha || 0), 0);
+        s + Number(p.surface_reellement_plantee || p.superficie_activee || p.superficie_ha || 0), 0);
       const productionRows = plantations.filter((p: any) => p.statut_global === "en_production");
       const productionHa = productionRows.reduce((s: number, p: any) => s + Number(p.superficie_activee || p.superficie_ha || 0), 0);
       const remainingHa = Math.max(0, engagedHa - plantedHa);
@@ -292,7 +292,7 @@ const Dashboard = () => {
         const mPlant = plantations.filter((p: any) => {
           const dt = new Date(p.date_plantation || p.date_activation || p.created_at);
           return dt >= d && dt <= end;
-        }).reduce((s: number, p: any) => s + Number(p.superficie_reellement_plantee || p.superficie_activee || p.superficie_ha || 0), 0);
+        }).reduce((s: number, p: any) => s + Number(p.surface_reellement_plantee || p.superficie_activee || p.superficie_ha || 0), 0);
         const mPay = validPayments.filter((p: any) => {
           const dt = new Date(p.date_paiement || p.created_at);
           return dt >= d && dt <= end;
