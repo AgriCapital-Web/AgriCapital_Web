@@ -65,7 +65,7 @@ const Dashboard = () => {
     try {
       // Stats globales
       const { count: planteursCount } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("*", { count: "exact", head: true });
 
       const { data: plantations } = await (supabase as any)
@@ -87,7 +87,7 @@ const Dashboard = () => {
 
       const { data: paiements } = await (supabase as any)
         .from("paiements")
-        .select("montant, statut, created_at, plantation_id, plantations(souscripteurs(nom_complet))");
+        .select("montant, statut, created_at, plantation_id, plantations(clients(nom_complet))");
       
       const totalPaiements = paiements?.filter((p) => p.statut === "valide")
         .reduce((sum, p) => sum + (p.montant || 0), 0) || 0;
@@ -98,7 +98,7 @@ const Dashboard = () => {
 
       // Planteurs récents
       const { data: planteurs } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("id_unique, nom_complet, created_at, statut_global, nombre_plantations")
         .order("created_at", { ascending: false })
         .limit(5);
@@ -108,7 +108,7 @@ const Dashboard = () => {
       // Paiements récents
       const paiementsRecents = paiements?.slice(0, 5).map((p: any) => ({
         ...p,
-        planteur_nom: p.plantations?.souscripteurs?.nom_complet || "N/A"
+        planteur_nom: p.plantations?.clients?.nom_complet || "N/A"
       })) || [];
       setRecentPaiements(paiementsRecents);
 
@@ -189,7 +189,7 @@ const Dashboard = () => {
 
       // Top planteurs
       const { data: topPlanteursData } = await (supabase as any)
-        .from("souscripteurs")
+        .from("clients")
         .select("nom_complet, nombre_plantations, total_hectares")
         .order("total_hectares", { ascending: false })
         .limit(5);
@@ -213,7 +213,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => { fetchStats(); }, []);
-  useRealtime({ table: "souscripteurs", onChange: fetchStats });
+  useRealtime({ table: "clients", onChange: fetchStats });
   useRealtime({ table: "plantations", onChange: fetchStats });
   useRealtime({ table: "paiements", onChange: fetchStats });
 
