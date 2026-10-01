@@ -146,7 +146,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Priorité *</Label>
           <Select
@@ -206,7 +206,7 @@ const TicketForm = ({ ticket, plantationId, onSuccess, onCancel }: TicketFormPro
             className="mt-2 w-full"
           />
           {photoPreviews.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
               {photoPreviews.map((preview, index) => (
                 <div key={index} className="relative">
                   <img
