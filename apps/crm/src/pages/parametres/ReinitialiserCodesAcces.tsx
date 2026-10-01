@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { KeyRound, Loader2, RotateCcw, Search, ShieldCheck } from "lucide-react";
-import MainLayout from "@/components/layout/MainLayout";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PERMISSIONS } from "@/lib/roles";
 
 export default function ReinitialiserCodesAcces() {
   const { toast } = useToast();
@@ -68,9 +65,7 @@ export default function ReinitialiserCodesAcces() {
   };
 
   return (
-    <ProtectedRoute requiredPermission={PERMISSIONS.MANAGE_SYSTEM}>
-      <MainLayout>
-        <div className="mx-auto w-full max-w-3xl space-y-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2"><KeyRound className="h-7 w-7" /> Réinitialiser les codes d'accès</h1>
             <p className="mt-1 text-sm text-muted-foreground">Remettez le portail d'un client à zéro sans modifier son dossier, ses plantations ou ses paiements.</p>
@@ -128,8 +123,6 @@ export default function ReinitialiserCodesAcces() {
               </Button>
             </CardContent>
           </Card>
-        </div>
-      </MainLayout>
-    </ProtectedRoute>
+      </div>
   );
 }
