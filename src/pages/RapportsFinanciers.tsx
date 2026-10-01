@@ -49,7 +49,7 @@ const RapportsFinanciers = () => {
       (supabase as any).from("equipes").select("*"),
       (supabase as any).from("profils_annuaire").select("id, nom_complet, equipe_id"),
       (supabase as any).from("clients").select("id"),
-      (supabase as any).from("plantations").select("id, superficie_ha"),
+      (supabase as any).from("plantations").select("id, superficie_ha, superficie_activee, surface_reellement_plantee"),
       (supabase as any).from("v_client_synthese").select("*").order("avancement_pct", { ascending: false }),
     ]);
 
@@ -74,7 +74,7 @@ const RapportsFinanciers = () => {
       commissionsPayees: payees,
       totalClients: clientsRes.data?.length || 0,
       totalPlantations: plantationsRes.data?.length || 0,
-      totalSuperficie: plantationsRes.data?.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0) || 0,
+      totalSuperficie: plantationsRes.data?.reduce((sum: number, p: any) => sum + Number(p.surface_reellement_plantee ?? p.superficie_activee ?? p.superficie_ha ?? 0), 0) || 0,
     });
   };
 
