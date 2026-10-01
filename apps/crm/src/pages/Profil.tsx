@@ -22,7 +22,7 @@ const Profil = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>({});
   const [uploading, setUploading] = useState(false);
-  const [phoneCountries, setPhoneCountries] = useState({ telephone: "+225", telephone_secondaire: "+225", contact1: "+225", contact2: "+225" });
+  const [phoneCountries, setPhoneCountries] = useState({ telephone: "+225", telephone_secondaire: "+225", whatsapp: "+225", contact1: "+225", contact2: "+225" });
   const photoUrl = useSignedUrl('photos-profils', profile.photo_url);
 
   useEffect(() => {
@@ -50,6 +50,7 @@ const Profil = () => {
       setPhoneCountries({
         telephone: data.telephone_indicatif || "+225",
         telephone_secondaire: data.telephone_secondaire_indicatif || "+225",
+        whatsapp: data.whatsapp_indicatif || "+225",
         contact1: data.contact_urgence_telephone1_indicatif || "+225",
         contact2: data.contact_urgence_telephone2_indicatif || "+225",
       });
@@ -66,7 +67,14 @@ const Profil = () => {
         email: profile.email || user.email,
         nom_complet: profile.nom_complet || (user.email || '').split('@')[0],
         telephone: profile.telephone || null,
+        telephone_indicatif: phoneCountries.telephone || "+225",
+        telephone_local: profile.telephone_local || null,
         telephone_secondaire: profile.telephone_secondaire || null,
+        telephone_secondaire_indicatif: phoneCountries.telephone_secondaire || "+225",
+        telephone_secondaire_local: profile.telephone_secondaire_local || null,
+        whatsapp: profile.whatsapp || null,
+        whatsapp_indicatif: phoneCountries.whatsapp || "+225",
+        whatsapp_local: profile.whatsapp_local || null,
         adresse_mail_secondaire: profile.adresse_mail_secondaire || null,
         ville: profile.ville || null,
         quartier: profile.quartier || null,
@@ -162,8 +170,9 @@ const Profil = () => {
                     <div><Label>Nom complet</Label><Input value={profile.nom_complet || ''} onChange={(e) => update('nom_complet', e.target.value)} /></div>
                     <div><Label>Email principal</Label><Input type="email" value={profile.email || ''} onChange={(e) => update('email', e.target.value)} /></div>
                     <div><Label>Email secondaire</Label><Input type="email" value={profile.adresse_mail_secondaire || ''} onChange={(e) => update('adresse_mail_secondaire', e.target.value)} /></div>
-                    <CountryPhoneInput label="Téléphone principal" countryCode={phoneCountries.telephone} localValue={String(profile.telephone || "").replace(/^\\+\\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, telephone: v.callingCode })); update("telephone", v.internationalValue); }} />
-                    <CountryPhoneInput label="Téléphone secondaire" countryCode={phoneCountries.telephone_secondaire} localValue={String(profile.telephone_secondaire || "").replace(/^\\+\\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, telephone_secondaire: v.callingCode })); update("telephone_secondaire", v.internationalValue); }} />
+                    <CountryPhoneInput label="Téléphone principal" countryCode={phoneCountries.telephone} localValue={String(profile.telephone_local || profile.telephone || "").replace(/^\+\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, telephone: v.callingCode })); update("telephone", v.internationalValue); }} />
+                    <CountryPhoneInput label="Téléphone secondaire" countryCode={phoneCountries.telephone_secondaire} localValue={String(profile.telephone_secondaire_local || profile.telephone_secondaire || "").replace(/^\+\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, telephone_secondaire: v.callingCode })); setProfile(x => ({ ...x, telephone_secondaire: v.internationalValue, telephone_secondaire_indicatif: v.callingCode, telephone_secondaire_local: v.localValue })); }} />
+                    <CountryPhoneInput label="WhatsApp" countryCode={phoneCountries.whatsapp} localValue={String(profile.whatsapp_local || profile.whatsapp || "").replace(/^\+\d{1,4}/, "")} onChange={(v) => { setPhoneCountries(x => ({ ...x, whatsapp: v.callingCode })); setProfile(x => ({ ...x, whatsapp: v.internationalValue, whatsapp_indicatif: v.callingCode, whatsapp_local: v.localValue })); }} />
                     <div><Label>Ville</Label><Input value={profile.ville || ''} onChange={(e) => update('ville', e.target.value)} /></div>
                     <div><Label>Quartier</Label><Input value={profile.quartier || ''} onChange={(e) => update('quartier', e.target.value)} /></div>
                   </div>
