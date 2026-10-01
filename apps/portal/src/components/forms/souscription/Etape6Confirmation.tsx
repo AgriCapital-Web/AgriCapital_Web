@@ -32,7 +32,7 @@ export const Etape6Confirmation = ({ formData, updateFormData }: Etape6Props) =>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Souscripteur</h4>
+              <h4 className="font-semibold text-sm">Client</h4>
               <p className="text-sm">
                 {formData.nom_famille} {formData.prenoms}
               </p>
