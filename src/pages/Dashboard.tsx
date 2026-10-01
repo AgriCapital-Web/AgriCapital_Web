@@ -199,7 +199,7 @@ const Dashboard = () => {
       const commissionTotal = commissions
         .filter((c: any) => c.statut !== "annule")
         .reduce((s: number, c: any) => s + Number(c.montant_commission || 0), 0);
-      const portfolioTotal = portfolios.reduce((s: number, p: any) => s + Number(p.solde_commissions || 0), 0);
+      const portfolioTotal = commissions.filter((c: any) => c.statut !== "annule" && c.statut !== "payee").reduce((s: number, c: any) => s + Number(c.montant_commission || 0), 0);
 
       setStats({
         clients: clients.length,
