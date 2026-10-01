@@ -271,7 +271,24 @@ const Dashboard = () => {
       ];
       setCycle(cycleTypes.map(([code, label]) => {
         const rows = interventions.filter((i: any) => String(i.type_intervention || "").toLowerCase() === code);
-        const done = rows.filter((i: any) => ["termine", "terminee", "terminé", "terminée", "valide", "validee", "validé", "complete", "complet"].includes(String(i.statut || "").toLowerCase())).length;
+        const done = rows.filter((i: any) => {
+          const statut = String(i.statut || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\\u0300-\\u036f]/g, "");
+          return [
+            "termine",
+            "terminee",
+            "valide",
+            "validee",
+            "complete",
+            "complet",
+            "realise",
+            "realisee",
+            "acheve",
+            "achevee",
+          ].includes(statut);
+        }).length;
         return { label, total: rows.length, done, pct: rows.length ? Math.round((done / rows.length) * 100) : 0 };
       }));
 
