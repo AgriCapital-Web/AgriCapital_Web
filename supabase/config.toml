@@ -43,3 +43,12 @@ verify_jwt = true
 
 [functions.seed-demo-account]
 verify_jwt = true
+
+[functions.portal-access]
+verify_jwt = false
+
+[functions.reset-client-access-code]
+verify_jwt = false
+
+[functions.verifier-carte]
+verify_jwt = false
