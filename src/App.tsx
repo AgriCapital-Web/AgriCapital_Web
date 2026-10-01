@@ -26,6 +26,7 @@ import HistoriqueComplet from "./pages/HistoriqueComplet";
 import AccountRequest from "./pages/AccountRequest";
 import Tickets from "./pages/Tickets";
 import ProprietairesTerres from "./pages/ProprietairesTerres";
+import ProprietaireTerreDetail from "./pages/ProprietaireTerreDetail";
 import Parcelles from "./pages/Parcelles";
 import Documents from "./pages/Documents";
 import Leads from "./pages/Leads";
@@ -91,7 +92,8 @@ const DomainRouter = () => {
       <Route path="/plantations" element={<Plantations />} />
       <Route path="/plantations/:id" element={<PlantationDetail />} />
       <Route path="/proprietaires-terres" element={<ProprietairesTerres />} />
-      <Route path="/parcelles" element={<Parcelles />} />
+      <Route path="/proprietaires-terres/:id" element={<ProprietaireTerreDetail />} />
+      <Route path="/parcelles" element={<Navigate to="/proprietaires-terres" replace />} />
       <Route path="/documents" element={<Documents />} />
       <Route path="/acquisitions" element={<Clients />} />
       <Route path="/acquisitions/nouveau" element={<NouvelleAcquisition />} />
