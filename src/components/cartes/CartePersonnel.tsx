@@ -336,7 +336,7 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             zIndex: 1,
             height: "100%",
             boxSizing: "border-box",
-            padding: "36px 36px 30px",
+            padding: "30px 30px 26px",
             display: "flex",
             flexDirection: "column",
           }}
@@ -370,7 +370,7 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             style={{
               width: 188,
               height: 238,
-              margin: "22px auto 0",
+              margin: "18px auto 0",
               borderRadius: 16,
               overflow: "hidden",
               border: `3px solid ${VERT}`,
@@ -390,14 +390,14 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             )}
           </div>
 
-          <div style={{ textAlign: "center", marginTop: 20, minHeight: 73 }}>
+          <div style={{ textAlign: "center", marginTop: 10, minHeight: 68 }}>
             <p
               style={{
                 margin: 0,
                 color: VERT,
-                fontSize: nom.length > 28 ? 23 : 27,
+                fontSize: nom.length > 28 ? 21 : 25,
                 fontWeight: 800,
-                lineHeight: "27px",
+                lineHeight: "25px",
                 textTransform: "uppercase",
                 overflow: "hidden",
                 whiteSpace: "normal",
@@ -448,7 +448,7 @@ export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             </span>
           </div>
 
-          <div style={{ marginTop: 19 }}>
+          <div style={{ marginTop: 14 }}>
             <InfoRow label="Identifiant" value={coupe(carte.matricule, 30)} />
             <InfoRow
               label="Zone d'intervention"
@@ -527,7 +527,7 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             zIndex: 1,
             height: "100%",
             boxSizing: "border-box",
-            padding: "34px 42px 30px",
+            padding: "28px 34px 24px",
             display: "flex",
             flexDirection: "column",
           }}
@@ -536,11 +536,11 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
             <img
               src={logo}
               alt="AgriCapital — Investir la terre. Cultiver l'avenir."
-              style={{ display: "block", width: 224, height: 66, objectFit: "contain" }}
+              style={{ display: "block", width: 210, height: 60, objectFit: "contain" }}
             />
           </div>
 
-          <div style={{ textAlign: "center", marginTop: 18 }}>
+          <div style={{ textAlign: "center", marginTop: 12 }}>
             <p
               style={{
                 margin: 0,
@@ -572,7 +572,7 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
               alignItems: "center",
             }}
           >
-            <QR code={carte.code_verification} size={278} />
+            <QR code={carte.code_verification} size={235} />
           </div>
 
           <div style={{ textAlign: "center", marginTop: 15 }}>
@@ -661,13 +661,13 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                 <p style={{ margin: "6px 0 0", color: GRIS_MOYEN, fontSize: 8.5, lineHeight: "12px" }}>
                   Société à Responsabilité Limitée
                   <br />
-                  RCCM : CI-DAL-01-2025-B12-00035
+                  RCCM : CI-DAL-01-2025-B12-13435
                   <br />
                   Daloa-Gonaté, Côte d'Ivoire
                 </p>
               </div>
 
-              <div style={{ width: 205, flexShrink: 0 }}>
+              <div style={{ width: 195, flexShrink: 0 }}>
                 {CONTACTS(carte).map((contact) => (
                   <div
                     key={contact.t}
@@ -685,7 +685,7 @@ export const CarteVerso = forwardRef<HTMLDivElement, { carte: CarteData }>(({ ca
                         fontSize: 8.5,
                         lineHeight: "12px",
                         overflow: "hidden",
-                        whiteSpace: "nowrap",
+                        whiteSpace: "normal", overflowWrap: "anywhere",
                       }}
                     >
                       {contact.t}
