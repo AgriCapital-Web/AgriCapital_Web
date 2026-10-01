@@ -398,8 +398,6 @@ const RapportsFinanciers = () => {
                         <TableHead>Payé</TableHead>
                         <TableHead>Restant dû</TableHead>
                         <TableHead>Avancement</TableHead>
-                        <TableHead>Jours restants</TableHead>
-                        <TableHead>Retard</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -417,7 +415,7 @@ const RapportsFinanciers = () => {
                           <TableCell>{Number(r.total_hectares || 0).toFixed(2)}</TableCell>
                           <TableCell>{formatMontant(Number(r.montant_total_contrat || 0))}</TableCell>
                           <TableCell className="text-green-600 font-medium">{formatMontant(Number(r.total_paye || 0))}</TableCell>
-                          <TableCell className="text-amber-600 font-medium">{formatMontant(Number(r.restant_du || 0))}</TableCell>
+                          <TableCell className="text-amber-600 font-medium">{formatMontant(Math.max(0, Number(r.montant_total_contrat || 0) - Number(r.total_paye || 0)))}</TableCell>
                           <TableCell>
                             <Badge className="bg-primary">{Number(r.avancement_pct || 0).toFixed(1)}%</Badge>
                           </TableCell>
