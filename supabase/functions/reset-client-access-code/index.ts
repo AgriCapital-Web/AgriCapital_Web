@@ -13,7 +13,7 @@ const json = (body: any, status = 200) => new Response(JSON.stringify(body), {
 });
 
 const STAFF_ROLES = new Set([
-  "super_admin", "directeur_tc", "responsable_operations", "responsable_commercial",
+  "super_admin", "pdg", "directeur_tc", "responsable_operations", "responsable_commercial",
   "chef_equipe_commercial", "chef_equipe_technique", "service_client",
   "chef_equipe_service_client", "comptable",
 ]);
