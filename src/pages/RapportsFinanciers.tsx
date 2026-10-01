@@ -61,10 +61,10 @@ const RapportsFinanciers = () => {
 
     // Calculate stats
     const commissionsData = commissionsRes.data || [];
-    const total = commissionsData.reduce((sum: number, c: any) => sum + Number(c.montant_commission), 0);
-    const validees = commissionsData.filter((c: any) => c.statut === "valide").reduce((sum: number, c: any) => sum + Number(c.montant_commission), 0);
-    const pendantes = commissionsData.filter((c: any) => c.statut === "en_attente").reduce((sum: number, c: any) => sum + Number(c.montant_commission), 0);
-    const payees = commissionsData.filter((c: any) => c.statut === "paye").reduce((sum: number, c: any) => sum + Number(c.montant_commission), 0);
+    const total = commissionsData.filter((c: any) => c.statut !== "annule").reduce((sum: number, c: any) => sum + Number(c.montant_commission || 0), 0);
+    const validees = commissionsData.filter((c: any) => c.statut === "validee").reduce((sum: number, c: any) => sum + Number(c.montant_commission || 0), 0);
+    const pendantes = commissionsData.filter((c: any) => c.statut === "calculee").reduce((sum: number, c: any) => sum + Number(c.montant_commission || 0), 0);
+    const payees = commissionsData.filter((c: any) => c.statut === "payee").reduce((sum: number, c: any) => sum + Number(c.montant_commission || 0), 0);
 
     setStats({
       totalCommissions: total,
@@ -89,9 +89,9 @@ const RapportsFinanciers = () => {
 
   const getStatutColor = (statut: string) => {
     switch (statut) {
-      case "paye": return "bg-green-500";
-      case "valide": return "bg-blue-500";
-      case "en_attente": return "bg-yellow-500";
+      case "payee": return "bg-green-500";
+      case "validee": return "bg-blue-500";
+      case "calculee": return "bg-yellow-500";
       default: return "bg-gray-500";
     }
   };
