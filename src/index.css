@@ -338,10 +338,20 @@ All colors MUST be HSL.
   flex: 0 0 auto;
   width: 540px;
   max-width: 540px;
-  zoom: clamp(0.55, calc((100vw - 32px) / 540px), 1);
+  transform-origin: top center;
+  transform: scale(clamp(0.5, calc((100vw - 48px) / 540px), 1));
+  margin-bottom: calc(-856px * (1 - clamp(0.5, calc((100vw - 48px) / 540px), 1)));
+}
+@media (min-width: 768px) {
+  .id-card-preview {
+    transform: scale(min(1, calc((100% - 32px) / 540px)));
+    margin-bottom: calc(-856px * (1 - min(1, calc((100% - 32px) / 540px))));
+  }
 }
 @media (max-width: 767px) {
-  .id-card-preview { margin-bottom: calc(-856px * (1 - clamp(0.55, calc((100vw - 32px) / 540px), 1))); }
+  .id-card-preview {
+    margin-bottom: calc(-856px * (1 - clamp(0.5, calc((100vw - 48px) / 540px), 1)));
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse { animation: none !important; }
