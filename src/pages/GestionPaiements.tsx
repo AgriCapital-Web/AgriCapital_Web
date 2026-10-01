@@ -215,6 +215,7 @@ const GestionPaiements = () => {
           clients (nom_complet, telephone),
           plantations (id_unique, nom_plantation)
         `)
+        .neq('statut', 'planifie')
         .order('created_at', { ascending: false })
         .limit(500);
 
