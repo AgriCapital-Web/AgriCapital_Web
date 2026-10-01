@@ -123,7 +123,7 @@ export default function Messagerie() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
       <MainLayout>
         <div className="min-w-0 space-y-5">
           <div>
