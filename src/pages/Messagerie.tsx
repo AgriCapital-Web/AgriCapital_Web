@@ -3,6 +3,7 @@ import { MessageSquare, Search, ChevronsUpDown, ArrowDownLeft, ArrowUpRight, Loa
 import { useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/roles";
 import ClientMessagingPanel from "@/components/clients/ClientMessagingPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -118,7 +119,7 @@ export default function Messagerie() {
   const latest = useMemo(() => recent.slice(0, 5), [recent]);
 
   if (!can("clients.view")) {
-    return <ProtectedRoute><MainLayout><Card><CardContent className="p-8 text-center">Accès non autorisé.</CardContent></Card></MainLayout></ProtectedRoute>;
+    return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}><MainLayout><Card><CardContent className="p-8 text-center">Accès non autorisé.</CardContent></Card></MainLayout></ProtectedRoute>;
   }
 
   return (
