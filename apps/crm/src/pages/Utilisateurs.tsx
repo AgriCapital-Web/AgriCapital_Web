@@ -42,6 +42,7 @@ const Utilisateurs = () => {
   const { hasRole } = useAuth();
   const { toast } = useToast();
   const isSuperAdmin = hasRole("super_admin");
+  const canManageUserCredentials = isSuperAdmin || hasRole("responsable_operations");
 
   const fetchUtilisateurs = async () => {
     try {
@@ -291,7 +292,7 @@ const Utilisateurs = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Modifier
                         </DropdownMenuItem>
-                        {isSuperAdmin && !['8d616fdc-6f25-43e9-baaa-51ead746222e','bd9579fd-1d07-4431-9cc4-b57dfeeab593'].includes(user.user_id || user.id) && (
+                        {canManageUserCredentials && !['8d616fdc-6f25-43e9-baaa-51ead746222e','bd9579fd-1d07-4431-9cc4-b57dfeeab593'].includes(user.user_id || user.id) && (
                           <>
                             <DropdownMenuItem onClick={() => openAdminAction(user, "roles")}>
                               <Shield className="h-4 w-4 mr-2" />
@@ -390,7 +391,7 @@ const Utilisateurs = () => {
           {adminAction === "password" && (
             <div className="space-y-2">
               <Label>Mot de passe (8 caractères minimum)</Label>
-              <Input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+              <Input type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
             </div>
           )}
 
