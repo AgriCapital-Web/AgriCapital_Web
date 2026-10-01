@@ -48,16 +48,41 @@ begin
   v_physical:=greatest(coalesce(v_parcelle.surface_totale_ha,0),2*v_beneficiary);
   v_density:=coalesce(v_parcelle.plantation_densite_plants,new.densite_plants,140);
   update public.parcelles
-  set mode_surface='foncier', surface_totale_ha=v_physical, surface_proprietaire_ha=v_physical/2,
-      surface_agricapital_ha=v_physical/2, surface_attribuee_ha=v_beneficiary,
-      surface_disponible_ha=greatest(0,v_physical/2-v_beneficiary), plantation_partagee_activee=true,
-      plantation_surface_cible_ha=v_physical, plantation_type_culture=coalesce(plantation_type_culture,'Palmier à huile'),
-      plantation_densite_plants=v_density, updated_at=now()
+  set mode_surface='foncier',
+      surface_totale_ha=v_physical,
+      surface_proprietaire_ha=v_physical/2,
+      surface_agricapital_ha=v_physical/2,
+      surface_attribuee_ha=v_beneficiary,
+      surface_disponible_ha=greatest(0,v_physical/2-v_beneficiary),
+      plantation_partagee_activee=true,
+      plantation_surface_cible_ha=v_physical,
+      plantation_type_culture=coalesce(plantation_type_culture,'Palmier à huile'),
+      plantation_densite_plants=v_density,
+      updated_at=now()
   where id=v_parcelle.id;
+
   update public.plantations
-  set client_id=null, role_attribution='partage', superficie_ha=v_physical, superficie_activee=v_physical,
-      nombre_plants=(v_physical*v_density)::integer, densite_plants=v_density,
-      statut=coalesce(nullif(statut,''),'actif'), statut_global=coalesce(nullif(statut_global,''),'actif'), updated_at=now()
+  set client_id=null,
+      role_attribution='partage',
+      superficie_ha=v_physical,
+      superficie_activee=v_physical,
+      nombre_plants=(v_physical*v_density)::integer,
+      densite_plants=v_density,
+      statut=coalesce(nullif(statut,''),'actif'),
+      statut_global=coalesce(nullif(statut_global,''),'actif'),
+      updated_at=now()
   where id=new.id;
+
+  if not exists(
+    select 1 from public.beneficiaire_attributions
+    where client_id=new.client_id and parcelle_id=new.parcelle_id and statut='active'
+  ) then
+    insert into public.beneficiaire_attributions(
+      client_id,parcelle_id,plantation_id,surface_attribuee_ha,role_attribution,statut,notes
+    ) values(
+      new.client_id,new.parcelle_id,new.id,v_beneficiary,'beneficiaire','active',
+      'Quote-part bénéficiaire particulier dans un actif agricole partagé. Aucun paiement requis.'
+    );
+  end if;
   return new;
 end; $$;
