@@ -99,7 +99,7 @@ export default function CountryPhoneInput({
           aria-label="Indicatif pays"
           value={selected.code}
           disabled={disabled}
-          onChange={(e) => emit(COUNTRIES.find((c) => c.code === e.target.value) || COUNTRIES[0], localValue)}
+          onChange={(e) => emit(countries.find((c) => c.code === e.target.value) || countries[0], localValue)}
           className="h-10 w-[92px] min-[390px]:w-[108px] sm:w-[122px] shrink-0 rounded-md border bg-background px-2 text-sm"
         >
           {countries.map((country) => (
