@@ -168,16 +168,16 @@ const RapportsFinanciers = () => {
     ];
 
     void exportFinancialWorkbook([
-      { name: "Tableau de bord", rows: dashboardData, widths: [30, 22, 48, 4], merges: ["A1:D1", "A2:D2"], freeze: 2 },
-      { name: "Commissions", rows: commissionData, widths: [14, 26, 20, 24, 20, 12, 20, 18], merges: ["A1:H1", "A2:H2"], freeze: 2, autoFilter: true,
+      { name: "Tableau de bord", rows: dashboardData, widths: [30, 22, 48, 4], merges: ["A1:D1", "A2:D2"], freeze: 3, moneyCols: [1] },
+      { name: "Commissions", rows: commissionData, widths: [14, 26, 20, 24, 20, 12, 20, 18], merges: ["A1:H1", "A2:H2"], freeze: 3, autoFilter: true, moneyCols: [4, 6], percentCols: [5],
         conditional: [
           { range: `H3:H${commissionData.length}`, formula: '$H3="payee"', style: 0 },
           { range: `H3:H${commissionData.length}`, formula: '$H3="validee"', style: 0 },
           { range: `H3:H${commissionData.length}`, formula: '$H3="calculee"', style: 2 },
         ] },
-      { name: "Par commercial", rows: commercialData, widths: [30, 22, 24, 24], merges: ["A1:D1", "A2:D2"], freeze: 2, autoFilter: true },
-      { name: "Par équipe", rows: equipeData, widths: [32, 24, 24], merges: ["A1:C1", "A2:C2"], freeze: 2, autoFilter: true },
-      { name: "Synthèse clients", rows: syntheseData, widths: [30, 20, 22, 14, 22, 22, 22, 16], merges: ["A1:H1", "A2:H2"], freeze: 2, autoFilter: true,
+      { name: "Par commercial", rows: commercialData, widths: [30, 22, 24, 24], merges: ["A1:D1", "A2:D2"], freeze: 3, autoFilter: true, moneyCols: [3] },
+      { name: "Par équipe", rows: equipeData, widths: [32, 24, 24], merges: ["A1:C1", "A2:C2"], freeze: 3, autoFilter: true, moneyCols: [2] },
+      { name: "Synthèse clients", rows: syntheseData, widths: [30, 20, 22, 14, 22, 22, 22, 16], merges: ["A1:H1", "A2:H2"], freeze: 3, autoFilter: true, moneyCols: [4, 5, 6], percentCols: [7],
         conditional: [
           { range: `H3:H${syntheseData.length}`, formula: "$H3>=1", style: 0 },
           { range: `H3:H${syntheseData.length}`, formula: "$H3<0.5", style: 1 },
