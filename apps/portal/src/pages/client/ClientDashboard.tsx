@@ -275,7 +275,7 @@ const ClientDashboard = ({
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-2 lg:col-span-7">
+        <div className="grid grid-cols-1 min-[360px]:grid-cols-3 gap-2 lg:col-span-7">
           {[
             { icon: Sprout, value: plantations.length, label: "Plantation(s)", color: "text-green-400" },
             { icon: MapPin, value: totalHectares, label: "Hectare(s)", color: "text-gold" },
@@ -299,7 +299,7 @@ const ClientDashboard = ({
                 <div className="h-7 w-7 rounded-lg bg-gold/10 flex items-center justify-center"><Leaf className="h-3.5 w-3.5 text-gold" /></div>
                 <span className="text-xs font-bold text-foreground">Tarifs {offreNom} — {currentRate.label}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2 mb-2">
                 <div className="bg-muted/40 rounded-xl p-2 text-center">
                   <p className="text-[9px] text-muted-foreground uppercase">Dépôt initial / ha</p>
                   <p className="text-sm font-black text-gold-dark">{fmt(currentRate.schedule.depot_initial)}</p>
@@ -345,7 +345,7 @@ const ClientDashboard = ({
                   <p className="text-xs text-destructive/70 mt-0.5">{joursRetard} jour(s) de retard — <span className="font-bold">{fmt(totalArrieres)}</span></p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-2">
                 <Button onClick={() => onPayment({ prefillAmount: totalArrieres, prefillType: 'arriere' })} className="h-10 text-xs gap-1.5 rounded-xl btn-brand">
                   <Zap className="h-3.5 w-3.5" /> Rattraper
                 </Button>
