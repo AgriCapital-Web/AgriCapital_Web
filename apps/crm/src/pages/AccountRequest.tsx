@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import logoGreen from "@/assets/logo-green.png";
@@ -83,10 +84,13 @@ const AccountRequest = () => {
   const [photoPreview, setPhotoPreview] = useState("");
   const [photoPath, setPhotoPath] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoSourceOpen, setPhotoSourceOpen] = useState(false);
   const [errorDetail, setErrorDetail] = useState<any>(null);
   const [regions, setRegions] = useState<any[]>([]);
   const [departements, setDepartements] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -256,10 +260,24 @@ const AccountRequest = () => {
                   {photoPreview ? <img src={photoPreview} alt="Aperçu de la photo" className="h-full w-full object-cover" /> : <ImageIcon className="h-10 w-10 text-muted-foreground" />}
                 </div>
                 <div className="min-w-0 space-y-3">
-                  <label className="inline-flex cursor-pointer">
-                    <input type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="sr-only" onChange={(e) => void handlePhoto(e.target.files?.[0])} />
-                    <span className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"><Camera className="mr-2 h-4 w-4" />Choisir une photo</span>
-                  </label>
+                  <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="sr-only" onChange={(e) => { setPhotoSourceOpen(false); void handlePhoto(e.target.files?.[0]); }} />
+                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { setPhotoSourceOpen(false); void handlePhoto(e.target.files?.[0]); }} />
+                  <Button type="button" onClick={() => setPhotoSourceOpen(true)} className="min-h-11">
+                    <Camera className="mr-2 h-4 w-4" />Ajouter une photo
+                  </Button>
+                  <Dialog open={photoSourceOpen} onOpenChange={setPhotoSourceOpen}>
+                    <DialogContent className="max-w-sm">
+                      <DialogHeader><DialogTitle>Ajouter une photo de profil</DialogTitle></DialogHeader>
+                      <div className="grid grid-cols-1 gap-3">
+                        <Button type="button" onClick={() => cameraInputRef.current?.click()} className="h-12 justify-start">
+                          <Camera className="mr-3 h-5 w-5" /> Prendre une photo avec la caméra
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="h-12 justify-start">
+                          <ImageIcon className="mr-3 h-5 w-5" /> Choisir depuis le gestionnaire de fichiers
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     {photoUploading ? <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Enregistrement...</span> : photoPath ? <span className="inline-flex items-center gap-1 text-primary"><CheckCircle2 className="h-4 w-4" />Photo enregistrée</span> : <span className="text-muted-foreground">JPG, PNG ou WebP · 10 Mo maximum avant compression</span>}
                   </div>
