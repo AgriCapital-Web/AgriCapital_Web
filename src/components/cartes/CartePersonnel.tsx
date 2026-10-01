@@ -309,17 +309,17 @@ const ContactIcon = ({ path }: { path: string }) => (
 const CONTACTS = (carte: CarteData) => [
   {
     d: "M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2 4.6 1v3.4A2 2 0 0 1 18 21.6 18 18 0 0 1 2.4 6 2 2 0 0 1 4.4 4h3.4l1 4.6-2.2 2.2Z",
-    t: carte.telephone || "+225 07 50 56 60 87",
+    t: carte.telephone || "",
   },
   {
     d: "M2 5h20v14H2V5Zm10 8L3.5 6.6 12 12l8.5-5.4L12 13Z",
-    t: "contact@agricapital.ci",
+    t: carte.email || "",
   },
   {
     d: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2c1.6 2 2.4 4 2.4 6s-.8 4-2.4 6c-1.6-2-2.4-4-2.4-6s.8-4 2.4-6ZM4.3 9h3.3a16 16 0 0 0 0 6H4.3a8 8 0 0 1 0-6Zm12.1 0h3.3a8 8 0 0 1 0 6h-3.3a16 16 0 0 0 0-6Z",
     t: "www.agricapital.ci",
   },
-];
+].filter((contact) => Boolean(contact.t));
 
 export const CarteRecto = forwardRef<HTMLDivElement, { carte: CarteData }>(({ carte }, ref) => {
   const photo = useSignedUrl(carte.photo_bucket || CARTE_BUCKET, carte.photo_url);
