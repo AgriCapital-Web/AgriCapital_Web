@@ -178,8 +178,8 @@ const ProprietaireTerreDetail = () => {
           </Card>
 
           <div className="flex flex-wrap gap-2 text-sm">
-            <Badge variant="outline"><Ruler className="mr-1 h-3 w-3" />{owner.surface_totale_ha ? Number(owner.surface_totale_ha).toFixed(2) : "0.00"} ha déclarés</Badge>
-            <Badge variant="outline"><Layers className="mr-1 h-3 w-3" />{owner.nombre_parcelles || totals.count} parcelle(s)</Badge>
+            <Badge variant="outline"><Ruler className="mr-1 h-3 w-3" />{Number(owner.surface_totale_ha ?? totals.total).toFixed(2)} ha déclarés</Badge>
+            <Badge variant="outline"><Layers className="mr-1 h-3 w-3" />{totals.count} parcelle(s)</Badge>
           </div>
         </div>
       </MainLayout>
