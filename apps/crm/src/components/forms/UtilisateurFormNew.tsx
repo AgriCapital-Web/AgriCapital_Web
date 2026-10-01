@@ -22,9 +22,9 @@ import { logAdminAction } from "@/lib/audit";
 
 const userFormSchema = z.object({
   username: z.string()
-    .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères")
-    .max(50, "Le nom d'utilisateur ne peut pas dépasser 50 caractères")
-    .regex(/^[a-zA-Z0-9_]+$/, "Le nom d'utilisateur ne peut contenir que des lettres, chiffres et underscore"),
+    .trim()
+    .min(2, "Le nom d'utilisateur est obligatoire")
+    .max(64, "Le nom d'utilisateur ne peut pas dépasser 64 caractères"),
   email: z.string()
     .email("Email invalide")
     .max(255, "L'email ne peut pas dépasser 255 caractères"),
