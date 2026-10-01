@@ -1,0 +1,29 @@
+{
+  "name": "AgriCapital App",
+  "short_name": "AgriCapital App",
+  "description": "Système de Gestion des Souscripteurs & Plantations - CRM AgriCapital",
+  "theme_color": "#00643C",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "start_url": "/",
+  "scope": "/",
+  "id": "agricapital-app",
+  "icons": [
+    {
+      "src": "/icons/icon-app.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-app.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "fr-FR",
+  "dir": "ltr"
+}

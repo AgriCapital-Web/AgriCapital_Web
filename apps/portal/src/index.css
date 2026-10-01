@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Typographie signature AgriCapital : Sora pour les titres, Plus Jakarta Sans pour le corps. */
+html, body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+}
+h1, h2, h3, .font-display {
+  font-family: 'Sora', 'Plus Jakarta Sans', system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+/* Harmonisation des espacements mobiles : évite les blocs collés
+   sans casser les layouts denses en desktop. */
+@media (max-width: 640px) {
+  .client-page-content { padding-left: 1rem; padding-right: 1rem; }
+  .client-page-content > * + * { margin-top: 1rem; }
+  .client-page-content .grid { gap: 0.75rem; }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 210 2% 35%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 2% 35%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 2% 35%;
+
+    /* Vert AgriCapital #00643C */
+    --primary: 158 100% 20%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 158 100% 25%;
+
+    /* Gris #C7C8CA */
+    --secondary: 210 3% 79%;
+    --secondary-foreground: 210 2% 35%;
+
+    --muted: 210 5% 96%;
+    --muted-foreground: 210 3% 50%;
+
+    /* Or/Doré #E89C31 */
+    --accent: 38 77% 55%;
+    --accent-foreground: 210 2% 10%;
+
+    /* Or clair pour bordures */
+    --gold: 38 77% 55%;
+    --gold-light: 38 70% 70%;
+    --gold-dark: 38 80% 42%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 3% 88%;
+    --input: 210 3% 88%;
+    --ring: 158 100% 20%;
+
+    --radius: 0.75rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(158 100% 20%), hsl(158 100% 28%));
+    --gradient-accent: linear-gradient(135deg, hsl(38 77% 55%), hsl(38 70% 48%));
+    --gradient-hero: linear-gradient(160deg, #00643C 0%, #003320 100%);
+    --gradient-brand-border: linear-gradient(135deg, hsl(38 77% 55%), hsl(38 77% 65%) 40%, hsl(158 100% 20% / 0.2) 60%, hsl(158 100% 20%));
+
+    --shadow-soft: 0 4px 20px -4px hsl(158 100% 20% / 0.1);
+    --shadow-medium: 0 8px 30px -6px hsl(158 100% 20% / 0.15);
+    --shadow-brand: 0 4px 24px -6px hsl(38 77% 55% / 0.2), 0 8px 32px -8px hsl(158 100% 20% / 0.1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 210 10% 10%;
+    --foreground: 0 0% 95%;
+    --card: 210 10% 15%;
+    --card-foreground: 0 0% 95%;
+    --popover: 210 10% 15%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 158 100% 30%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 158 100% 35%;
+    --secondary: 210 3% 25%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 210 3% 25%;
+    --muted-foreground: 210 3% 70%;
+    --accent: 38 77% 55%;
+    --accent-foreground: 0 0% 100%;
+    --gold: 38 77% 55%;
+    --gold-light: 38 70% 65%;
+    --gold-dark: 38 80% 42%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 210 3% 25%;
+    --input: 210 3% 25%;
+    --ring: 37 56% 61%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  @media (max-width: 640px) {
+    button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Signature AgriCapital card border: gold top+right, green bottom+left */
+  .card-brand {
+    border-top: 2px solid hsl(var(--gold));
+    border-right: 2px solid hsl(var(--gold));
+    border-bottom: 2px solid hsl(var(--primary));
+    border-left: 2px solid hsl(var(--primary));
+    box-shadow: var(--shadow-brand);
+  }
+  .card-brand-subtle {
+    border-top: 1.5px solid hsl(var(--gold) / 0.4);
+    border-right: 1.5px solid hsl(var(--gold) / 0.4);
+    border-bottom: 1.5px solid hsl(var(--primary) / 0.3);
+    border-left: 1.5px solid hsl(var(--primary) / 0.3);
+  }
+  .card-brand-gold {
+    border: 2px solid hsl(var(--gold) / 0.3);
+    border-top: 2px solid hsl(var(--gold));
+  }
+  .card-brand-green {
+    border: 2px solid hsl(var(--primary) / 0.2);
+    border-left: 3px solid hsl(var(--primary));
+  }
+  /* Brand gradient button */
+  .btn-brand {
+    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
+    color: white;
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+  .btn-brand:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -4px hsl(var(--gold) / 0.4);
+  }
+  .btn-brand-green {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(158 100% 15%));
+    color: white;
+    font-weight: 700;
+  }
+  .btn-brand-green:hover {
+    filter: brightness(1.1);
+  }
+}

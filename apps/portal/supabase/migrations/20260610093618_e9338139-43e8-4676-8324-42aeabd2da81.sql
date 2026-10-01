@@ -1,0 +1,1 @@
+UPDATE public.souscripteurs SET offre_id = (SELECT id FROM public.offres WHERE code = 'palm-invest' AND actif = true LIMIT 1) WHERE offre_id IS NULL;

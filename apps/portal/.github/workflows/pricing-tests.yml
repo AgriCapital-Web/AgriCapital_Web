@@ -1,0 +1,32 @@
+name: pricing-guard
+
+on:
+  push:
+    paths:
+      - "src/utils/pricing.ts"
+      - "src/utils/pricingGuard.ts"
+      - "src/utils/paymentLabels.ts"
+      - "src/utils/**/*.test.ts"
+      - "vitest.config.ts"
+      - "package.json"
+      - ".github/workflows/pricing-tests.yml"
+  pull_request:
+    paths:
+      - "src/utils/pricing.ts"
+      - "src/utils/pricingGuard.ts"
+      - "src/utils/paymentLabels.ts"
+      - "src/utils/**/*.test.ts"
+
+jobs:
+  pricing:
+    name: Pricing & label invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile || bun install
+      - name: Run pricing + label tests
+        run: bunx vitest run src/utils/pricing.test.ts src/utils/pricingDisplay.test.ts src/utils/paymentLabels.test.ts src/utils/forbiddenLabels.test.ts

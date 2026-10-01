@@ -1,0 +1,28 @@
+# Portail Client AgriCapital - client.agricapital.ci
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: *
+Allow: /
+
+# Only the public login (/) is indexable. All authenticated views send noindex,nofollow client-side.
+
+Sitemap: https://client.agricapital.ci/sitemap.xml

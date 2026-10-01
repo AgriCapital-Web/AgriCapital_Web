@@ -1,0 +1,538 @@
+import CountryPhoneInput from "@/components/common/CountryPhoneInput";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import MainLayout from "@/components/layout/MainLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { offlineInsert, offlineUpdate } from "@/lib/offlineWrite";
+import { getCachedItems, STORES } from "@/lib/offlineDb";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Target, TrendingUp, Users, MapPin, PhoneCall, ArrowRight, Copy, Plus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { getSafeErrorMessage } from "@/lib/safeError";
+import RegionSelect from "@/components/common/RegionSelect";
+
+
+const STATUTS = [
+  { v: "nouveau", l: "Nouveau", color: "bg-blue-100 text-blue-800" },
+  { v: "contacte", l: "Contacté", color: "bg-cyan-100 text-cyan-800" },
+  { v: "qualifie", l: "Qualifié", color: "bg-indigo-100 text-indigo-800" },
+  { v: "en_discussion", l: "En discussion", color: "bg-purple-100 text-purple-800" },
+  { v: "preparation_dossier", l: "Prépa dossier", color: "bg-amber-100 text-amber-800" },
+  { v: "pret_souscrire", l: "Prêt à souscrire", color: "bg-orange-100 text-orange-800" },
+  { v: "converti", l: "Converti", color: "bg-green-100 text-green-800" },
+  { v: "abandonne", l: "Abandonné", color: "bg-gray-100 text-gray-800" },
+];
+
+const CANAUX = [{ v: "appel", l: "Appel" }, { v: "whatsapp", l: "WhatsApp" }, { v: "physique", l: "Physique" }, { v: "email", l: "Email" }];
+const RESULTATS = [
+  { v: "non_joignable", l: "Non joignable" }, { v: "rappel_demande", l: "Rappel demandé" },
+  { v: "interesse", l: "Intéressé" }, { v: "tres_interesse", l: "Très intéressé" },
+  { v: "en_reflexion", l: "En réflexion" }, { v: "non_interesse", l: "Non intéressé" },
+];
+
+export default function Leads() {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const qc = useQueryClient();
+  const { user, userRoles } = useAuth();
+  const canSupervise = (userRoles || []).some((r: string) =>
+    ["super_admin", "directeur_tc", "superviseur_tc", "responsable_zone", "responsable_commercial",
+     "chef_equipe", "chef_equipe_commercial"].includes(r));
+  const [selected, setSelected] = useState<any>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const emptyLead = {
+    nom: "", prenoms: "", telephone: "", telephone_indicatif: "+225", telephone_local: "", whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "", email: "", region_residence: "",
+    est_diaspora: "non", pays_diaspora: "",
+    dispose_terrain: "non", superficie_disponible_ha: "", superficie_a_valoriser_ha: "", superficie_souhaitee_ha: "",
+    delai_demarrage: "", date_contact_souhaitee: "", creneau_prefere: "", mode_contact_prefere: "appel",
+    statut: "nouveau", source: "commercial_terrain", assigned_to: "", commentaire: "",
+  };
+  const [leadForm, setLeadForm] = useState<Record<string, string>>(emptyLead);
+  const [relanceOpen, setRelanceOpen] = useState(false);
+  const [relance, setRelance] = useState<any>({ canal: "appel", resultat: "interesse", commentaire: "", prochaine_relance: "" });
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [reassignTo, setReassignTo] = useState("");
+  const [reassignMotif, setReassignMotif] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setCreateOpen(true);
+  }, [searchParams]);
+
+  const { data: leads = [] } = useQuery({
+    queryKey: ["leads"],
+    queryFn: async () => {
+      if (!navigator.onLine) {
+        const cached = await getCachedItems(STORES.LEADS);
+        return cached.sort((a: any, b: any) => (b.created_at || '').localeCompare(a.created_at || ''));
+      }
+      const { data, error } = await (supabase as any).from("leads").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: relances = [] } = useQuery({
+    queryKey: ["lead_relances", selected?.id],
+    enabled: !!selected?.id,
+    queryFn: async () => {
+      if (!navigator.onLine) {
+        const cached = await getCachedItems(STORES.LEAD_RELANCES);
+        return cached.filter((r: any) => r.lead_id === selected.id);
+      }
+      const { data } = await (supabase as any).from("lead_relances").select("*").eq("lead_id", selected.id).order("date_relance", { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Traçabilité complète du lead (création, modifications, conversion, réaffectations)
+  const { data: historique = [] } = useQuery({
+    queryKey: ["lead_historique", selected?.id],
+    enabled: !!selected?.id && navigator.onLine,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("lead_historique").select("*").eq("lead_id", selected.id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Annuaire des acteurs (auteur / affectation / historique)
+  const { data: acteurs = [] } = useQuery({
+    queryKey: ["profiles_acteurs"],
+    enabled: navigator.onLine,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("profils_annuaire").select("id,user_id,nom_complet").eq("actif", true);
+      return data || [];
+    },
+  });
+  const nameOf = (id?: string | null) =>
+    (!id ? "—" : acteurs.find((a: any) => a.user_id === id || a.id === id)?.nom_complet || String(id).slice(0, 8) + "…");
+
+  const reassign = useMutation({
+    mutationFn: async () => {
+      const { error } = await (supabase as any).rpc("reassign_lead", {
+        _lead_id: selected.id, _new_owner: reassignTo, _motif: reassignMotif || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["lead_historique", selected?.id] });
+      setReassignOpen(false); setReassignTo(""); setReassignMotif("");
+      toast({ title: "Prospect réaffecté" });
+    },
+    onError: (e: any) => toast({ variant: "destructive", title: "Réaffectation refusée", description: getSafeErrorMessage(e) }),
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, statut }: any) => {
+       const lead = leads.find((item: any) => item.id === id);
+       const isOwner = lead?.assigned_to === user?.id || lead?.created_by === user?.id;
+       if (!isOwner && !canSupervise) throw new Error("Vous ne pouvez modifier que vos propres prospects.");
+       const { error } = await offlineUpdate("leads", id, { statut });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["leads"] }); toast({ title: "Statut mis à jour" }); },
+  });
+
+  const createLead = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Non authentifié");
+      const num = (v: string) => (v === "" || v == null ? null : Number(v));
+      const { error } = await offlineInsert("leads", {
+        nom: leadForm.nom,
+        prenoms: leadForm.prenoms,
+        telephone: leadForm.telephone,
+        whatsapp: leadForm.whatsapp || null,
+        email: leadForm.email || null,
+        region_residence: leadForm.region_residence,
+        est_diaspora: leadForm.est_diaspora === "oui",
+        pays_diaspora: leadForm.est_diaspora === "oui" ? (leadForm.pays_diaspora || null) : null,
+        dispose_terrain: leadForm.dispose_terrain === "oui",
+        superficie_disponible_ha: leadForm.dispose_terrain === "oui" ? num(leadForm.superficie_disponible_ha) : null,
+        superficie_a_valoriser_ha: leadForm.dispose_terrain === "oui" ? num(leadForm.superficie_a_valoriser_ha) : null,
+        superficie_souhaitee_ha: num(leadForm.superficie_souhaitee_ha),
+        delai_demarrage: leadForm.delai_demarrage || null,
+        date_contact_souhaitee: leadForm.date_contact_souhaitee || null,
+        creneau_prefere: leadForm.creneau_prefere || null,
+        mode_contact_prefere: leadForm.mode_contact_prefere || null,
+        commentaire: leadForm.commentaire || null,
+        statut: leadForm.statut || "nouveau",
+        source: leadForm.source || "commercial_terrain",
+        created_by: user.id,
+        assigned_to: (canSupervise && leadForm.assigned_to) ? leadForm.assigned_to : user.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      setLeadForm(emptyLead);
+      setCreateOpen(false);
+      toast({ title: navigator.onLine ? "Lead créé" : "Lead enregistré hors ligne" });
+    },
+    onError: (e: any) => toast({ variant: "destructive", title: "Création impossible", description: getSafeErrorMessage(e) }),
+  });
+
+  const addRelance = useMutation({
+    mutationFn: async () => {
+      const user = (await supabase.auth.getUser()).data.user;
+      const { error } = await offlineInsert("lead_relances", {
+        lead_id: selected.id,
+        commercial_id: user?.id || null,
+        ...relance,
+        prochaine_relance: relance.prochaine_relance || null,
+      });
+      if (error) throw error;
+      if (relance.prochaine_relance) {
+        await offlineUpdate("leads", selected.id, { prochaine_relance_at: relance.prochaine_relance });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["lead_relances", selected?.id] });
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      setRelanceOpen(false);
+      setRelance({ canal: "appel", resultat: "interesse", commentaire: "", prochaine_relance: "" });
+      toast({ title: "Relance enregistrée" });
+    },
+    onError: (e: any) => toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(e) }),
+  });
+
+  const convertToClient = (lead: any) => {
+    const isOwner = lead.assigned_to === user?.id || lead.created_by === user?.id;
+    if (!isOwner && !canSupervise) {
+      toast({ variant: "destructive", title: "Conversion refusée", description: "Ce prospect appartient à un autre commercial." });
+      return;
+    }
+    // Pré-remplir acquisition via query params
+    const params = new URLSearchParams({
+      lead_id: lead.id,
+      nom: lead.nom || "",
+      prenoms: lead.prenoms || "",
+      telephone: lead.telephone || "",
+      whatsapp: lead.whatsapp || "",
+      email: lead.email || "",
+      region: lead.region_residence || "",
+    });
+    navigate(`/nouvelle-acquisition?${params.toString()}`);
+  };
+
+  const publicUrl = `${window.location.origin}/leads/public`;
+
+  const stats = {
+    total: leads.length,
+    nouveaux: leads.filter((l: any) => l.statut === "nouveau").length,
+    aRelancer: leads.filter((l: any) => l.prochaine_relance_at && new Date(l.prochaine_relance_at) <= new Date()).length,
+    convertis: leads.filter((l: any) => l.statut === "converti").length,
+    diaspora: leads.filter((l: any) => l.est_diaspora).length,
+    superficie: leads.reduce((s: number, l: any) => s + (Number(l.superficie_disponible_ha || l.superficie_souhaitee_ha) || 0), 0),
+  };
+  const tauxConversion = stats.total ? Math.round((stats.convertis / stats.total) * 100) : 0;
+
+  return (
+    <MainLayout>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2"><Target className="h-6 w-6 text-primary" />Prospects / Leads</h1>
+            <p className="text-muted-foreground text-sm">Suivi commercial jusqu'à la conversion en client.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4 mr-2" />Créer un lead</Button>
+            <Button variant="outline" onClick={() => { navigator.clipboard.writeText(publicUrl); toast({ title: "Lien copié", description: publicUrl }); }}>
+              <Copy className="h-4 w-4 mr-2" />Lien public
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3">
+          {[
+            { l: "Total", v: stats.total, i: Users },
+            { l: "Nouveaux", v: stats.nouveaux, i: Target },
+            { l: "À relancer", v: stats.aRelancer, i: PhoneCall },
+            { l: "Convertis", v: stats.convertis, i: TrendingUp },
+            { l: "Diaspora", v: stats.diaspora, i: MapPin },
+            { l: "Taux conv.", v: `${tauxConversion}%`, i: TrendingUp },
+          ].map((s, i) => (
+            <Card key={i}><CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div><p className="text-xs text-muted-foreground">{s.l}</p><p className="text-xl font-bold">{s.v}</p></div>
+                <s.i className="h-5 w-5 text-primary/60" />
+              </div>
+            </CardContent></Card>
+          ))}
+        </div>
+
+        <Card>
+          <CardHeader><CardTitle>Pipeline commercial</CardTitle></CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>ID</TableHead><TableHead>Nom</TableHead><TableHead>Contact</TableHead>
+                <TableHead>Région</TableHead><TableHead>Statut</TableHead><TableHead>Relance</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {leads.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Aucun prospect enregistré.</TableCell></TableRow>}
+                {leads.map((l: any) => {
+                  const st = STATUTS.find(s => s.v === l.statut);
+                  return (
+                    <TableRow key={l.id}>
+                      <TableCell className="font-mono text-xs">{l.id_unique}</TableCell>
+                      <TableCell><div className="font-medium">{l.nom} {l.prenoms}</div>{l.est_diaspora && <Badge variant="outline" className="text-xs mt-1">Diaspora</Badge>}</TableCell>
+                      <TableCell className="text-sm">{l.telephone}<br/><span className="text-xs text-muted-foreground">{l.email || "—"}</span></TableCell>
+                      <TableCell className="text-sm">{l.region_residence}</TableCell>
+                      <TableCell>
+                        <Select value={l.statut} onValueChange={v => updateStatus.mutate({ id: l.id, statut: v })}>
+                          <SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>{STATUTS.map(s => <SelectItem key={s.v} value={s.v}>{s.l}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-sm">{l.prochaine_relance_at ? format(new Date(l.prochaine_relance_at), "dd MMM", { locale: fr }) : "—"}</TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button size="sm" variant="outline" onClick={() => setSelected(l)}>Détails</Button>
+                        {l.statut !== "converti" && (
+                          <Button size="sm" onClick={() => convertToClient(l)}><ArrowRight className="h-3 w-3 mr-1" />Convertir</Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Dialog open={!!selected} onOpenChange={o => !o && setSelected(null)}>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            {selected && (
+              <>
+                <DialogHeader><DialogTitle>{selected.nom} {selected.prenoms} — {selected.id_unique}</DialogTitle></DialogHeader>
+                <Tabs defaultValue="info">
+                  <TabsList>
+                    <TabsTrigger value="info">Informations</TabsTrigger>
+                    <TabsTrigger value="relances">Relances ({relances.length})</TabsTrigger>
+                    <TabsTrigger value="historique">Historique ({historique.length})</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="info" className="space-y-2 text-sm">
+                    <p><b>Téléphone:</b> {selected.telephone} • <b>WhatsApp:</b> {selected.whatsapp || "—"}</p>
+                    <p><b>Email:</b> {selected.email || "—"}</p>
+                    <p><b>Région:</b> {selected.region_residence} {selected.est_diaspora && `(Diaspora: ${selected.pays_diaspora || "?"})`}</p>
+                    <p><b>Terrain:</b> {selected.dispose_terrain ? `Oui — ${selected.superficie_disponible_ha || 0} ha dispo, ${selected.superficie_a_valoriser_ha || 0} ha à valoriser` : `Non — souhaite ${selected.superficie_souhaitee_ha || 0} ha`}</p>
+                    <p><b>Délai:</b> {selected.delai_demarrage || "—"} • <b>Créneau:</b> {selected.creneau_prefere || "—"} • <b>Mode:</b> {selected.mode_contact_prefere}</p>
+                    <p><b>Source:</b> {selected.source}</p>
+                    <p><b>Message:</b> {selected.commentaire || "—"}</p>
+                    <p><b>Créé par:</b> {nameOf(selected.created_by)} • <b>Commercial affecté:</b> {nameOf(selected.assigned_to)}</p>
+                    {canSupervise && (
+                      <Button size="sm" variant="outline" onClick={() => setReassignOpen(true)}>Réaffecter à un commercial</Button>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="relances" className="space-y-3">
+                    <Button size="sm" onClick={() => setRelanceOpen(true)}>+ Nouvelle relance</Button>
+                    {relances.map((r: any) => (
+                      <Card key={r.id}><CardContent className="p-3 text-sm">
+                        <div className="flex justify-between"><b>{CANAUX.find(c=>c.v===r.canal)?.l}</b><span className="text-xs text-muted-foreground">{format(new Date(r.date_relance),"dd/MM HH:mm",{locale:fr})}</span></div>
+                        <Badge className="mt-1">{RESULTATS.find(x=>x.v===r.resultat)?.l}</Badge>
+                        <p className="mt-2">{r.commentaire}</p>
+                        {r.prochaine_relance && <p className="text-xs text-muted-foreground mt-1">Prochaine: {format(new Date(r.prochaine_relance),"dd/MM/yyyy")}</p>}
+                      </CardContent></Card>
+                    ))}
+                  </TabsContent>
+                  <TabsContent value="historique" className="space-y-2">
+                    {historique.length === 0 && <p className="text-sm text-muted-foreground">Aucun événement enregistré.</p>}
+                    {historique.map((h: any) => (
+                      <Card key={h.id}><CardContent className="p-3 text-sm">
+                        <div className="flex justify-between gap-3">
+                          <Badge variant="outline">{h.action}</Badge>
+                          <span className="text-xs text-muted-foreground">{format(new Date(h.created_at), "dd/MM/yyyy HH:mm", { locale: fr })}</span>
+                        </div>
+                        <p className="mt-1"><b>Par:</b> {nameOf(h.acteur_id)}</p>
+                        {h.champ && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {h.champ} : {h.champ === "assigned_to" ? nameOf(h.ancienne_valeur) : (h.ancienne_valeur || "—")}
+                            {" → "}
+                            {h.champ === "assigned_to" ? nameOf(h.nouvelle_valeur) : (h.nouvelle_valeur || "—")}
+                          </p>
+                        )}
+                        {h.commentaire && <p className="text-xs mt-1">{h.commentaire}</p>}
+                      </CardContent></Card>
+                    ))}
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={reassignOpen} onOpenChange={setReassignOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Réaffecter le prospect</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label>Nouveau commercial</Label>
+                <Select value={reassignTo} onValueChange={setReassignTo}>
+                  <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                  <SelectContent>
+                    {acteurs.filter((a: any) => a.user_id).map((a: any) => (
+                      <SelectItem key={a.id} value={a.user_id || a.id}>{a.nom_complet}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Motif</Label><Textarea value={reassignMotif} onChange={(e) => setReassignMotif(e.target.value)} /></div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => reassign.mutate()} disabled={!reassignTo || reassign.isPending}>Réaffecter</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>Créer un lead</DialogTitle></DialogHeader>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div><Label>Nom *</Label><Input value={leadForm.nom} onChange={(e) => setLeadForm({ ...leadForm, nom: e.target.value })} /></div>
+              <div><Label>Prénom(s) *</Label><Input value={leadForm.prenoms} onChange={(e) => setLeadForm({ ...leadForm, prenoms: e.target.value })} /></div>
+              <CountryPhoneInput label="Téléphone" required countryCode={leadForm.telephone_indicatif||"+225"} localValue={leadForm.telephone_local||""} onChange={v=>setLeadForm(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
+              <CountryPhoneInput label="WhatsApp" countryCode={leadForm.whatsapp_indicatif||"+225"} localValue={leadForm.whatsapp_local||""} onChange={v=>setLeadForm(x=>({...x,whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue}))}/>
+              <div><Label>Email</Label><Input type="email" value={leadForm.email} onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })} /></div>
+              <div>
+                <Label>Région *</Label>
+                <RegionSelect
+                  withDiaspora
+                  value={leadForm.region_residence}
+                  onChange={(v, isDiaspora) => setLeadForm({ ...leadForm, region_residence: v, est_diaspora: isDiaspora ? "oui" : leadForm.est_diaspora })}
+                />
+              </div>
+              <div>
+                <Label>Diaspora ?</Label>
+                <Select value={leadForm.est_diaspora} onValueChange={(v) => setLeadForm({ ...leadForm, est_diaspora: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="non">Non</SelectItem><SelectItem value="oui">Oui</SelectItem></SelectContent>
+                </Select>
+              </div>
+              {leadForm.est_diaspora === "oui" && (
+                <div><Label>Pays de résidence</Label><Input value={leadForm.pays_diaspora} onChange={(e) => setLeadForm({ ...leadForm, pays_diaspora: e.target.value })} /></div>
+              )}
+              <div>
+                <Label>Dispose d'un terrain ?</Label>
+                <Select value={leadForm.dispose_terrain} onValueChange={(v) => setLeadForm({ ...leadForm, dispose_terrain: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="non">Non</SelectItem><SelectItem value="oui">Oui</SelectItem></SelectContent>
+                </Select>
+              </div>
+              {leadForm.dispose_terrain === "oui" ? (
+                <>
+                  <div><Label>Superficie disponible (ha)</Label><Input type="number" min="0" step="0.01" value={leadForm.superficie_disponible_ha} onChange={(e) => setLeadForm({ ...leadForm, superficie_disponible_ha: e.target.value })} /></div>
+                  <div><Label>Superficie à valoriser (ha)</Label><Input type="number" min="0" step="0.01" value={leadForm.superficie_a_valoriser_ha} onChange={(e) => setLeadForm({ ...leadForm, superficie_a_valoriser_ha: e.target.value })} /></div>
+                </>
+              ) : (
+                <div><Label>Superficie souhaitée (ha)</Label><Input type="number" min="0" step="0.01" value={leadForm.superficie_souhaitee_ha} onChange={(e) => setLeadForm({ ...leadForm, superficie_souhaitee_ha: e.target.value })} /></div>
+              )}
+              <div>
+                <Label>Délai de démarrage</Label>
+                <Select value={leadForm.delai_demarrage} onValueChange={(v) => setLeadForm({ ...leadForm, delai_demarrage: v })}>
+                  <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="immediat">Immédiat</SelectItem>
+                    <SelectItem value="1_mois">Sous 1 mois</SelectItem>
+                    <SelectItem value="3_mois">Sous 3 mois</SelectItem>
+                    <SelectItem value="6_mois">Sous 6 mois</SelectItem>
+                    <SelectItem value="indetermine">Indéterminé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Date de contact souhaitée</Label><Input type="date" value={leadForm.date_contact_souhaitee} onChange={(e) => setLeadForm({ ...leadForm, date_contact_souhaitee: e.target.value })} /></div>
+              <div>
+                <Label>Créneau préféré</Label>
+                <Select value={leadForm.creneau_prefere} onValueChange={(v) => setLeadForm({ ...leadForm, creneau_prefere: v })}>
+                  <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="matin">Matin</SelectItem>
+                    <SelectItem value="apres_midi">Après-midi</SelectItem>
+                    <SelectItem value="soir">Soir</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Mode de contact préféré</Label>
+                <Select value={leadForm.mode_contact_prefere} onValueChange={(v) => setLeadForm({ ...leadForm, mode_contact_prefere: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{CANAUX.map((c) => <SelectItem key={c.v} value={c.v}>{c.l}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Statut initial</Label>
+                <Select value={leadForm.statut} onValueChange={(v) => setLeadForm({ ...leadForm, statut: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{STATUTS.filter(s => s.v !== "converti").map((s) => <SelectItem key={s.v} value={s.v}>{s.l}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Source</Label>
+                <Select value={leadForm.source} onValueChange={(v) => setLeadForm({ ...leadForm, source: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
+                    <SelectItem value="formulaire_public">Formulaire public</SelectItem>
+                    <SelectItem value="recommandation">Recommandation</SelectItem>
+                    <SelectItem value="reseaux_sociaux">Réseaux sociaux</SelectItem>
+                    <SelectItem value="salon_evenement">Salon / Événement</SelectItem>
+                    <SelectItem value="appel_entrant">Appel entrant</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {canSupervise && (
+                <div className="sm:col-span-2">
+                  <Label>Affecter à un commercial</Label>
+                  <Select value={leadForm.assigned_to} onValueChange={(v) => setLeadForm({ ...leadForm, assigned_to: v })}>
+                    <SelectTrigger><SelectValue placeholder="Moi-même par défaut" /></SelectTrigger>
+                    <SelectContent>
+                      {acteurs.filter((a: any) => a.user_id).map((a: any) => (
+                        <SelectItem key={a.id} value={a.user_id}>{a.nom_complet}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="sm:col-span-2"><Label>Note / Commentaire</Label><Textarea value={leadForm.commentaire} onChange={(e) => setLeadForm({ ...leadForm, commentaire: e.target.value })} rows={3} /></div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Annuler</Button>
+              <Button
+                onClick={() => createLead.mutate()}
+                disabled={createLead.isPending || !leadForm.nom.trim() || !leadForm.prenoms.trim() || !leadForm.telephone.trim() || !leadForm.region_residence.trim()}
+              >{createLead.isPending ? "Enregistrement…" : "Enregistrer"}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={relanceOpen} onOpenChange={setRelanceOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Nouvelle relance</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div><Label>Canal</Label><Select value={relance.canal} onValueChange={v=>setRelance({...relance,canal:v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CANAUX.map(c=><SelectItem key={c.v} value={c.v}>{c.l}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label>Résultat</Label><Select value={relance.resultat} onValueChange={v=>setRelance({...relance,resultat:v})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{RESULTATS.map(r=><SelectItem key={r.v} value={r.v}>{r.l}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label>Commentaire</Label><Textarea value={relance.commentaire} onChange={e=>setRelance({...relance,commentaire:e.target.value})} /></div>
+              <div><Label>Prochaine relance</Label><Input type="date" value={relance.prochaine_relance} onChange={e=>setRelance({...relance,prochaine_relance:e.target.value})} /></div>
+            </div>
+            <DialogFooter><Button onClick={()=>addRelance.mutate()} disabled={addRelance.isPending}>Enregistrer</Button></DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </MainLayout>
+  );
+}

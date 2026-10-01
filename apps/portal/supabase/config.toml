@@ -1,0 +1,40 @@
+project_id = "rfzfsmpsuempafhkqhra"
+
+[functions.create-user]
+verify_jwt = true
+
+[functions.send-account-request-notification]
+verify_jwt = false
+
+[functions.kkiapay-create-transaction]
+verify_jwt = false
+
+[functions.create-payment]
+verify_jwt = false
+
+[functions.kkiapay-verify-transaction]
+verify_jwt = false
+
+[functions.kkiapay-webhook]
+verify_jwt = false
+
+[functions.ai-assistant]
+verify_jwt = false
+
+[functions.subscriber-lookup]
+verify_jwt = false
+
+[functions.send-otp]
+verify_jwt = false
+
+[functions.sms-arrears-notify]
+verify_jwt = false
+
+[functions.generate-receipt]
+verify_jwt = false
+
+[functions.portal-messages]
+verify_jwt = false
+
+[functions.portal-access]
+verify_jwt = false

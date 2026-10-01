@@ -50,3 +50,28 @@ verify_jwt = false
 
 [functions.verifier-carte]
 verify_jwt = false
+
+
+[functions.generate-receipt]
+verify_jwt = true
+
+[functions.portal-access]
+verify_jwt = false
+
+[functions.portal-contact-support]
+verify_jwt = false
+
+[functions.portal-message-upload]
+verify_jwt = false
+
+[functions.portal-messaging]
+verify_jwt = false
+
+[functions.push-subscriptions]
+verify_jwt = false
+
+[functions.sms-arrears-notify]
+verify_jwt = false
+
+[functions.subscriber-lookup]
+verify_jwt = false

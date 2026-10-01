@@ -107,9 +107,7 @@ serve(async (req) => {
     });
     if (error) throw error;
 
-    // Journaliser sans faire échouer l'upload si l'audit ne peut pas être écrit.
-    // PostgrestBuilder n'est pas une Promise native : .catch() n'est pas disponible ici.
-    const { error: auditError } = await admin.from("admin_audit_logs").insert({
+    await admin.from("admin_audit_logs").insert({
       acteur_user_id: null,
       acteur_libelle: "Visiteur",
       action: "photo_demande_compte_deposee",
@@ -118,8 +116,7 @@ serve(async (req) => {
       nouvelle_valeur: { bucket: BUCKET, path, mime, bytes: bytes.byteLength },
       details: "Photo de demande de création de compte déposée avant validation.",
       source: "public_account_request",
-    });
-    if (auditError) console.warn("audit photo demande compte non enregistré", auditError.message);
+    }).catch(() => undefined);
 
     return json({ success: true, bucket: BUCKET, path });
   } catch (error) {
