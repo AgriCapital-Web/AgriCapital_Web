@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, TrendingUp, Users, MapPin, Download, Filter } from "lucide-react";
+import { DollarSign, TrendingUp, Users, MapPin, Download } from "lucide-react";
+import { exportFinancialWorkbook } from "@/utils/financialExcelExport";
 
 const RapportsFinanciers = () => {
   const [commissions, setCommissions] = useState<any[]>([]);
@@ -107,26 +108,82 @@ const RapportsFinanciers = () => {
   });
 
   const handleExportRapport = () => {
-    const csvContent = [
-      ["Date", "Commercial", "Plantation", "Type", "Montant Base", "Taux", "Commission", "Statut"],
+    const date = new Date().toLocaleDateString("fr-FR");
+    const commissionsRows = [
+      ["RAPPORT FINANCIER — AGRICAPITAL", "", "", "", "", "", "", ""],
+      [`Export du ${date} · Données selon les filtres actifs`, "", "", "", "", "", "", ""],
       ...filteredCommissions.map((c: any) => [
         new Date(c.date_calcul).toLocaleDateString("fr-FR"),
         c.profile?.nom_complet || "N/A",
         c.plantation?.id_unique || "N/A",
-        c.type_commission?.replace("_", " "),
-        c.montant_base,
-        c.taux_commission + "%",
-        c.montant_commission,
-        c.statut?.replace("_", " "),
-      ])
-    ].map(row => row.join(",")).join("\n");
+        c.type_commission?.replaceAll("_", " ") || "—",
+        Number(c.montant_base || 0),
+        Number(c.taux_commission || 0) / 100,
+        Number(c.montant_commission || 0),
+        c.statut?.replaceAll("_", " ") || "—",
+      ]),
+    ];
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `rapport-financier-${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
+    const commissionHeaders = ["Date", "Commercial", "Plantation", "Type", "Montant Base", "Taux", "Commission", "Statut"];
+    commissionsRows.splice(2, 0, commissionHeaders);
+    const commissionData = commissionsRows.slice(0, 2).concat(commissionsRows.slice(3));
+    commissionData[2] = commissionHeaders;
+
+    const commercialData = [
+      ["COMMISSIONS PAR COMMERCIAL", "", "", ""],
+      [`Export du ${date}`, "", "", ""],
+      ["Nom", "Équipe", "Nombre de commissions", "Total commissions"],
+      ...groupByUser().map((u: any) => [u.nom, u.equipe, Number(u.count), Number(u.total)]),
+    ];
+
+    const equipeData = [
+      ["COMMISSIONS PAR ÉQUIPE", "", ""],
+      [`Export du ${date}`, "", ""],
+      ["Équipe", "Nombre de commissions", "Total"],
+      ...groupByEquipe().map((e: any) => [e.equipe, Number(e.count), Number(e.total)]),
+    ];
+
+    const syntheseData = [
+      ["SYNTHÈSE FINANCIÈRE DES CLIENTS", "", "", "", "", "", ""],
+      [`Export du ${date}`, "", "", "", "", "", ""],
+      ["Client", "Référence", "Phase", "Hectares", "Total contrat", "Payé", "Restant dû", "Avancement"],
+      ...synthese.map((r: any) => {
+        const contrat = Number(r.montant_total_contrat || 0);
+        const paye = Number(r.total_paye || 0);
+        return [r.nom_complet || "—", r.id_unique || "—", r.phase_actuelle || "—", Number(r.total_hectares || 0), contrat, paye, Math.max(0, contrat - paye), contrat > 0 ? Math.min(1, paye / contrat) : 0];
+      }),
+    ];
+
+    const dashboardData = [
+      ["TABLEAU DE BORD FINANCIER — AGRICAPITAL", "", "", ""],
+      [`Situation au ${date}`, "", "", ""],
+      ["Indicateur", "Valeur", "Lecture", ""],
+      ["Total commissions", Number(stats.totalCommissions), "Toutes commissions hors annulations", ""],
+      ["Commissions validées", Number(stats.commissionsValidees), "Montants validés", ""],
+      ["Commissions en attente", Number(stats.commissionsPendantes), "Montants calculés non encore validés", ""],
+      ["Commissions payées", Number(stats.commissionsPayees), "Montants effectivement payés", ""],
+      ["Clients", Number(stats.totalClients), "Nombre de clients", ""],
+      ["Plantations", Number(stats.totalPlantations), "Nombre de plantations", ""],
+      ["Superficie totale", Number(stats.totalSuperficie), "Hectares", ""],
+    ];
+
+    void exportFinancialWorkbook([
+      { name: "Tableau de bord", rows: dashboardData, widths: [30, 22, 48, 4], merges: ["A1:D1", "A2:D2"], freeze: 2 },
+      { name: "Commissions", rows: commissionData, widths: [14, 26, 20, 24, 20, 12, 20, 18], merges: ["A1:H1", "A2:H2"], freeze: 2, autoFilter: true,
+        conditional: [
+          { range: `H3:H${commissionData.length}`, formula: '$H3="payee"', style: 0 },
+          { range: `H3:H${commissionData.length}`, formula: '$H3="validee"', style: 0 },
+          { range: `H3:H${commissionData.length}`, formula: '$H3="calculee"', style: 2 },
+        ] },
+      { name: "Par commercial", rows: commercialData, widths: [30, 22, 24, 24], merges: ["A1:D1", "A2:D2"], freeze: 2, autoFilter: true },
+      { name: "Par équipe", rows: equipeData, widths: [32, 24, 24], merges: ["A1:C1", "A2:C2"], freeze: 2, autoFilter: true },
+      { name: "Synthèse clients", rows: syntheseData, widths: [30, 20, 22, 14, 22, 22, 22, 16], merges: ["A1:H1", "A2:H2"], freeze: 2, autoFilter: true,
+        conditional: [
+          { range: `H3:H${syntheseData.length}`, formula: "$H3>=1", style: 0 },
+          { range: `H3:H${syntheseData.length}`, formula: "$H3<0.5", style: 1 },
+          { range: `H3:H${syntheseData.length}`, formula: "$H3>=0.5", style: 2 },
+        ] },
+    ], `rapport-financier-agricapital-${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
   const statsCards = [
