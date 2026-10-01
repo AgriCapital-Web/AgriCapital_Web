@@ -98,7 +98,7 @@ export const Etape2Cotitulaire = ({ formData, updateFormData }: Etape2Props) => 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cotit_relation">Relation avec souscripteur *</Label>
+              <Label htmlFor="cotit_relation">Relation avec le client *</Label>
               <Select
                 value={formData.cotit_relation}
                 onValueChange={(value) => updateFormData({ cotit_relation: value })}
