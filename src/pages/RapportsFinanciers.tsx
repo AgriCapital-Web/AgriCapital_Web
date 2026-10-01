@@ -172,12 +172,12 @@ const RapportsFinanciers = () => {
   return (
     <ProtectedRoute>
       <MainLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Rapports Financiers</h1>
+        <div className="min-w-0 space-y-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-2xl font-bold">Rapports financiers</h1>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {statsCards.map((card, index) => (
               <Card key={index}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -202,7 +202,7 @@ const RapportsFinanciers = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Région</label>
                   <Select value={filtreRegion} onValueChange={setFiltreRegion}>
@@ -249,7 +249,7 @@ const RapportsFinanciers = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Technico-commercial</label>
+                  <label className="text-sm font-medium">Commercial</label>
                   <Select value={filtreUser} onValueChange={setFiltreUser}>
                     <SelectTrigger>
                       <SelectValue placeholder="Tous les commerciaux" />
@@ -382,10 +382,10 @@ const RapportsFinanciers = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="synthese-28" className="space-y-4">
+            <TabsContent value="synthese" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Synthèse contrats — Cycle 28 ans</CardTitle>
+                  <CardTitle>Synthèse clients</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -420,12 +420,6 @@ const RapportsFinanciers = () => {
                           <TableCell className="text-amber-600 font-medium">{formatMontant(Number(r.restant_du || 0))}</TableCell>
                           <TableCell>
                             <Badge className="bg-primary">{Number(r.avancement_pct || 0).toFixed(1)}%</Badge>
-                          </TableCell>
-                          <TableCell>{Number(r.jours_restants || 0).toLocaleString()} j</TableCell>
-                          <TableCell>
-                            {Number(r.echeances_en_retard || 0) > 0
-                              ? <Badge className="bg-red-500">{r.echeances_en_retard} en retard</Badge>
-                              : <Badge variant="outline">À jour</Badge>}
                           </TableCell>
                         </TableRow>
                       ))}
