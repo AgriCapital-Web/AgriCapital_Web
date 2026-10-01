@@ -9,16 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle, XCircle, Eye, Trash2 } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { SignedImg } from "@/hooks/useSignedUrl";
-
-const ROLES = [
-  "commercial", "chef_equipe_commercial", "chef_equipe_technique", "chef_equipe_service_client",
-  "responsable_commercial", "responsable_operations", "directeur_tc",
-  "comptable", "service_client", "assistant_administratif", "super_admin", "associe_actionnaire",
-];
 
 const AccountRequests = () => {
   const [requests, setRequests] = useState<any[]>([]);
