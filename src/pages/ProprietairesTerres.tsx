@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { PERMISSIONS } from "@/lib/roles";
@@ -94,7 +95,7 @@ const ProprietairesTerres = () => {
       }
       const { data, error } = await (supabase as any)
         .from("proprietaires_terres")
-        .select("*, districts(nom), regions(nom), departements(nom), sous_prefectures(nom)")
+        .select("*, districts(nom), regions(nom), departements(nom), sous_prefectures(nom), parcelles(count)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       setProprietaires(data || []);
@@ -701,17 +702,17 @@ const ProprietairesTerres = () => {
                 ) : filtered.length === 0 ? (
                   <TableRow><TableCell colSpan={8} className="text-center py-8">Aucun propriétaire</TableCell></TableRow>
                 ) : filtered.map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-mono text-xs">{p.id_unique}</TableCell>
+                  <TableRow key={p.id} className="cursor-pointer hover:bg-muted/40">
+                    <TableCell className="font-mono text-xs"><Link to={`/proprietaires-terres/${p.id}`} className="text-primary hover:underline">{p.id_unique}</Link></TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px]">
                         {p.type_proprietaire === 'personne_morale' ? 'Morale' : p.type_proprietaire === 'famille_groupement' ? 'Famille' : 'Physique'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{p.nom_complet}</TableCell>
+                    <TableCell className="font-medium"><Link to={`/proprietaires-terres/${p.id}`} className="hover:underline">{p.nom_complet}</Link></TableCell>
                     <TableCell>{p.telephone}</TableCell>
                     <TableCell className="text-xs">{[p.districts?.nom, p.regions?.nom, p.departements?.nom].filter(Boolean).join(" > ") || "-"}</TableCell>
-                    <TableCell>{p.nombre_parcelles || 0}</TableCell>
+                    <TableCell>{p.parcelles?.[0]?.count ?? 0}</TableCell>
                     <TableCell>{(p.surface_totale_ha || 0).toFixed(1)}</TableCell>
                     <TableCell><Badge className={p.statut === "actif" ? "bg-green-500" : "bg-red-500"}>{p.statut}</Badge></TableCell>
                   </TableRow>
