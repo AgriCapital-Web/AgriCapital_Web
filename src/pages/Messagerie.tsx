@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ClientMessagingPanel from "@/components/clients/ClientMessagingPanel";
+import PortalSupportInbox from "@/components/clients/PortalSupportInbox";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,6 +72,8 @@ export default function Messagerie(){
         <div><div className="flex items-center gap-2"><MessageSquare className="h-6 w-6 text-primary"/><h1 className="text-2xl font-bold">Messagerie</h1></div><p className="text-sm text-muted-foreground">Un seul canal CRM ↔ portail pour les clients, propriétaires fonciers et bénéficiaires.</p></div>
         <Badge variant="outline">{clients.length} dossier(s) portail</Badge>
       </div>
+
+      <PortalSupportInbox onOpenClient={choose} />
 
       <div className="grid min-h-[620px] grid-cols-1 gap-4 lg:grid-cols-[330px_minmax(0,1fr)]">
         <Card className="overflow-hidden">
