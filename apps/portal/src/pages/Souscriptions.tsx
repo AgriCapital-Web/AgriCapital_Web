@@ -120,7 +120,7 @@ const Souscriptions = () => {
 
       toast({
         title: "Succès",
-        description: "Souscripteur supprimé",
+        description: "Client supprimé",
       });
       fetchData();
     } catch (error: any) {
@@ -167,7 +167,7 @@ const Souscriptions = () => {
             <div>
               <h1 className="text-3xl font-bold">Gestion des Souscriptions</h1>
               <p className="text-muted-foreground mt-1">
-                {souscripteurs.length} souscripteur(s) enregistré(s)
+                {souscripteurs.length} client(s) enregistré(s)
               </p>
             </div>
             <Link to="/nouvelle-souscription">
@@ -182,7 +182,7 @@ const Souscriptions = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Souscripteurs
+                  Total Clients
                 </CardTitle>
                 <FileText className="h-5 w-5 text-primary" />
               </CardHeader>
@@ -369,7 +369,7 @@ const Souscriptions = () => {
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {selectedSouscripteur ? "Modifier" : "Nouveau"} Souscripteur
+                {selectedSouscripteur ? "Modifier" : "Nouveau"} Client
               </DialogTitle>
             </DialogHeader>
             <PlanteurForm
@@ -389,7 +389,7 @@ const Souscriptions = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir supprimer le souscripteur "{souscripteurToDelete?.nom_complet || souscripteurToDelete?.nom}"? 
+                Êtes-vous sûr de vouloir supprimer le client "{souscripteurToDelete?.nom_complet || souscripteurToDelete?.nom}"? 
                 Cette action est irréversible et supprimera également toutes les plantations associées.
               </AlertDialogDescription>
             </AlertDialogHeader>
