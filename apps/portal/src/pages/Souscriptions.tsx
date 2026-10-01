@@ -20,19 +20,19 @@ import { Link } from "react-router-dom";
 import PlanteurForm from "@/components/forms/PlanteurForm";
 
 const Souscriptions = () => {
-  const [souscripteurs, setSouscripteurs] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSouscripteur, setSelectedSouscripteur] = useState<any>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [souscripteurToDelete, setSouscripteurToDelete] = useState<any>(null);
+  const [clientToDelete, setClientToDelete] = useState<any>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
     try {
       const { data: sousData, error: sousError } = await supabase
-        .from("souscripteurs")
+        .from("clients")
         .select(`
           *,
           offres (nom, couleur),
@@ -50,7 +50,7 @@ const Souscriptions = () => {
         total_hectares: s.plantations?.reduce((sum: number, p: any) => sum + Number(p.superficie_ha || 0), 0) || 0,
       }));
 
-      setSouscripteurs(enrichedData);
+      setClients(enrichedData);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -66,10 +66,10 @@ const Souscriptions = () => {
     fetchData();
   }, []);
 
-  useRealtime({ table: "souscripteurs", onChange: fetchData });
+  useRealtime({ table: "clients", onChange: fetchData });
   useRealtime({ table: "plantations", onChange: fetchData });
 
-  const filteredSouscripteurs = souscripteurs.filter((s) =>
+  const filteredClients = clients.filter((s) =>
     s.id_unique?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.telephone?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -77,20 +77,20 @@ const Souscriptions = () => {
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
-      const souscripteur = souscripteurs.find(s => s.id === id);
+      const client = clients.find(s => s.id === id);
       const { error } = await supabase
-        .from("souscripteurs")
+        .from("clients")
         .update({ statut: newStatus, statut_global: newStatus })
         .eq("id", id);
 
       if (error) throw error;
 
       await logActivity({
-        tableName: 'souscripteurs',
+        tableName: 'clients',
         recordId: id,
         action: 'STATUS_CHANGE',
-        details: `Statut changé de "${souscripteur?.statut}" à "${newStatus}"`,
-        ancienValeurs: { statut: souscripteur?.statut },
+        details: `Statut changé de "${client?.statut}" à "${newStatus}"`,
+        ancienValeurs: { statut: client?.statut },
         nouvellesValeurs: { statut: newStatus },
       });
 
@@ -109,12 +109,12 @@ const Souscriptions = () => {
   };
 
   const handleDelete = async () => {
-    if (!souscripteurToDelete) return;
+    if (!clientToDelete) return;
     try {
       const { error } = await supabase
-        .from("souscripteurs")
+        .from("clients")
         .delete()
-        .eq("id", souscripteurToDelete.id);
+        .eq("id", clientToDelete.id);
 
       if (error) throw error;
 
@@ -131,13 +131,13 @@ const Souscriptions = () => {
       });
     } finally {
       setDeleteDialogOpen(false);
-      setSouscripteurToDelete(null);
+      setClientToDelete(null);
     }
   };
 
   const handleFormSuccess = () => {
     setIsFormOpen(false);
-    setSelectedSouscripteur(null);
+    setSelectedClient(null);
     fetchData();
   };
 
@@ -153,10 +153,10 @@ const Souscriptions = () => {
   };
 
   const stats = {
-    total: souscripteurs.length,
-    actifs: souscripteurs.filter(s => s.statut === "actif" || s.statut_global === "actif").length,
-    inactifs: souscripteurs.filter(s => s.statut === "inactif" || s.statut === "suspendu" || s.statut === "archive").length,
-    totalHectares: souscripteurs.reduce((sum, s) => sum + Number(s.total_hectares || 0), 0),
+    total: clients.length,
+    actifs: clients.filter(s => s.statut === "actif" || s.statut_global === "actif").length,
+    inactifs: clients.filter(s => s.statut === "inactif" || s.statut === "suspendu" || s.statut === "archive").length,
+    totalHectares: clients.reduce((sum, s) => sum + Number(s.total_hectares || 0), 0),
   };
 
   return (
@@ -167,7 +167,7 @@ const Souscriptions = () => {
             <div>
               <h1 className="text-3xl font-bold">Gestion des Souscriptions</h1>
               <p className="text-muted-foreground mt-1">
-                {souscripteurs.length} client(s) enregistré(s)
+                {clients.length} client(s) enregistré(s)
               </p>
             </div>
             <Link to="/nouvelle-souscription">
@@ -262,48 +262,48 @@ const Souscriptions = () => {
                       Chargement...
                     </TableCell>
                   </TableRow>
-                ) : filteredSouscripteurs.length === 0 ? (
+                ) : filteredClients.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8">
                       Aucune souscription trouvée
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredSouscripteurs.map((souscripteur) => (
-                    <TableRow key={souscripteur.id}>
+                  filteredClients.map((client) => (
+                    <TableRow key={client.id}>
                       <TableCell className="font-mono text-sm font-medium">
-                        {souscripteur.id_unique}
+                        {client.id_unique}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {souscripteur.nom_complet || `${souscripteur.nom} ${souscripteur.prenoms || ''}`}
+                        {client.nom_complet || `${client.nom} ${client.prenoms || ''}`}
                       </TableCell>
-                      <TableCell>{souscripteur.telephone}</TableCell>
+                      <TableCell>{client.telephone}</TableCell>
                       <TableCell>
-                        {souscripteur.offres && (
-                          <Badge style={{ backgroundColor: souscripteur.offres.couleur }}>
-                            {souscripteur.offres.nom}
+                        {client.offres && (
+                          <Badge style={{ backgroundColor: client.offres.couleur }}>
+                            {client.offres.nom}
                           </Badge>
                         )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {souscripteur.nombre_plantations || 0}
+                          {client.nombre_plantations || 0}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {Number(souscripteur.total_hectares || 0).toFixed(2)} ha
+                        {Number(client.total_hectares || 0).toFixed(2)} ha
                       </TableCell>
                       <TableCell>
-                        <Badge className={getStatutBadge(souscripteur.statut || souscripteur.statut_global)}>
-                          {souscripteur.statut || souscripteur.statut_global || 'actif'}
+                        <Badge className={getStatutBadge(client.statut || client.statut_global)}>
+                          {client.statut || client.statut_global || 'actif'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(souscripteur.created_at), "dd MMM yyyy", { locale: fr })}
+                        {format(new Date(client.created_at), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Link to={`/planteur/${souscripteur.id}`}>
+                          <Link to={`/planteur/${client.id}`}>
                             <Button variant="ghost" size="sm">
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -316,27 +316,27 @@ const Souscriptions = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => {
-                                setSelectedSouscripteur(souscripteur);
+                                setSelectedClient(client);
                                 setIsFormOpen(true);
                               }}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Modifier
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              {souscripteur.statut !== 'actif' && (
-                                <DropdownMenuItem onClick={() => handleStatusChange(souscripteur.id, 'actif')}>
+                              {client.statut !== 'actif' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(client.id, 'actif')}>
                                   <RotateCcw className="mr-2 h-4 w-4 text-green-500" />
                                   Activer
                                 </DropdownMenuItem>
                               )}
-                              {souscripteur.statut !== 'suspendu' && (
-                                <DropdownMenuItem onClick={() => handleStatusChange(souscripteur.id, 'suspendu')}>
+                              {client.statut !== 'suspendu' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(client.id, 'suspendu')}>
                                   <Ban className="mr-2 h-4 w-4 text-orange-500" />
                                   Suspendre
                                 </DropdownMenuItem>
                               )}
-                              {souscripteur.statut !== 'archive' && (
-                                <DropdownMenuItem onClick={() => handleStatusChange(souscripteur.id, 'archive')}>
+                              {client.statut !== 'archive' && (
+                                <DropdownMenuItem onClick={() => handleStatusChange(client.id, 'archive')}>
                                   <Archive className="mr-2 h-4 w-4 text-slate-500" />
                                   Archiver
                                 </DropdownMenuItem>
@@ -345,7 +345,7 @@ const Souscriptions = () => {
                               <DropdownMenuItem 
                                 className="text-destructive"
                                 onClick={() => {
-                                  setSouscripteurToDelete(souscripteur);
+                                  setClientToDelete(client);
                                   setDeleteDialogOpen(true);
                                 }}
                               >
@@ -369,15 +369,15 @@ const Souscriptions = () => {
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {selectedSouscripteur ? "Modifier" : "Nouveau"} Client
+                {selectedClient ? "Modifier" : "Nouveau"} Client
               </DialogTitle>
             </DialogHeader>
             <PlanteurForm
-              planteur={selectedSouscripteur}
+              planteur={selectedClient}
               onSuccess={handleFormSuccess}
               onCancel={() => {
                 setIsFormOpen(false);
-                setSelectedSouscripteur(null);
+                setSelectedClient(null);
               }}
             />
           </DialogContent>
@@ -389,7 +389,7 @@ const Souscriptions = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir supprimer le client "{souscripteurToDelete?.nom_complet || souscripteurToDelete?.nom}"? 
+                Êtes-vous sûr de vouloir supprimer le client "{clientToDelete?.nom_complet || clientToDelete?.nom}"? 
                 Cette action est irréversible et supprimera également toutes les plantations associées.
               </AlertDialogDescription>
             </AlertDialogHeader>
