@@ -601,7 +601,7 @@ const GestionPaiements = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="paiements" className="space-y-4">
-            <TabsList className="grid w-full md:w-auto grid-cols-3 gap-2">
+            <TabsList className="grid w-full sm:w-auto grid-cols-1 min-[420px]:grid-cols-3 gap-2">
               <TabsTrigger value="paiements" className="gap-2">
                 <CreditCard className="h-4 w-4" />
                 Paiements
