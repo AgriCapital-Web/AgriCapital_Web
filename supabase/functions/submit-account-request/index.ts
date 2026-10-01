@@ -57,8 +57,8 @@ serve(async (req) => {
     if (String(password).length < 12 || String(password).length > 128) {
       return json({ error: "Le mot de passe doit contenir entre 12 et 128 caractères.", step: "validate_password" }, 400);
     }
-    if (!/^[a-zA-Z0-9._-]{3,30}$/.test(String(username))) {
-      return json({ error: "Identifiant invalide (3 à 30 caractères : lettres, chiffres, . _ -).", step: "validate_username" }, 400);
+    if (String(username).trim().length < 2 || String(username).trim().length > 64 || /[\\u0000-\\u001F\\u007F]/.test(String(username))) {
+      return json({ error: "Identifiant invalide (2 à 64 caractères, sans caractères de contrôle).", step: "validate_username" }, 400);
     }
     if (!VALID_ROLES.includes(String(role_souhaite))) {
       return json({ error: `Rôle invalide: ${role_souhaite}`, step: "validate_role" }, 400);
