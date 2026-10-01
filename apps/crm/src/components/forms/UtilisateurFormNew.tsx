@@ -306,13 +306,13 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
           <div className="space-y-2">
             <Label>Téléphone</Label>
-            <CountryPhoneInput label="" countryCode={watch("telephone_indicatif")||"+225"} localValue={watch("telephone_local")||""} onChange={v=>{setValue("telephone_indicatif",v.callingCode);setValue("telephone_local",v.localValue);setValue("telephone",v.internationalValue)}}/>
+            <CountryPhoneInput label="" countryCode={watch("telephone_indicatif")||"+225"} localValue={watch("telephone_local") || String(watch("telephone") || "").replace(/^\+225/, "")} onChange={v=>{setValue("telephone_indicatif",v.callingCode);setValue("telephone_local",v.localValue);setValue("telephone",v.internationalValue)}}/>
             {errors.telephone?.message && <p className="text-sm text-destructive">{String(errors.telephone.message)}</p>}
           </div>
 
           <div className="space-y-2">
             <Label>WhatsApp</Label>
-            <CountryPhoneInput label="" countryCode={watch("whatsapp_indicatif")||"+225"} localValue={watch("whatsapp_local")||""} onChange={v=>{setValue("whatsapp_indicatif",v.callingCode);setValue("whatsapp_local",v.localValue);setValue("whatsapp",v.internationalValue)}}/>
+            <CountryPhoneInput label="" countryCode={watch("whatsapp_indicatif")||"+225"} localValue={watch("whatsapp_local") || String(watch("whatsapp") || "").replace(/^\+225/, "")} onChange={v=>{setValue("whatsapp_indicatif",v.callingCode);setValue("whatsapp_local",v.localValue);setValue("whatsapp",v.internationalValue)}}/>
             {errors.whatsapp?.message && <p className="text-sm text-destructive">{String(errors.whatsapp.message)}</p>}
           </div>
 
