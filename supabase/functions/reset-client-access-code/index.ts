@@ -67,13 +67,18 @@ serve(async (req) => {
       .is("revoked_at", null);
     if (revokeError) throw revokeError;
 
-    await supabase.from("historique_activites").insert({
-      table_name: "clients",
-      record_id: client.id,
-      action: "PORTAL_ACCESS_CODE_RESET",
-      details: "Code d'accès portail réinitialisé par " + (userData.user.email || userData.user.id) + ". Le client devra créer un nouveau code à sa prochaine connexion.",
+    const { error: auditError } = await supabase.from("historique_actions").insert({
       user_id: userData.user.id,
+      client_id: client.id,
+      entity_type: "client",
+      entity_id: client.id,
+      action: "PORTAL_ACCESS_CODE_RESET",
+      details: {
+        message: "Code d'accès portail réinitialisé. Le client devra créer un nouveau code à sa prochaine connexion.",
+        performed_by: userData.user.email || userData.user.id,
+      },
     });
+    if (auditError) console.error("reset-client-access-code audit error", auditError.message);
 
     await supabase.rpc("notification_emit_event", {
       _event: "client_access_code_reset",
