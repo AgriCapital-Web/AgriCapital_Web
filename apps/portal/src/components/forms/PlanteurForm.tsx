@@ -81,7 +81,7 @@ const PlanteurForm = ({ planteur, onSuccess, onCancel }: PlanteurFormProps) => {
 
       if (planteur) {
         const { error } = await (supabase as any)
-          .from("souscripteurs")
+          .from("clients")
           .update(payload)
           .eq("id", planteur.id);
         
@@ -92,10 +92,10 @@ const PlanteurForm = ({ planteur, onSuccess, onCancel }: PlanteurFormProps) => {
           description: "Planteur modifié avec succès",
         });
       } else {
-        const { data: genId, error: genErr } = await (supabase as any).rpc('generate_souscripteur_id');
+        const { data: genId, error: genErr } = await (supabase as any).rpc('generate_client_id');
         if (genErr) throw genErr;
         const { error } = await (supabase as any)
-          .from("souscripteurs")
+          .from("clients")
           .insert({ ...payload, id_unique: genId });
         
         if (error) throw error;
