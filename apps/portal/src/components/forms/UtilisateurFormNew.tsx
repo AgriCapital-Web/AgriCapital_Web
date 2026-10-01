@@ -28,14 +28,12 @@ const userFormSchema = z.object({
   nom_complet: z.string()
     .min(2, "Le nom complet doit contenir au moins 2 caractères")
     .max(100, "Le nom complet ne peut pas dépasser 100 caractères"),
-  telephone: z.string()
-    .regex(/^\d{10}$/, "Le téléphone doit contenir exactement 10 chiffres")
-    .optional()
-    .or(z.literal("")),
-  whatsapp: z.string()
-    .regex(/^\d{10}$/, "Le WhatsApp doit contenir exactement 10 chiffres")
-    .optional()
-    .or(z.literal("")),
+  telephone: z.string().optional().or(z.literal("")),
+  telephone_local: z.string().optional().or(z.literal("")),
+  telephone_indicatif: z.string().optional().or(z.literal("")),
+  whatsapp: z.string().optional().or(z.literal("")),
+  whatsapp_local: z.string().optional().or(z.literal("")),
+  whatsapp_indicatif: z.string().optional().or(z.literal("")),
   departement: z.string().optional(),
   equipe_id: z.string().uuid().optional().or(z.literal("")),
   relation_rh: z.enum(["Employé", "Prestataire"]).optional(),
@@ -93,7 +91,11 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
         email: utilisateur.email ?? "",
         nom_complet: utilisateur.nom_complet ?? "",
         telephone: utilisateur.telephone ?? "",
+        telephone_local: utilisateur.telephone_local ?? localFromPhone(utilisateur.telephone, utilisateur.telephone_indicatif || "+225"),
+        telephone_indicatif: utilisateur.telephone_indicatif ?? "+225",
         whatsapp: utilisateur.whatsapp ?? "",
+        whatsapp_local: utilisateur.whatsapp_local ?? localFromPhone(utilisateur.whatsapp, utilisateur.whatsapp_indicatif || "+225"),
+        whatsapp_indicatif: utilisateur.whatsapp_indicatif ?? "+225",
         departement: utilisateur.departement ?? "",
         equipe_id: utilisateur.equipe_id ?? "",
         relation_rh: utilisateur.relation_rh,
@@ -107,7 +109,11 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
         password: "",
         nom_complet: "",
         telephone: "",
+        telephone_local: "",
+        telephone_indicatif: "+225",
         whatsapp: "",
+        whatsapp_local: "",
+        whatsapp_indicatif: "+225",
         relation_rh: "Employé",
       };
 
@@ -320,7 +326,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             {errors.whatsapp?.message && <p className="text-sm text-destructive">{String(errors.whatsapp.message)}</p>}
           </div>
 
-          <div className="space-y-2 col-span-2">
+          <div className="space-y-2 col-span-1 sm:col-span-2">
             <Label>Photo de Profil</Label>
             <Input type="file" name="photo" accept="image/*" onChange={handlePhotoChange} />
             {photoPreview && (
