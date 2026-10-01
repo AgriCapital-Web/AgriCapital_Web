@@ -27,8 +27,8 @@ const DevCarteApercu = () => {
     (window as unknown as Record<string, string>)[`export_${nom}`] = canvas.toDataURL("image/png");
   };
   return (
-    <div className="flex flex-col items-start gap-4 bg-white p-6">
-      <div className="flex gap-6">
+    <div className="min-h-screen w-full overflow-x-hidden bg-white p-3 sm:p-6"><div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-4">
+      <div className="flex w-full flex-col items-center gap-6 overflow-x-auto pb-2 lg:flex-row lg:items-start lg:justify-center">
         <CarteRecto ref={recto} carte={demo} />
         <CarteVerso ref={verso} carte={demo} />
       </div>
