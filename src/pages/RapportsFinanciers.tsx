@@ -267,11 +267,11 @@ const RapportsFinanciers = () => {
           </Card>
 
           <Tabs defaultValue="liste" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="liste">Liste des Commissions</TabsTrigger>
-              <TabsTrigger value="par-commercial">Par Commercial</TabsTrigger>
-              <TabsTrigger value="par-equipe">Par Équipe</TabsTrigger>
-              <TabsTrigger value="synthese-28">Synthèse 28 ans</TabsTrigger>
+            <TabsList className="flex h-auto flex-wrap justify-start">
+              <TabsTrigger value="liste">Liste des commissions</TabsTrigger>
+              <TabsTrigger value="par-commercial">Par commercial</TabsTrigger>
+              <TabsTrigger value="par-equipe">Par équipe</TabsTrigger>
+              <TabsTrigger value="synthese">Synthèse clients</TabsTrigger>
             </TabsList>
 
             <TabsContent value="liste" className="space-y-4">
@@ -280,7 +280,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Toutes les Commissions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[900px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
@@ -319,7 +319,7 @@ const RapportsFinanciers = () => {
                         ))
                       )}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -330,7 +330,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Commissions par Commercial</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[620px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nom</TableHead>
@@ -349,7 +349,7 @@ const RapportsFinanciers = () => {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -360,7 +360,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Commissions par Équipe</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[560px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Équipe</TableHead>
@@ -377,7 +377,7 @@ const RapportsFinanciers = () => {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -388,7 +388,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Synthèse clients</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[760px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Client</TableHead>
@@ -404,7 +404,7 @@ const RapportsFinanciers = () => {
                     </TableHeader>
                     <TableBody>
                       {synthese.length === 0 ? (
-                        <TableRow><TableCell colSpan={9} className="text-center py-8">Aucune donnée</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center py-8">Aucune donnée</TableCell></TableRow>
                       ) : synthese.map((r: any) => (
                         <TableRow key={r.id}>
                           <TableCell>
@@ -424,7 +424,7 @@ const RapportsFinanciers = () => {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 </CardContent>
               </Card>
             </TabsContent>
