@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   Users, Sprout, TrendingUp, CreditCard, AlertCircle, MapPin, Calendar,
   Bell, Award, DollarSign, FileText, Plus, FileCheck, Wallet, RefreshCw,
-  Target, Tractor, LandPlot, UserRound, CheckCircle2, Clock3, ChevronRight
+  Target, Tractor, LandPlot, UserRound, CheckCircle2, ChevronRight
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -92,7 +92,6 @@ const Dashboard = () => {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [topClients, setTopClients] = useState<any[]>([]);
   const [regional, setRegional] = useState<any[]>([]);
-  const [futurePayments, setFuturePayments] = useState<any[]>([]);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -306,19 +305,6 @@ const Dashboard = () => {
       }
       setMonthly(months);
 
-      const future = payments
-        .filter((p: any) => p.statut === "planifie" && p.date_echeance && new Date(p.date_echeance) > today() && Number(p.montant || 0) > 0)
-        .reduce((acc: Map<string, any>, p: any) => {
-          const d = new Date(String(p.date_echeance) + "T00:00:00");
-          const key = String(d.getFullYear()) + "-" + String(d.getMonth() + 1).padStart(2, "0");
-          const row = acc.get(key) || { key, mois: d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }), montant: 0, nombre: 0 };
-          row.montant += Number(p.montant || 0);
-          row.nombre += 1;
-          acc.set(key, row);
-          return acc;
-        }, new Map());
-      setFuturePayments([...future.values()].sort((a: any, b: any) => a.key.localeCompare(b.key)).slice(0, 6));
-
       const newAlerts: any[] = [];
       if (canPayments && overdue.length) newAlerts.push({ type: "error", message: `${overdue.length} paiement(s) arrivé(s) à échéance et non réglé(s) — ${money(overdueAmount)}`, href: "/paiements" });
       if (canClients && docs.filter((d: any) => d.statut === "en_attente").length) newAlerts.push({ type: "warning", message: `${docs.filter((d: any) => d.statut === "en_attente").length} document(s) en attente de vérification`, href: "/documents" });
@@ -479,23 +465,6 @@ const Dashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
-              )}
-
-              {canPayments && futurePayments.length > 0 && (
-                <Card>
-                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock3 className="h-5 w-5 text-primary" />Échéances futures — prévisionnel</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader><TableRow><TableHead>Mois</TableHead><TableHead>Échéances</TableHead><TableHead className="text-right">Montant prévu</TableHead></TableRow></TableHeader>
-                        <TableBody>{futurePayments.map((p) => (
-                          <TableRow key={p.key}><TableCell className="capitalize">{p.mois}</TableCell><TableCell>{p.nombre}</TableCell><TableCell className="text-right font-semibold">{money(p.montant)}</TableCell></TableRow>
-                        ))}</TableBody>
-                      </Table>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">Prévisionnel uniquement : ces échéances ne sont jamais comptées comme encaissées.</p>
-                  </CardContent>
-                </Card>
               )}
 
               {canFinance || canPayments ? (
