@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/roles";
 import { ActivityLog } from "@/components/common/ActivityLog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -165,7 +166,7 @@ const ClientDetail = () => {
 
   if (loading) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}>
         <MainLayout>
           <div className="flex items-center justify-center h-96">
             <p>Chargement...</p>
