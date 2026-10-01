@@ -50,20 +50,25 @@ const compressPhoto = async (file: File): Promise<{ data: string; mime: string }
     if (!ctx) throw new Error("Préparation de la photo impossible.");
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    let quality = 0.84;
-    let data = canvas.toDataURL("image/webp", quality);
+    // Certains navigateurs ignorent image/webp et retournent du PNG.
+    // On utilise donc le MIME réellement présent dans la data URL.
+    const encode = (target: "image/webp" | "image/jpeg", q: number) => canvas.toDataURL(target, q);
+    let data = encode("image/webp", 0.84);
+    if (!data.startsWith("data:image/webp;base64,")) data = encode("image/jpeg", 0.84);
     if (data.length > 2_400_000) {
-      quality = 0.68;
-      data = canvas.toDataURL("image/webp", quality);
+      const mime = data.startsWith("data:image/webp;base64,") ? "image/webp" : "image/jpeg";
+      data = canvas.toDataURL(mime, 0.68);
     }
     if (data.length > 2_700_000) {
       const small = document.createElement("canvas");
       small.width = Math.min(900, canvas.width);
       small.height = Math.round((small.width / canvas.width) * canvas.height);
       small.getContext("2d")?.drawImage(canvas, 0, 0, small.width, small.height);
-      data = small.toDataURL("image/webp", 0.65);
+      const mime = data.startsWith("data:image/webp;base64,") ? "image/webp" : "image/jpeg";
+      data = small.toDataURL(mime, 0.65);
     }
-    return { data, mime: "image/webp" };
+    const mime = data.match(/^data:(image\/[^;]+);base64,/)?.[1] || "image/jpeg";
+    return { data, mime };
   } finally {
     URL.revokeObjectURL(source);
   }
