@@ -26,7 +26,6 @@ const AccountRequests = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [actionType, setActionType] = useState<"approve" | "reject" | "delete" | null>(null);
-  const [roleOverride, setRoleOverride] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const { hasRole, user } = useAuth();
   const { toast } = useToast();
@@ -59,7 +58,6 @@ const AccountRequests = () => {
         body: {
           request_id: selectedRequest.id,
           action: actionType,
-          role: actionType === 'approve' ? (roleOverride || selectedRequest.role_souhaite) : undefined,
           motif_rejet: actionType === 'reject' ? rejectReason : undefined,
         },
       });
@@ -95,7 +93,6 @@ const AccountRequests = () => {
       fetchRequests();
       setDialogOpen(false);
       setRejectReason("");
-      setRoleOverride("");
       setActionType(null);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(error) });
@@ -182,7 +179,6 @@ const AccountRequests = () => {
                             onClick={() => {
                               setSelectedRequest(request);
                               setActionType('approve');
-                              setRoleOverride(request.role_souhaite || "");
                               setDialogOpen(true);
                             }}
                           >
@@ -283,16 +279,13 @@ const AccountRequests = () => {
               )}
 
               {actionType === 'approve' && (
-                <div>
-                  <Label>Rôle à attribuer *</Label>
-                  <Select value={roleOverride || selectedRequest.role_souhaite} onValueChange={setRoleOverride}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {ROLES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Le rôle est écrit dans user_roles. Modifiable à tout moment ensuite.
+                <div className="rounded-lg border bg-muted/30 p-3">
+                  <Label>Accès automatique</Label>
+                  <p className="mt-1 text-sm">
+                    Le rôle sera attribué automatiquement à partir du poste demandé : <span className="font-semibold">{selectedRequest.role_souhaite || "à déterminer"}</span>.
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Le rôle est enregistré dans user_roles au moment de l'activation du compte.
                   </p>
                 </div>
               )}
