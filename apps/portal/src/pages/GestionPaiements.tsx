@@ -56,15 +56,15 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCurrentRate, formatCFA } from "@/utils/pricing";
 
-// Tarifs par défaut (PalmInvest An 1 par hectare) si aucune offre n'est liée au souscripteur
+// Tarifs par défaut (PalmInvest An 1 par hectare) si aucune offre n'est liée au client
 const FALLBACK_RATE_PER_HA = { jour: 2000, mois: 60000, trimestre: 180000, semestre: 360000, annee: 720000 };
 
-const computeTarifs = (souscripteur: any) => {
+const computeTarifs = (client: any) => {
   const rate = getCurrentRate(
-    souscripteur?.offres?.code,
+    client?.offres?.code,
     null, // pas de plantation -> An 1 par défaut
-    souscripteur?.offres?.contribution_mensuelle_par_ha || 0,
-    souscripteur?.offres?.montant_da_par_ha || 0,
+    client?.offres?.contribution_mensuelle_par_ha || 0,
+    client?.offres?.montant_da_par_ha || 0,
   );
   if (rate) {
     return {
@@ -81,7 +81,7 @@ const computeTarifs = (souscripteur: any) => {
 
 interface Paiement {
   id: string;
-  souscripteur_id: string;
+  client_id: string;
   plantation_id: string;
   montant: number;
   montant_paye: number | null;
@@ -91,7 +91,7 @@ interface Paiement {
   date_paiement: string | null;
   created_at: string;
   metadata: any;
-  souscripteurs?: { nom_complet: string; telephone: string };
+  clients?: { nom_complet: string; telephone: string };
   plantations?: { id_unique: string; nom_plantation: string };
 }
 
@@ -112,8 +112,8 @@ const GestionPaiements = () => {
   const [targetAccount, setTargetAccount] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [transferNotes, setTransferNotes] = useState("");
-  const [sourceSouscripteur, setSourceSouscripteur] = useState<any>(null);
-  const [targetSouscripteur, setTargetSouscripteur] = useState<any>(null);
+  const [sourceClient, setSourceClient] = useState<any>(null);
+  const [targetClient, setTargetClient] = useState<any>(null);
 
   // Refund state
   const [refundSourcePhone, setRefundSourcePhone] = useState("");
@@ -127,7 +127,7 @@ const GestionPaiements = () => {
   // Convert state
   const [convertPeriod, setConvertPeriod] = useState<'jour' | 'mois' | 'trimestre' | 'semestre' | 'annee'>('mois');
   const [convertCount, setConvertCount] = useState(1);
-  const [selectedSouscripteurId, setSelectedSouscripteurId] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState("");
 
   const canManage = hasRole('super_admin') || hasRole('service_client') || hasRole('comptable');
 
@@ -137,7 +137,7 @@ const GestionPaiements = () => {
     event: '*',
     onChange: () => {
       queryClient.invalidateQueries({ queryKey: ['gestion-paiements'] });
-      queryClient.invalidateQueries({ queryKey: ['souscripteurs-monnaie'] });
+      queryClient.invalidateQueries({ queryKey: ['clients-monnaie'] });
     }
   });
 
@@ -148,7 +148,7 @@ const GestionPaiements = () => {
         .from('paiements')
         .select(`
           *,
-          souscripteurs (nom_complet, telephone),
+          clients (nom_complet, telephone),
           plantations (id_unique, nom_plantation)
         `)
         .order('created_at', { ascending: false })
@@ -159,13 +159,13 @@ const GestionPaiements = () => {
     }
   });
 
-  // Fetch souscripteurs with monnaie (solde positif)
-  const { data: souscripteursMonnaie = [] } = useQuery({
-    queryKey: ['souscripteurs-monnaie'],
+  // Fetch clients with monnaie (solde positif)
+  const { data: clientsMonnaie = [] } = useQuery({
+    queryKey: ['clients-monnaie'],
     queryFn: async () => {
-      // Calculer la monnaie pour chaque souscripteur
-      const { data: souscripteurs, error: sError } = await supabase
-        .from('souscripteurs')
+      // Calculer la monnaie pour chaque client
+      const { data: clients, error: sError } = await supabase
+        .from('clients')
         .select(`
           id, nom_complet, telephone,
           offres ( id, code, nom, montant_da_par_ha, contribution_mensuelle_par_ha ),
@@ -176,8 +176,8 @@ const GestionPaiements = () => {
 
       if (sError) throw sError;
 
-      // Pour chaque souscripteur, calculer le solde
-      const result = await Promise.all((souscripteurs || []).map(async (sous: any) => {
+      // Pour chaque client, calculer le solde
+      const result = await Promise.all((clients || []).map(async (sous: any) => {
         const plantationIds = sous.plantations?.map((p: any) => p.id) || [];
         if (plantationIds.length === 0) return null;
 
@@ -228,7 +228,7 @@ const GestionPaiements = () => {
     const valides = paiements.filter(p => p.statut === 'valide');
     const enAttente = paiements.filter(p => p.statut === 'en_attente');
     const totalValide = valides.reduce((sum, p) => sum + (p.montant_paye || p.montant), 0);
-    const totalMonnaie = souscripteursMonnaie.reduce((sum, s: any) => sum + (s?.monnaie || 0), 0);
+    const totalMonnaie = clientsMonnaie.reduce((sum, s: any) => sum + (s?.monnaie || 0), 0);
 
     return {
       totalPaiements: paiements.length,
@@ -237,7 +237,7 @@ const GestionPaiements = () => {
       montantTotal: totalValide,
       monnaieDisponible: totalMonnaie
     };
-  }, [paiements, souscripteursMonnaie]);
+  }, [paiements, clientsMonnaie]);
 
   // Filtered paiements
   const filteredPaiements = useMemo(() => {
@@ -245,8 +245,8 @@ const GestionPaiements = () => {
     const term = searchTerm.toLowerCase();
     return paiements.filter(p => 
       p.reference?.toLowerCase().includes(term) ||
-      p.souscripteurs?.nom_complet?.toLowerCase().includes(term) ||
-      p.souscripteurs?.telephone?.includes(term) ||
+      p.clients?.nom_complet?.toLowerCase().includes(term) ||
+      p.clients?.telephone?.includes(term) ||
       p.plantations?.id_unique?.toLowerCase().includes(term)
     );
   }, [paiements, searchTerm]);
@@ -269,11 +269,11 @@ const GestionPaiements = () => {
     }
   };
 
-  // Search souscripteur by phone
-  const searchSouscripteur = async (phone: string, target: 'source' | 'target') => {
+  // Search client by phone
+  const searchClient = async (phone: string, target: 'source' | 'target') => {
     if (phone.length < 8) return;
     const { data } = await supabase
-      .from('souscripteurs')
+      .from('clients')
       .select('id, nom_complet, telephone, id_unique')
       .or(`telephone.ilike.%${phone}%,id_unique.ilike.%${phone}%`)
       .eq('statut', 'actif')
@@ -281,25 +281,25 @@ const GestionPaiements = () => {
     
     if (data && data.length > 0) {
       if (target === 'source') {
-        setSourceSouscripteur(data[0]);
-        // Fetch paiements for this souscripteur
+        setSourceClient(data[0]);
+        // Fetch paiements for this client
         const { data: paiements } = await supabase
           .from('paiements')
           .select('*')
-          .eq('souscripteur_id', data[0].id)
+          .eq('client_id', data[0].id)
           .eq('statut', 'valide')
           .order('created_at', { ascending: false })
           .limit(10);
         setSourcePaiements(paiements || []);
       } else {
-        setTargetSouscripteur(data[0]);
+        setTargetClient(data[0]);
       }
     }
   };
 
   // Handle transfer between accounts
   const handleTransfer = async () => {
-    if (!sourceSouscripteur || !targetSouscripteur || !transferAmount) {
+    if (!sourceClient || !targetClient || !transferAmount) {
       toast({ variant: "destructive", title: "Erreur", description: "Veuillez remplir tous les champs" });
       return;
     }
@@ -312,8 +312,8 @@ const GestionPaiements = () => {
       const { error: transferError } = await supabase
         .from('transferts_paiements')
         .insert({
-          souscripteur_source_id: sourceSouscripteur.id,
-          souscripteur_dest_id: targetSouscripteur.id,
+          client_source_id: sourceClient.id,
+          client_dest_id: targetClient.id,
           montant: amount,
           motif: transferNotes
         });
@@ -324,7 +324,7 @@ const GestionPaiements = () => {
       const { error: insertError } = await supabase
         .from('paiements')
         .insert({
-          souscripteur_id: targetSouscripteur.id,
+          client_id: targetClient.id,
           montant: amount,
           montant_paye: amount,
           type_paiement: 'REDEVANCE',
@@ -334,8 +334,8 @@ const GestionPaiements = () => {
           date_paiement: new Date().toISOString(),
           metadata: {
             transfert_entrant: {
-              depuis: sourceSouscripteur.id,
-              depuis_nom: sourceSouscripteur.nom_complet,
+              depuis: sourceClient.id,
+              depuis_nom: sourceClient.nom_complet,
               montant: amount,
               date: new Date().toISOString(),
               notes: transferNotes
@@ -347,7 +347,7 @@ const GestionPaiements = () => {
 
       toast({
         title: "Transfert effectué",
-        description: `${formatMontant(amount)} transféré de ${sourceSouscripteur.nom_complet} vers ${targetSouscripteur.nom_complet}`
+        description: `${formatMontant(amount)} transféré de ${sourceClient.nom_complet} vers ${targetClient.nom_complet}`
       });
 
       setIsTransferDialogOpen(false);
@@ -366,7 +366,7 @@ const GestionPaiements = () => {
 
   // Handle refund
   const handleRefund = async () => {
-    if (!sourceSouscripteur || !refundPaiementId || !refundAmount) {
+    if (!sourceClient || !refundPaiementId || !refundAmount) {
       toast({ variant: "destructive", title: "Erreur", description: "Veuillez remplir tous les champs" });
       return;
     }
@@ -383,7 +383,7 @@ const GestionPaiements = () => {
         .from('remboursements')
         .insert({
           paiement_id: refundPaiementId,
-          souscripteur_id: sourceSouscripteur.id,
+          client_id: sourceClient.id,
           montant: amount,
           motif: refundNotes,
           mode_remboursement: refundMode,
@@ -412,7 +412,7 @@ const GestionPaiements = () => {
 
       toast({
         title: "Remboursement enregistré",
-        description: `${formatMontant(amount)} à rembourser à ${sourceSouscripteur.nom_complet}`
+        description: `${formatMontant(amount)} à rembourser à ${sourceClient.nom_complet}`
       });
 
       setIsRefundDialogOpen(false);
@@ -431,18 +431,18 @@ const GestionPaiements = () => {
 
   // Handle convert monnaie to payment
   const handleConvertMonnaie = async () => {
-    if (!selectedSouscripteurId || convertCount <= 0) return;
+    if (!selectedClientId || convertCount <= 0) return;
     setLoading(true);
 
     try {
-      const souscripteur = souscripteursMonnaie.find((s: any) => s?.id === selectedSouscripteurId);
-      if (!souscripteur) throw new Error('Client non trouvé');
+      const client = clientsMonnaie.find((s: any) => s?.id === selectedClientId);
+      if (!client) throw new Error('Client non trouvé');
 
       // Calcul du montant basé sur la grille progressive de l'offre
-      const tarifs = computeTarifs(souscripteur);
+      const tarifs = computeTarifs(client);
       const montant = (tarifs as any)[convertPeriod] * convertCount;
 
-      if (montant > (souscripteur as any).monnaie) {
+      if (montant > (client as any).monnaie) {
         throw new Error('Monnaie insuffisante pour cette conversion');
       }
 
@@ -450,7 +450,7 @@ const GestionPaiements = () => {
       const { error } = await supabase
         .from('paiements')
         .insert({
-          souscripteur_id: selectedSouscripteurId,
+          client_id: selectedClientId,
           montant: montant,
           montant_paye: montant,
           type_paiement: 'REDEVANCE',
@@ -478,7 +478,7 @@ const GestionPaiements = () => {
       setIsConvertDialogOpen(false);
       resetForms();
       refetch();
-      queryClient.invalidateQueries({ queryKey: ['souscripteurs-monnaie'] });
+      queryClient.invalidateQueries({ queryKey: ['clients-monnaie'] });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -496,8 +496,8 @@ const GestionPaiements = () => {
     setTargetAccount("");
     setTransferAmount("");
     setTransferNotes("");
-    setSourceSouscripteur(null);
-    setTargetSouscripteur(null);
+    setSourceClient(null);
+    setTargetClient(null);
     setRefundSourcePhone("");
     setRefundPaiementId("");
     setRefundAmount("");
@@ -505,7 +505,7 @@ const GestionPaiements = () => {
     setRefundMode("Mobile Money");
     setRefundNumero("");
     setSourcePaiements([]);
-    setSelectedSouscripteurId("");
+    setSelectedClientId("");
     setConvertCount(1);
   };
 
@@ -666,8 +666,8 @@ const GestionPaiements = () => {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{paiement.souscripteurs?.nom_complet || '-'}</p>
-                              <p className="text-xs text-muted-foreground">{paiement.souscripteurs?.telephone}</p>
+                              <p className="font-medium">{paiement.clients?.nom_complet || '-'}</p>
+                              <p className="text-xs text-muted-foreground">{paiement.clients?.telephone}</p>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -734,10 +734,10 @@ const GestionPaiements = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Coins className="h-5 w-5 text-amber-600" />
-                    Souscripteurs avec monnaie disponible
+                    Clients avec monnaie disponible
                   </CardTitle>
                   <CardDescription>
-                    Les montants excédentaires payés par les souscripteurs peuvent être convertis en jours/mois de redevance
+                    Les montants excédentaires payés par les clients peuvent être convertis en jours/mois de redevance
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -754,14 +754,14 @@ const GestionPaiements = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {souscripteursMonnaie.length === 0 ? (
+                        {clientsMonnaie.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                              Aucun souscripteur avec monnaie disponible
+                              Aucun client avec monnaie disponible
                             </TableCell>
                           </TableRow>
                         ) : (
-                          souscripteursMonnaie.map((sous: any) => (
+                          clientsMonnaie.map((sous: any) => (
                             <TableRow key={sous?.id}>
                               <TableCell className="font-medium">{sous?.nom_complet}</TableCell>
                               <TableCell>{sous?.telephone}</TableCell>
@@ -778,7 +778,7 @@ const GestionPaiements = () => {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      setSelectedSouscripteurId(sous?.id);
+                                      setSelectedClientId(sous?.id);
                                       setIsConvertDialogOpen(true);
                                     }}
                                   >
@@ -866,7 +866,7 @@ const GestionPaiements = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Client</p>
-                      <p>{selectedPaiement.souscripteurs?.nom_complet}</p>
+                      <p>{selectedPaiement.clients?.nom_complet}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Plantation</p>
@@ -912,13 +912,13 @@ const GestionPaiements = () => {
                     value={sourcePhone}
                     onChange={(e) => {
                       setSourcePhone(e.target.value);
-                      searchSouscripteur(e.target.value, 'source');
+                      searchClient(e.target.value, 'source');
                     }}
                   />
-                  {sourceSouscripteur && (
+                  {sourceClient && (
                     <div className="bg-green-50 p-2 rounded border border-green-200">
-                      <p className="text-sm font-medium text-green-800">✓ {sourceSouscripteur.nom_complet}</p>
-                      <p className="text-xs text-green-600">ID: {sourceSouscripteur.id_unique}</p>
+                      <p className="text-sm font-medium text-green-800">✓ {sourceClient.nom_complet}</p>
+                      <p className="text-xs text-green-600">ID: {sourceClient.id_unique}</p>
                     </div>
                   )}
                 </div>
@@ -932,13 +932,13 @@ const GestionPaiements = () => {
                     value={targetAccount}
                     onChange={(e) => {
                       setTargetAccount(e.target.value);
-                      searchSouscripteur(e.target.value, 'target');
+                      searchClient(e.target.value, 'target');
                     }}
                   />
-                  {targetSouscripteur && (
+                  {targetClient && (
                     <div className="bg-blue-50 p-2 rounded border border-blue-200">
-                      <p className="text-sm font-medium text-blue-800">✓ {targetSouscripteur.nom_complet}</p>
-                      <p className="text-xs text-blue-600">ID: {targetSouscripteur.id_unique}</p>
+                      <p className="text-sm font-medium text-blue-800">✓ {targetClient.nom_complet}</p>
+                      <p className="text-xs text-blue-600">ID: {targetClient.id_unique}</p>
                     </div>
                   )}
                 </div>
@@ -963,7 +963,7 @@ const GestionPaiements = () => {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsTransferDialogOpen(false)}>Annuler</Button>
-                <Button onClick={handleTransfer} disabled={loading || !sourceSouscripteur || !targetSouscripteur || !transferAmount}>
+                <Button onClick={handleTransfer} disabled={loading || !sourceClient || !targetClient || !transferAmount}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ArrowRightLeft className="h-4 w-4 mr-2" />}
                   Transférer
                 </Button>
@@ -984,7 +984,7 @@ const GestionPaiements = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                {/* Source - Souscripteur */}
+                {/* Source - Client */}
                 <div className="space-y-2">
                   <Label>Numéro de téléphone du client</Label>
                   <Input
@@ -993,12 +993,12 @@ const GestionPaiements = () => {
                     value={refundSourcePhone}
                     onChange={(e) => {
                       setRefundSourcePhone(e.target.value);
-                      searchSouscripteur(e.target.value, 'source');
+                      searchClient(e.target.value, 'source');
                     }}
                   />
-                  {sourceSouscripteur && (
+                  {sourceClient && (
                     <div className="bg-muted p-2 rounded">
-                      <p className="text-sm font-medium">✓ {sourceSouscripteur.nom_complet}</p>
+                      <p className="text-sm font-medium">✓ {sourceClient.nom_complet}</p>
                     </div>
                   )}
                 </div>
@@ -1076,7 +1076,7 @@ const GestionPaiements = () => {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsRefundDialogOpen(false)}>Annuler</Button>
-                <Button variant="destructive" onClick={handleRefund} disabled={loading || !sourceSouscripteur || !refundPaiementId || !refundAmount}>
+                <Button variant="destructive" onClick={handleRefund} disabled={loading || !sourceClient || !refundPaiementId || !refundAmount}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ArrowDownLeft className="h-4 w-4 mr-2" />}
                   Rembourser
                 </Button>
@@ -1097,15 +1097,15 @@ const GestionPaiements = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                {!selectedSouscripteurId && (
+                {!selectedClientId && (
                   <div className="space-y-2">
                     <Label>Sélectionner un client</Label>
-                    <Select value={selectedSouscripteurId} onValueChange={setSelectedSouscripteurId}>
+                    <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                       <SelectTrigger>
                         <SelectValue placeholder="Choisir un client" />
                       </SelectTrigger>
                       <SelectContent>
-                        {souscripteursMonnaie.map((sous: any) => (
+                        {clientsMonnaie.map((sous: any) => (
                           <SelectItem key={sous?.id} value={sous?.id}>
                             {sous?.nom_complet} - {formatMontant(sous?.monnaie || 0)}
                           </SelectItem>
@@ -1115,18 +1115,18 @@ const GestionPaiements = () => {
                   </div>
                 )}
                 
-                {selectedSouscripteurId && (
+                {selectedClientId && (
                   <>
                     <div className="bg-amber-50 p-3 rounded-lg">
                       <p className="text-sm">
                         Monnaie disponible: <strong className="text-amber-800">
-                          {formatMontant(souscripteursMonnaie.find((s: any) => s?.id === selectedSouscripteurId)?.monnaie || 0)}
+                          {formatMontant(clientsMonnaie.find((s: any) => s?.id === selectedClientId)?.monnaie || 0)}
                         </strong>
                       </p>
                     </div>
                     
                     {(() => {
-                      const sousObj = souscripteursMonnaie.find((s: any) => s?.id === selectedSouscripteurId);
+                      const sousObj = clientsMonnaie.find((s: any) => s?.id === selectedClientId);
                       const tarifs = computeTarifs(sousObj);
                       const montantConv = (tarifs as any)[convertPeriod] * convertCount;
                       return (
@@ -1171,10 +1171,10 @@ const GestionPaiements = () => {
                 )}
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setIsConvertDialogOpen(false); setSelectedSouscripteurId(''); }}>
+                <Button variant="outline" onClick={() => { setIsConvertDialogOpen(false); setSelectedClientId(''); }}>
                   Annuler
                 </Button>
-                <Button onClick={handleConvertMonnaie} disabled={loading || !selectedSouscripteurId}>
+                <Button onClick={handleConvertMonnaie} disabled={loading || !selectedClientId}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Coins className="h-4 w-4 mr-2" />}
                   Convertir
                 </Button>
