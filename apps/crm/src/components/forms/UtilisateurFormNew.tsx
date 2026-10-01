@@ -35,14 +35,12 @@ const userFormSchema = z.object({
   nom_complet: z.string()
     .min(2, "Le nom complet doit contenir au moins 2 caractères")
     .max(100, "Le nom complet ne peut pas dépasser 100 caractères"),
-  telephone: z.string()
-    .regex(/^\d{10}$/, "Le téléphone doit contenir exactement 10 chiffres")
-    .optional()
-    .or(z.literal("")),
-  whatsapp: z.string()
-    .regex(/^\d{10}$/, "Le WhatsApp doit contenir exactement 10 chiffres")
-    .optional()
-    .or(z.literal("")),
+  telephone: z.string().optional().or(z.literal("")),
+  telephone_local: z.string().optional().or(z.literal("")),
+  telephone_indicatif: z.string().optional().or(z.literal("")),
+  whatsapp: z.string().optional().or(z.literal("")),
+  whatsapp_local: z.string().optional().or(z.literal("")),
+  whatsapp_indicatif: z.string().optional().or(z.literal("")),
 });
 
 interface UtilisateurFormProps {
@@ -122,6 +120,21 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
 
   const onSubmit = async (data: any) => {
+    const validatePhone = (local: string, callingCode: string, label: string) => {
+      const digits = String(local || "").replace(/\D/g, "");
+      if (!digits) return true;
+      if (callingCode === "+225" && digits.length !== 10) {
+        toast({ variant: "destructive", title: "Numéro invalide", description: label + " doit contenir exactement 10 chiffres en Côte d’Ivoire." });
+        return false;
+      }
+      if (callingCode !== "+225" && (digits.length < 7 || digits.length > 15)) {
+        toast({ variant: "destructive", title: "Numéro invalide", description: label + " doit contenir entre 7 et 15 chiffres pour ce pays." });
+        return false;
+      }
+      return true;
+    };
+    if (!validatePhone(data.telephone_local, data.telephone_indicatif || "+225", "Le téléphone")) return;
+    if (!validatePhone(data.whatsapp_local, data.whatsapp_indicatif || "+225", "Le WhatsApp")) return;
     if (selectedRoles.length === 0) {
       toast({ variant: "destructive", title: "Rôle requis", description: "Sélectionnez au moins un rôle officiel." });
       return;
@@ -285,13 +298,13 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
           <div className="space-y-2">
             <Label>Téléphone</Label>
-            <CountryPhoneInput label="Téléphone" countryCode={watch("telephone_indicatif")||"+225"} localValue={watch("telephone_local")||""} onChange={v=>{setValue("telephone_indicatif",v.callingCode);setValue("telephone_local",v.localValue);setValue("telephone",v.internationalValue)}}/>
+            <CountryPhoneInput label="" countryCode={watch("telephone_indicatif")||"+225"} localValue={watch("telephone_local")||""} onChange={v=>{setValue("telephone_indicatif",v.callingCode);setValue("telephone_local",v.localValue);setValue("telephone",v.internationalValue)}}/>
             {errors.telephone?.message && <p className="text-sm text-destructive">{String(errors.telephone.message)}</p>}
           </div>
 
           <div className="space-y-2">
             <Label>WhatsApp</Label>
-            <CountryPhoneInput label="WhatsApp" countryCode={watch("whatsapp_indicatif")||"+225"} localValue={watch("whatsapp_local")||""} onChange={v=>{setValue("whatsapp_indicatif",v.callingCode);setValue("whatsapp_local",v.localValue);setValue("whatsapp",v.internationalValue)}}/>
+            <CountryPhoneInput label="" countryCode={watch("whatsapp_indicatif")||"+225"} localValue={watch("whatsapp_local")||""} onChange={v=>{setValue("whatsapp_indicatif",v.callingCode);setValue("whatsapp_local",v.localValue);setValue("whatsapp",v.internationalValue)}}/>
             {errors.whatsapp?.message && <p className="text-sm text-destructive">{String(errors.whatsapp.message)}</p>}
           </div>
 
