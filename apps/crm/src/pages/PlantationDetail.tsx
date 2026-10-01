@@ -114,7 +114,7 @@ const PlantationDetail = () => {
             <Badge>{formatStatus(plantation.statut_global || plantation.statut)}</Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Superficie</p><p className="mt-1 text-xl font-bold">{Number(plantation.superficie_ha || 0).toFixed(2)} ha</p></CardContent></Card>
             <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Offre</p><p className="mt-1 font-semibold">{client?.famille_offre || client?.parcours_code || "—"}</p></CardContent></Card>
             <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Formule</p><p className="mt-1 font-semibold">{client?.formule_nom || client?.formule_code || "—"}</p></CardContent></Card>
