@@ -263,7 +263,7 @@ const AccountRequests = () => {
                 <div>
                   <Label>Photo</Label>
                   <SignedImg
-                    bucket={String(selectedRequest.photo_url).startsWith("profiles/") ? "photos-profils" : "documents"}
+                    bucket={String(selectedRequest.photo_url).startsWith("profiles/") ? "photos-profils" : String(selectedRequest.photo_url).startsWith("pending/") ? "account-request-photos" : "documents"}
                     value={selectedRequest.photo_url}
                     alt="Photo"
                     className="w-32 h-32 object-cover rounded-full mt-2"
