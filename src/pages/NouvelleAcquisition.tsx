@@ -165,9 +165,11 @@ const NouvelleAcquisition = () => {
       const external=!offer.necessite_foncier_client;
 
       let parcelleId=formData.parcelle_id||null;
-      if(!external){
-        const {data:parcelle,error}=await offlineInsert("parcelles",{surface_totale_ha:ha,surface_proprietaire_ha:ha,surface_agricapital_ha:0,surface_attribuee_ha:0,surface_disponible_ha:ha,village:formData.village_propre||null,district_id:formData.district_id||null,region_id:formData.region_id||null,departement_id:formData.departement_id||null,sous_prefecture_id:formData.sous_prefecture_id||null,village_id:formData.village_id||null,localisation_gps_lat:formData.parcelle_latitude?Number(formData.parcelle_latitude):null,localisation_gps_lng:formData.parcelle_longitude?Number(formData.parcelle_longitude):null,reference_convention:formData.reference_cadastrale||null,statut:"active",notes:formData.statut_foncier?("Statut foncier : "+formData.statut_foncier):null,created_by:user.id,updated_by:user.id});
-        if(error||!parcelle)throw error||new Error("Parcelle Client non créée");parcelleId=parcelle.id;
+      if(external&&formData.lot_id){
+        const {data:lot,error:lotError}=await (supabase as any).from("lots_hectares").select("parcelle_id").eq("id",formData.lot_id).maybeSingle();
+        if(lotError) throw lotError;
+        if(!lot?.parcelle_id) throw new Error("Le lot sélectionné n’est pas rattaché à une parcelle foncière.");
+        parcelleId=lot.parcelle_id;
       }
       const nomComplet=(String(formData.nom_famille||"")+" "+String(formData.prenoms||"")).trim();
       const {data:client,error:clientError}=await offlineInsert("clients",{
