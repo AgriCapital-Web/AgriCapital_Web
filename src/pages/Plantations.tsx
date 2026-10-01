@@ -179,7 +179,7 @@ const Plantations = () => {
                       ) : "—"}
                     </TableCell>
                     <TableCell>{plantation.parcelles?.id_unique || plantation.parcelles?.nom || "—"}</TableCell>
-                    <TableCell><span className="font-semibold">{Number(plantation.superficie_ha || 0).toFixed(2)}</span> ha</TableCell>
+                    <TableCell><span className="font-semibold">{Number(plantation.surface_reellement_plantee ?? plantation.superficie_activee ?? plantation.superficie_ha ?? 0).toFixed(2)}</span> ha</TableCell>
                     <TableCell><div className="flex items-center gap-1"><MapPin className="h-3 w-3 text-muted-foreground" /><span className="text-sm">{plantation.regions?.nom || "-"}</span></div></TableCell>
                     <TableCell><Badge className={getStatutBadge(plantation.statut_global || plantation.statut)}>{formatStatut(plantation.statut_global || plantation.statut || "actif")}</Badge></TableCell>
                     <TableCell>
