@@ -131,10 +131,10 @@ const AIAssistant = ({ mode, context }: AIAssistantProps) => {
   }
 
   return (
-    <Card className={`fixed z-50 shadow-2xl border-0 flex flex-col transition-all ${
+    <Card className={`fixed z-50 shadow-2xl border-0 flex flex-col overflow-hidden min-w-0 max-w-[100vw] max-h-[100dvh] transition-all ${
       isMaximized
-        ? "inset-4 sm:inset-8"
-        : "bottom-4 right-4 w-[95vw] sm:w-96 h-[80vh] sm:h-[500px]"
+        ? "inset-0 sm:inset-4 md:inset-8 rounded-none sm:rounded-lg"
+        : "bottom-2 right-2 sm:bottom-4 sm:right-4 w-[calc(100vw-1rem)] sm:w-[min(24rem,calc(100vw-2rem))] h-[min(80dvh,500px)]"
     }`}>
       <CardHeader className="flex flex-row items-center justify-between py-3 px-4 bg-gradient-to-r from-primary to-primary/90 text-white rounded-t-lg">
         <CardTitle className="text-sm flex items-center gap-2">
@@ -151,7 +151,7 @@ const AIAssistant = ({ mode, context }: AIAssistantProps) => {
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        <ScrollArea className="flex-1 min-w-0 p-3 sm:p-4 overflow-x-hidden" ref={scrollRef}>
           {messages.length === 0 && (
             <div className="text-center py-8 text-muted-foreground space-y-3">
               <Bot className="h-12 w-12 mx-auto opacity-50" />
@@ -181,7 +181,7 @@ const AIAssistant = ({ mode, context }: AIAssistantProps) => {
           <div className="space-y-4">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
+                <div className={`max-w-[88%] min-w-0 break-words overflow-hidden rounded-2xl px-3 sm:px-4 py-2.5 text-sm ${
                   msg.role === "user"
                     ? "bg-primary text-white rounded-br-sm"
                     : "bg-muted rounded-bl-sm"
@@ -205,14 +205,14 @@ const AIAssistant = ({ mode, context }: AIAssistantProps) => {
             )}
           </div>
         </ScrollArea>
-        <div className="p-3 border-t flex gap-2">
+        <div className="p-2 sm:p-3 border-t flex items-center gap-2 min-w-0">
           <Input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Posez votre question..."
-            className="flex-1 h-10"
+            className="flex-1 min-w-0 h-10"
             disabled={isLoading}
           />
           <Button onClick={handleSend} disabled={isLoading || !input.trim()} size="icon" className="h-10 w-10">
