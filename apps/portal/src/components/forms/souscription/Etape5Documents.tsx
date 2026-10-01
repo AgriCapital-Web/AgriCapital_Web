@@ -101,12 +101,12 @@ export const Etape5Documents = ({ formData, updateFormData }: Etape5Props) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="proprietaire_legal">Propriétaire légal (si différent du souscripteur)</Label>
+            <Label htmlFor="proprietaire_legal">Propriétaire légal (si différent du client)</Label>
             <Input
               id="proprietaire_legal"
               value={formData.proprietaire_legal}
               onChange={(e) => updateFormData({ proprietaire_legal: e.target.value })}
-              placeholder="Laisser vide si le souscripteur est le propriétaire"
+              placeholder="Laisser vide si le client est le propriétaire"
             />
           </div>
 
