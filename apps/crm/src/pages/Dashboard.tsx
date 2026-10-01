@@ -275,7 +275,7 @@ const Dashboard = () => {
           const statut = String(i.statut || "")
             .toLowerCase()
             .normalize("NFD")
-            .replace(/[\\u0300-\\u036f]/g, "");
+            .replace(/[\u0300-\u036f]/g, "");
           return [
             "termine",
             "terminee",
