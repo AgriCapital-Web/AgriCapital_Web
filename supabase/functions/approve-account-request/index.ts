@@ -158,6 +158,7 @@ serve(async (req) => {
       telephone: reqRow.telephone,
       username: reqRow.username ?? String(reqRow.email).split("@")[0],
       poste: reqRow.poste_souhaite,
+      photo_url: reqRow.photo_url ?? null,
       district_id: reqRow.district_id,
       region_id: reqRow.region_id,
       actif: true,
