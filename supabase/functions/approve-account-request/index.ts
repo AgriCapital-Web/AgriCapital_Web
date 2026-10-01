@@ -79,15 +79,15 @@ serve(async (req) => {
 
     if (action !== "approve") return json({ error: `Action inconnue: ${action}`, step, logs }, 400);
 
-    // Le rôle demandé par le demandeur n'est jamais fiable : l'admin doit choisir
-    // explicitement un rôle, validé ici contre une liste blanche.
-    const LEGACY_ROLE_MAP: Record<string, string> = {
+    // Le poste demandé détermine automatiquement le rôle fonctionnel à la validation.
+    // L'administrateur n'a plus à choisir manuellement un rôle différent du poste demandé.
+    const REQUEST_ROLE_MAP: Record<string, string> = {
       superviseur_tc: "responsable_commercial",
       responsable_zone: "responsable_commercial",
       responsable_technique_agronomique: "responsable_operations",
       operations: "responsable_operations",
       chef_equipe: "chef_equipe_commercial",
-      technicien: "chef_equipe_technique",
+      technicien: "technicien",
       agent_service_client: "service_client",
       assistant: "assistant_administratif",
       assistante: "assistant_administratif",
@@ -95,12 +95,12 @@ serve(async (req) => {
       raf: "comptable",
     };
     const ASSIGNABLE_ROLES = new Set([
-      "responsable_operations", "directeur_tc", "responsable_commercial", "comptable",
+      "responsable_operations", "responsable_commercial", "comptable",
       "chef_equipe_commercial", "chef_equipe_technique", "chef_equipe_service_client",
-      "commercial", "service_client", "assistant_administratif",
+      "technicien", "commercial", "service_client", "assistant_administratif",
     ]);
-    const requested = role || reqRow.role_souhaite;
-    const finalRole = LEGACY_ROLE_MAP[requested] ?? requested;
+    const requested = reqRow.role_souhaite;
+    const finalRole = REQUEST_ROLE_MAP[requested] ?? requested;
     if (!finalRole) return json({ error: "Aucun rôle à attribuer", step: "resolve_role", logs }, 400);
     if (finalRole === "super_admin") {
       return json({ error: "Le rôle super_admin ne peut pas être attribué via une demande de compte.", step: "resolve_role", logs }, 403);
