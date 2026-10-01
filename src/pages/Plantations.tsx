@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { offlineUpdate, offlineDelete } from "@/lib/offlineWrite";
 import { getCachedPlantations } from "@/lib/offlineDb";
@@ -124,7 +125,7 @@ const Plantations = () => {
   const productionOnly = statutFilter === "en_production";
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}>
       <MainLayout>
         <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center gap-3">
