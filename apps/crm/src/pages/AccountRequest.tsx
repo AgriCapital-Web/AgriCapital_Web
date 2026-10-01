@@ -275,7 +275,7 @@ const AccountRequest = () => {
             <div className="space-y-3 rounded-lg border-2 border-primary/30 bg-primary/5 p-4">
               <Label className="text-sm font-semibold flex items-center gap-2"><KeyRound className="h-4 w-4" /> Identifiants de connexion *</Label>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <Field label="Nom d'utilisateur *" icon={<AtSign />}><Input required autoComplete="username" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s/g, "") })} placeholder="ex: kouassi.jean" /></Field>
+                <Field label="Nom d'utilisateur *" icon={<AtSign />}><Input required autoComplete="username" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} placeholder="ex: kouassi.jean" /></Field>
                 <Field label="Mot de passe *"><Input required minLength={8} type="password" autoComplete="new-password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="8 caractères minimum" /></Field>
                 <Field label="Confirmer *"><Input required type="password" autoComplete="new-password" value={formData.password_confirm} onChange={(e) => setFormData({ ...formData, password_confirm: e.target.value })} placeholder="Répéter le mot de passe" /></Field>
               </div>
