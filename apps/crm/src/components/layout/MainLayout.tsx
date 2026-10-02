@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import AIAssistant from "@/components/ai/AIAssistant";
 import logoV2 from "@/assets/logo-agricapital-v2.png";
-import { cn } from "@/lib/utils";
+import { cn, formatUserShortName } from "@/lib/utils";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
@@ -131,7 +131,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <NotificationCenter />
             <NetworkIndicator compact />
           </div>
-          <Avatar className="h-8 w-8" onClick={() => navigate('/profil')}><AvatarImage src={photoUrl || ''} /><AvatarFallback className="bg-primary text-primary-foreground text-xs">{getInitials(profile?.nom_complet || '')}</AvatarFallback></Avatar>
+          <Avatar className="h-8 w-8" onClick={() => navigate('/profil')}><AvatarImage src={photoUrl || ''} /><AvatarFallback className="bg-primary text-primary-foreground text-xs">{getInitials(formatUserShortName(profile?.nom_complet))}</AvatarFallback></Avatar>
         </div>
         <SheetContent side="left" className="w-72 p-0"><SidebarContent /></SheetContent>
       </Sheet>
@@ -145,7 +145,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={syncNow} disabled={isSyncing || !isOnline} title="Synchroniser">
               <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
             </Button>
-            <div className="text-right leading-tight"><p className="text-sm font-semibold">{profile?.nom_complet || "Utilisateur"}</p><p className="text-xs text-muted-foreground">{userRoles.map(r => ROLE_SHORT_LABELS[r] || r).join(" / ") || "Compte actif"}</p></div>
+            <div className="text-right leading-tight"><p className="text-sm font-semibold">{formatUserShortName(profile?.nom_complet)}</p><p className="text-xs text-muted-foreground">{userRoles.map(r => ROLE_SHORT_LABELS[r] || r).join(" / ") || "Compte actif"}</p></div>
             <Avatar className="h-9 w-9 cursor-pointer" onClick={() => navigate('/profil')}><AvatarImage src={photoUrl || ''} /><AvatarFallback className="bg-primary text-primary-foreground text-sm">{getInitials(profile?.nom_complet || '')}</AvatarFallback></Avatar>
           </div>
         </header>
@@ -153,7 +153,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       </main>
 
 
-      <AIAssistant mode="admin" context={`Utilisateur: ${profile?.nom_complet || 'Admin'}, Rôles: ${userRoles.join(', ') || 'N/A'}`} />
+      <AIAssistant mode="admin" context={`Utilisateur: ${formatUserShortName(profile?.nom_complet)}, Rôles: ${userRoles.join(', ') || 'N/A'}`} />
     </div>
   );
 };
