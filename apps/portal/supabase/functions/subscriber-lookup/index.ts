@@ -555,17 +555,31 @@ serve(async (req) => {
 
 
     if (!souscripteur) {
-      if (!(await verifyDemoToken(cleanPhone, demoToken, demoCode))) {
+      // === MODE DÉMONSTRATION — retour au comportement historique ===
+      // Un numéro absent du CRM peut explorer le portail avec des données
+      // fictives. Aucun SMS/OTP et aucune écriture en base ne sont effectués.
+      // Le code affiché est uniquement un code de démonstration local à cette
+      // session; le token est signé côté serveur pour les rafraîchissements.
+      const validExistingDemo = await verifyDemoToken(cleanPhone, demoToken, demoCode);
+      if (!validExistingDemo) {
+        const generatedCode = String(1000 + Math.floor(Math.random() * 9000));
+        const generatedToken = await sha256(`demo:${cleanPhone}:${generatedCode}`);
+        const demo = buildDemoAccount(cleanPhone);
+        console.log("Demo account issued for", cleanPhone.slice(0, 4) + "****");
         return new Response(
-          JSON.stringify({ success: false, demo: false, error: "Numéro non enregistré : utilisez le code de démonstration généré sur l'écran de connexion." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+          JSON.stringify({
+            success: true,
+            demo: true,
+            demo_code: generatedCode,
+            demo_token: generatedToken,
+            ...demo,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
         );
       }
-      // === MODE DÉMONSTRATION ===
-      // Numéro inconnu du CRM (quel que soit l'indicatif pays) : on renvoie un
-      // compte de démonstration complet, sans aucune écriture en base.
+
       const demo = buildDemoAccount(cleanPhone);
-      console.log("Demo account served for", cleanPhone.slice(0, 4) + "****");
+      console.log("Demo account refreshed for", cleanPhone.slice(0, 4) + "****");
       return new Response(
         JSON.stringify({ success: true, demo: true, ...demo }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
