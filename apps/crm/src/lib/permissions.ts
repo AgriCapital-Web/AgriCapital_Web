@@ -56,6 +56,7 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   ]),
   ...build("clients", "Clients", [
     ["view", "Consulter"],
+    ["view_money", "Consulter la monnaie client"],
     ["create", "Créer"],
     ["update", "Modifier"],
     ["archive", "Archiver"],
@@ -133,7 +134,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.PDG]: all(),
   [ROLES.DG]: all(),
   [ROLES.RESPONSABLE_OPERATIONS]: only(
-    "utilisateurs.", "offres.", "promotions.", "leads.", "clients.", "plantations.",
+    "clients.view_money", "utilisateurs.", "offres.", "promotions.", "leads.", "clients.", "plantations.",
     "documents.", "rapports.", "tickets.", "commissions.view",
     "paiements.view", "paiements.record", "paiements.validate",
     "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit", "portefeuilles.view",
@@ -145,7 +146,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "documents.view", "tickets.view", "utilisateurs.view", "parametres.manage_teams",
   ),
   [ROLES.COMPTABLE]: only(
-    "paiements.", "commissions.", "commissions.manage_payouts", "portefeuilles.", "portefeuilles.manage_payouts", "rapports.view_financier", "rapports.export",
+    "clients.view_money", "paiements.", "commissions.", "commissions.manage_payouts", "portefeuilles.", "portefeuilles.manage_payouts", "rapports.view_financier", "rapports.export",
     "clients.view", "offres.view", "promotions.view", "documents.view", "documents.validate",
   ),
   [ROLES.CHEF_EQUIPE_COMMERCIAL]: only(
@@ -159,7 +160,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "tickets.view", "portefeuilles.view", "commissions.view", "tickets.create", "tickets.update", "clients.view",
   ),
   [ROLES.CHEF_EQUIPE_SERVICE_CLIENT]: only(
-    "tickets.", "clients.view", "clients.update", "paiements.view", "paiements.record",
+    "clients.view_money", "tickets.", "clients.view", "clients.update", "paiements.view", "paiements.record",
     "paiements.validate", "documents.view", "leads.view",
   ),
   [ROLES.COMMERCIAL]: only(
@@ -169,7 +170,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     "documents.view", "documents.upload",
   ),
   [ROLES.SERVICE_CLIENT]: only(
-    "tickets.view", "tickets.create", "tickets.update",
+    "clients.view_money", "tickets.view", "tickets.create", "tickets.update",
     "clients.view", "paiements.view", "paiements.record", "paiements.validate",
     "documents.view", "leads.view",
   ),
