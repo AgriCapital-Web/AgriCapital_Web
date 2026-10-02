@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
+import { formatUserShortName } from "@/lib/utils";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -172,7 +173,7 @@ export default function Portefeuilles(){
               <Table className="responsive-data-table" className="min-w-[700px]"><TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Rôle</TableHead><TableHead>Solde</TableHead><TableHead>Total gagné</TableHead><TableHead>Total versé</TableHead></TableRow></TableHeader>
               <TableBody>
                 {loading?<TableRow><TableCell colSpan={5} className="py-8 text-center">Chargement…</TableCell></TableRow>:filtered.length===0?<TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Aucun portefeuille.</TableCell></TableRow>:filtered.map((p:any)=><TableRow key={p.id} className="cursor-pointer hover:bg-muted/40" onClick={()=>setSelected(p)}>
-                  <TableCell className="font-medium">{p.user?.nom_complet||"—"}</TableCell>
+                  <TableCell className="font-medium">{formatUserShortName(p.user?.nom_complet||"—")}</TableCell>
                   <TableCell><Badge variant="outline">{p.user?.roles?.includes("commercial")?"Commercial":"Technique / Encadrement"}</Badge></TableCell>
                   <TableCell className="font-bold text-primary">{money(p.solde_commissions)}</TableCell>
                   <TableCell>{money(p.total_gagne)}</TableCell>
@@ -195,7 +196,7 @@ export default function Portefeuilles(){
 
         <Dialog open={!!selected} onOpenChange={open=>!open&&setSelected(null)}>
           <DialogContent className="max-h-[90vh] max-w-6xl overflow-y-auto">
-            <DialogHeader><DialogTitle>{selected?.user?.nom_complet || "Portefeuille"}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{formatUserShortName(selected?.user?.nom_complet || "Portefeuille")}</DialogTitle></DialogHeader>
             {selected&&<div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Période</p><p className="font-semibold">{periodStart} → {periodEnd}</p></CardContent></Card>
