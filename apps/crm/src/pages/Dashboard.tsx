@@ -39,7 +39,8 @@ const Dashboard = () => {
   const profilePhotoUrl = useSignedUrl("photos-profils", profile?.photo_url);
 
   const isClientOnly = userRoles.length > 0 && userRoles.every((r) => r === "user");
-  const globalAdmin = userRoles.some((r) => r === "super_admin" || r === "pdg");
+  const globalAdmin = userRoles.some((r) => r === "super_admin" || r === "pdg" || r === "dg");
+  const canFinancialOverview = globalAdmin || userRoles.some((r) => ["comptable","responsable_operations"].includes(r));
 
   const canClients = hasPermission(userRoles, PERMISSIONS.VIEW_CLIENTS);
   const canLeads = hasPermission(userRoles, PERMISSIONS.VIEW_LEADS);
@@ -111,7 +112,8 @@ const Dashboard = () => {
         interventionsRes,
         commissionsRes,
         portfoliosRes,
-        regionsRes
+        regionsRes,
+        monnaieRes
       ] = await Promise.all([
         canClients || canTechnical || canPlantations || globalAdmin
           ? (supabase as any).from("clients").select("id,id_unique,nom_complet,created_at,updated_at,statut_global,nombre_plantations,total_hectares,formule_nom,formule_code,phase_actuelle,compte_actif,numero_ordre_global,paiement_initial_paye_at,pi_paye_at,type_client")
@@ -151,6 +153,9 @@ const Dashboard = () => {
           : Promise.resolve({ data: [] }),
         canPlantations || globalAdmin
           ? (supabase as any).from("regions").select("id,nom")
+          : Promise.resolve({ data: [] }),
+        canClients || canPayments || globalAdmin
+          ? (supabase as any).from("v_monnaie_clients").select("client_id,monnaie_client")
           : Promise.resolve({ data: [] })
       ]);
 
@@ -167,6 +172,7 @@ const Dashboard = () => {
       const commissions = commissionsRes.data || [];
       const portfolios = portfoliosRes.data || [];
       const regions = regionsRes.data || [];
+      const monnaieRows = monnaieRes.data || [];
 
       const validPayments = payments.filter((p: any) => p.statut === "valide" && Number(p.montant_paye ?? p.montant ?? 0) > 0);
       const collected = validPayments.reduce((s: number, p: any) => s + Number(p.montant_paye ?? p.montant ?? 0), 0);
@@ -192,24 +198,7 @@ const Dashboard = () => {
       const forecastRevenue = contractRows.reduce((s: number, r: any) => s + Number(r.montant_total_contrat || 0), 0);
       const dueAmount = contractRows.reduce((s: number, r: any) => s + Number(r.reste_a_payer || 0), 0);
 
-      // Crédit réellement disponible chez les clients : paiements de redevance validés
-      // supérieurs à la consommation courante de la plantation.
-      const redevancePayeParPlantation = new Map<string, number>();
-      validPayments
-        .filter((p: any) => p.type_paiement === "REDEVANCE" && p.plantation_id)
-        .forEach((p: any) => {
-          redevancePayeParPlantation.set(
-            String(p.plantation_id),
-            (redevancePayeParPlantation.get(String(p.plantation_id)) || 0) + Number(p.montant_paye ?? p.montant ?? 0)
-          );
-        });
-      const clientCredit = plantations.reduce((sum: number, plant: any) => {
-        if (!plant.date_activation) return sum;
-        const days = Math.max(0, Math.floor((Date.now() - new Date(plant.date_activation).getTime()) / 86400000));
-        const monthlyRate = Number(plant.montant_contribution_mensuelle || 1900);
-        const expected = days * (monthlyRate / 30) * Number(plant.superficie_activee || plant.superficie_ha || 0);
-        return sum + Math.max(0, (redevancePayeParPlantation.get(String(plant.id)) || 0) - expected);
-      }, 0);
+      const clientCredit = monnaieRows.reduce((sum: number, row: any) => sum + Math.max(0, Number(row.monnaie_client || 0)), 0);
       const contractEndDates = contractRows
         .map((r: any) => r.contrat_fin_at ? new Date(r.contrat_fin_at) : null)
         .filter((d: Date | null): d is Date => Boolean(d && d.getTime() > Date.now()));
@@ -541,7 +530,7 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {canFinance || canPayments ? (
+              {canFinancialOverview || canCommissions || canPortfolios ? (
                 <Card>
                   <CardHeader><CardTitle className="text-base flex items-center gap-2"><Wallet className="h-5 w-5 text-primary" />Situation financière</CardTitle></CardHeader>
                   <CardContent>
