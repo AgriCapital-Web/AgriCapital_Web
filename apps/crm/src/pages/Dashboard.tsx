@@ -40,7 +40,8 @@ const Dashboard = () => {
 
   const isClientOnly = userRoles.length > 0 && userRoles.every((r) => r === "user");
   const globalAdmin = userRoles.some((r) => r === "super_admin" || r === "pdg" || r === "dg");
-  const canFinancialOverview = userRoles.some((r) => ["super_admin","pdg","dg","responsable_operations"].includes(r));
+  const canDashboardExecutiveFinance = userRoles.some((r) => ["super_admin","pdg","dg","responsable_operations"].includes(r));
+  const canFinancialOverview = canDashboardExecutiveFinance || userRoles.some((r) => ["service_client","chef_equipe_service_client","comptable"].includes(r));
   const canCommercialTeamPerformance = globalAdmin || userRoles.some((r) => ["responsable_operations","responsable_commercial","chef_equipe_commercial"].includes(r));
   const canTechnicalTeamPerformance = globalAdmin || userRoles.some((r) => ["responsable_operations","chef_equipe_technique"].includes(r));
 
@@ -491,7 +492,19 @@ const Dashboard = () => {
                 })}
               </section>
 
-              {(canPlantations || canClients) && (
+              {canDashboardExecutiveFinance && (
+            <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                ["Chiffre d'affaires prévisionnel", stats.forecastRevenue],
+                ["Montant encaissé", stats.collected],
+                ["Montant restant à encaisser", stats.dueAmount],
+              ].map(([label,value]) => (
+                <Card key={label}><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-bold">{money(value)}</p></CardContent></Card>
+              ))}
+            </section>
+          )}
+
+          {(canPlantations || canClients) && (
                 <Card>
                   <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><LandPlot className="h-5 w-5 text-primary" />Patrimoine agricole</CardTitle></CardHeader>
                   <CardContent>
