@@ -124,8 +124,11 @@ export default function Leads() {
       return data || [];
     },
   });
-  const nameOf = (id?: string | null) =>
-    (!id ? "—" : acteurs.find((a: any) => a.user_id === id || a.id === id)?.nom_complet || String(id).slice(0, 8) + "…");
+  const nameOf = (id?: string | null) => {
+    if (!id) return "—";
+    const raw = acteurs.find((a: any) => a.user_id === id || a.id === id)?.nom_complet;
+    return raw ? formatUserShortName(raw) : String(id).slice(0, 8) + "…";
+  };
 
   const reassign = useMutation({
     mutationFn: async () => {
@@ -157,6 +160,9 @@ export default function Leads() {
   const createLead = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Non authentifié");
+      if (leadForm.source === "commercial_terrain" && (canSupervise || isServiceClient) && !leadForm.assigned_to) {
+        throw new Error("Sélectionnez le commercial responsable de ce lead.");
+      }
       const num = (v: string) => (v === "" || v == null ? null : Number(v));
       const { error } = await offlineInsert("leads", {
         nom: leadForm.nom,
@@ -187,7 +193,7 @@ export default function Leads() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["leads"] });
-      setLeadForm(emptyLead);
+      setLeadForm({ ...emptyLead, assigned_to: isServiceClient && hasCommercialAccess ? (user?.id || "") : "" });
       setCreateOpen(false);
       toast({ title: navigator.onLine ? "Lead créé" : "Lead enregistré hors ligne" });
     },
