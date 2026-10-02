@@ -817,9 +817,7 @@ const GestionPaiements = () => {
                         <TableRow>
                           <TableHead>Client</TableHead>
                           <TableHead>Téléphone</TableHead>
-                          <TableHead>Total payé</TableHead>
-                          <TableHead>Attendu</TableHead>
-                          <TableHead>Monnaie</TableHead>
+                          <TableHead>Monnaie client</TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
