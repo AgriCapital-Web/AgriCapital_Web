@@ -351,10 +351,24 @@ const Dashboard = () => {
       }
       setAlerts(newAlerts);
 
+      const superficieGroups = [
+        { label: "1 ha", min: 1, max: 1 },
+        { label: "2 ha", min: 2, max: 2 },
+        { label: "3 ha", min: 3, max: 3 },
+        { label: "5–10 ha", min: 5, max: 10 },
+        { label: "10–50 ha", min: 10, max: 50 },
+        { label: "50–100 ha", min: 50, max: 100 },
+        { label: "100+ ha", min: 100, max: Number.POSITIVE_INFINITY },
+      ];
       setTopClients(
-        [...clients]
-          .sort((a: any, b: any) => Number(b.total_hectares || 0) - Number(a.total_hectares || 0))
-          .slice(0, 5)
+        superficieGroups.map((group) => ({
+          label: group.label,
+          count: clients.filter((client: any) => {
+            const ha = Number(client.total_hectares || 0);
+            if (group.min === group.max) return Math.round(ha * 100) / 100 === group.min;
+            return ha >= group.min && ha < group.max;
+          }).length,
+        }))
       );
 
       setLastRefresh(new Date());
@@ -565,7 +579,6 @@ const Dashboard = () => {
                       <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Jours restants (contrats renseignés)</p><p className="text-xl font-bold">{stats.avgDaysRemaining == null ? "—" : stats.avgDaysRemaining}</p></div>
                       <div className="rounded-xl bg-muted/50 p-3"><p className="text-xs text-muted-foreground">Avancement moyen</p><p className="text-xl font-bold">{stats.avgDaysRemaining == null && stats.avgProgress === 0 ? "—" : stats.avgProgress + "%"}</p></div>
                     </div>
-                    <p className="mt-3 text-xs text-muted-foreground">Les durées sont lues depuis l’offre/formule. Le dashboard n’impose plus un cycle global : les paramètres diffèrent selon l’offre et les dossiers sans données contractuelles restent visibles sans valeur inventée.</p>
                   </CardContent>
                 </Card>
               )}
@@ -656,14 +669,14 @@ const Dashboard = () => {
 
                 {canClients && (
                   <Card className="lg:col-span-1">
-                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Award className="h-5 w-5 text-primary" />Clients par superficie</CardTitle></CardHeader>
+                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Award className="h-5 w-5 text-primary" />Nombre de clients par superficie</CardTitle></CardHeader>
                     <CardContent className="space-y-2">
-                      {topClients.length ? topClients.map((c) => (
-                        <div key={c.id} className="flex items-center justify-between rounded-lg border p-2.5">
-                          <span className="truncate text-sm">{c.nom_complet}</span>
-                          <span className="shrink-0 text-sm font-semibold">{num(c.total_hectares)} ha</span>
+                      {topClients.map((group: any) => (
+                        <div key={group.label} className="flex items-center justify-between rounded-lg border p-2.5">
+                          <span className="text-sm font-medium">{group.label}</span>
+                          <span className="shrink-0 text-sm font-semibold">{group.count} client{group.count > 1 ? "s" : ""}</span>
                         </div>
-                      )) : <p className="text-sm text-muted-foreground">Aucune donnée.</p>}
+                      ))}
                     </CardContent>
                   </Card>
                 )}
