@@ -279,7 +279,7 @@ export default function Leads() {
         <Card>
           <CardHeader><CardTitle>Pipeline commercial</CardTitle></CardHeader>
           <CardContent>
-            <Table>
+            <Table className="responsive-data-table">
               <TableHeader><TableRow>
                 <TableHead>ID</TableHead><TableHead>Nom</TableHead><TableHead>Contact</TableHead>
                 <TableHead>Région</TableHead><TableHead>Statut</TableHead><TableHead>Relance</TableHead>
