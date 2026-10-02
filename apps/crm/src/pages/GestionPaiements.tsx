@@ -257,61 +257,25 @@ const GestionPaiements = () => {
     }
   });
 
-  // Fetch clients with monnaie (solde positif)
+  // Monnaie client : solde calculé par le moteur financier centralisé.
   const { data: clientsMonnaie = [] } = useQuery({
     queryKey: ['clients-monnaie'],
     queryFn: async () => {
-      // Calculer la monnaie pour chaque client
-      const { data: clients, error: sError } = await supabase
-        .from('clients')
-        .select(`
-          id, nom_complet, telephone,
-          plantations (id, superficie_activee, date_activation, montant_contribution_mensuelle)
-        `)
-        .eq('statut', 'actif')
-        .limit(500);
-
-      if (sError) throw sError;
-
-      // Pour chaque client, calculer le solde
-      const result = await Promise.all((clients || []).map(async (sous: any) => {
-        const plantationIds = sous.plantations?.map((p: any) => p.id) || [];
-        if (plantationIds.length === 0) return null;
-
-        const { data: paiments } = await supabase
-          .from('paiements')
-          .select('montant_paye, plantation_id, type_paiement')
-          .in('plantation_id', plantationIds)
-          .eq('statut', 'valide')
-          .eq('type_paiement', 'REDEVANCE');
-
-        const totalPaye = paiments?.reduce((sum, p) => sum + (p.montant_paye || 0), 0) || 0;
-        
-        // Calculer le montant attendu
-        let montantAttendu = 0;
-        for (const plant of (sous.plantations || [])) {
-          if (plant.date_activation) {
-            const joursActifs = Math.floor((new Date().getTime() - new Date(plant.date_activation).getTime()) / (1000 * 60 * 60 * 24));
-            const tarifJour = (plant.montant_contribution_mensuelle || 1900) / 30;
-            montantAttendu += joursActifs * tarifJour * (plant.superficie_activee || 0);
-          }
-        }
-
-        const solde = totalPaye - montantAttendu;
-        
-        return {
-          id: sous.id,
-          nom_complet: sous.nom_complet,
-          telephone: sous.telephone,
-          totalPaye,
-          montantAttendu: Math.round(montantAttendu),
-          monnaie: solde > 0 ? Math.round(solde) : 0,
-          arrieres: solde < 0 ? Math.round(Math.abs(solde)) : 0
-        };
+      const { data, error } = await (supabase as any)
+        .from('v_monnaie_clients')
+        .select('client_id,monnaie_client,clients(id,nom_complet,telephone)')
+        .gt('monnaie_client', 0)
+        .order('monnaie_client', { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data || []).map((row: any) => ({
+        id: row.client_id,
+        nom_complet: row.clients?.nom_complet,
+        telephone: row.clients?.telephone,
+        monnaie: Number(row.monnaie_client || 0),
       }));
-
-      return result.filter(r => r !== null && r.monnaie > 0);
-    }
+    },
+    staleTime: 30_000,
   });
 
   const { data: financeSynthese = [] } = useQuery({
