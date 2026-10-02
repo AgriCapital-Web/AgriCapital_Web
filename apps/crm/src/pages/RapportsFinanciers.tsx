@@ -181,7 +181,7 @@ const RapportsFinanciers = () => {
         conditional: [
           { range: `H3:H${syntheseData.length}`, formula: "$H3>=1", style: 0 },
           { range: `H3:H${syntheseData.length}`, formula: "$H3<0.5", style: 1 },
-          { range: `H3:H${syntheseData.length}`, formula: "$H3>=0.5", style: 2 },
+          { range: `H3:H${syntheseData.length}`, formula: "AND($H3>=0.5,$H3<1)", style: 2 },
         ] },
     ], `rapport-financier-agricapital-${new Date().toISOString().split("T")[0]}.xlsx`);
   };
