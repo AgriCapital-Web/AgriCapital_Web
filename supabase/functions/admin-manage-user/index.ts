@@ -11,7 +11,7 @@ async function privateProtectedTarget(admin: any, userId: string) {
   return ["innocentkoffi1@gmail.com","admin@agricapital.ci"].includes(String(data?.email || "").toLowerCase());
 }
 
-const VALID_ROLES = new Set(["super_admin","responsable_operations","directeur_tc","responsable_commercial","comptable","commercial","service_client","assistant_administratif","chef_equipe_commercial","chef_equipe_technique","chef_equipe_service_client","associe_actionnaire"]);
+const VALID_ROLES = new Set(["super_admin","responsable_operations","directeur_tc","responsable_commercial","comptable","commercial","service_client","assistant_administratif","chef_equipe_commercial","chef_equipe_technique","chef_equipe_service_client","associe_actionnaire","dg"]);
 const json = (p: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(p), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status });
 
