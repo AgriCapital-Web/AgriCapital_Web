@@ -314,22 +314,34 @@ const GestionPaiements = () => {
     }
   });
 
-  // Stats
+  const { data: financeSynthese = [] } = useQuery({
+    queryKey: ["gestion-paiements-finance-synthese"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("v_client_synthese")
+        .select("compte_actif,montant_total_contrat,total_paye,reste_a_payer")
+        .eq("compte_actif", true);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
+
+  // Les indicateurs financiers portent sur les montants contractuels et encaissés,
+  // jamais sur le nombre d'échéances ou de transactions.
   const stats = useMemo(() => {
-    const valides = paiements.filter(p => p.statut === 'valide');
-    const enAttente = paiements.filter(p => p.statut === 'en_attente');
-    const totalValide = valides.reduce((sum, p) => sum + (p.montant_paye || p.montant), 0);
+    const caPrevisionnel = financeSynthese.reduce((sum: number, row: any) => sum + Number(row.montant_total_contrat || 0), 0);
+    const montantTotal = financeSynthese.reduce((sum: number, row: any) => sum + Number(row.total_paye || 0), 0);
+    const montantRestant = financeSynthese.reduce((sum: number, row: any) => sum + Number(row.reste_a_payer || 0), 0);
     const totalMonnaie = clientsMonnaie.reduce((sum, s: any) => sum + (s?.monnaie || 0), 0);
 
     return {
-      totalPaiements: paiements.length,
-      paiementsValides: valides.length,
-      paiementsEnAttente: enAttente.length,
-      montantTotal: totalValide,
-      montantRestant: enAttente.reduce((sum, p) => sum + Number(p.montant || 0), 0),
-      monnaieDisponible: totalMonnaie
+      caPrevisionnel,
+      montantTotal,
+      montantRestant,
+      monnaieDisponible: totalMonnaie,
     };
-  }, [paiements, clientsMonnaie]);
+  }, [financeSynthese, clientsMonnaie]);
 
   // Filtered paiements
   const filteredPaiements = useMemo(() => {
@@ -624,88 +636,37 @@ const GestionPaiements = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+          {/* Indicateurs financiers */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <CreditCard className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Paiements prévus</p>
-                    <p className="text-lg font-bold">{stats.totalPaiements}</p>
-                  </div>
+                  <div className="p-2 bg-blue-100 rounded-lg"><TrendingUp className="h-5 w-5 text-blue-600" /></div>
+                  <div><p className="text-xs text-muted-foreground">Chiffre d'affaires prévisionnel</p><p className="text-sm font-bold">{formatMontant(stats.caPrevisionnel)}</p></div>
                 </div>
               </CardContent>
             </Card>
-            
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Paiements encaissés</p>
-                    <p className="text-lg font-bold">{stats.paiementsValides}</p>
-                  </div>
+                  <div className="p-2 bg-green-100 rounded-lg"><CheckCircle className="h-5 w-5 text-green-600" /></div>
+                  <div><p className="text-xs text-muted-foreground">Montant encaissé</p><p className="text-sm font-bold">{formatMontant(stats.montantTotal)}</p></div>
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
-                    <Clock className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Paiements en attente</p>
-                    <p className="text-lg font-bold">{stats.paiementsEnAttente}</p>
-                  </div>
+                  <div className="p-2 bg-orange-100 rounded-lg"><ArrowUpRight className="h-5 w-5 text-orange-600" /></div>
+                  <div><p className="text-xs text-muted-foreground">Montant restant à encaisser</p><p className="text-sm font-bold">{formatMontant(stats.montantRestant)}</p></div>
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Montant encaissé</p>
-                    <p className="text-sm font-bold">{formatMontant(stats.montantTotal)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <ArrowUpRight className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Montant restant à encaisser</p>
-                    <p className="text-sm font-bold">{formatMontant(stats.montantRestant)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             <Card className="bg-amber-50 border-amber-200">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-100 rounded-lg">
-                    <Coins className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-amber-700">Monnaie clients disponible</p>
-                    <p className="text-sm font-bold text-amber-800">{formatMontant(stats.monnaieDisponible)}</p>
-                  </div>
+                  <div className="p-2 bg-amber-100 rounded-lg"><Coins className="h-5 w-5 text-amber-600" /></div>
+                  <div><p className="text-xs text-amber-700">Monnaie disponible chez les clients</p><p className="text-sm font-bold text-amber-800">{formatMontant(stats.monnaieDisponible)}</p></div>
                 </div>
               </CardContent>
             </Card>
