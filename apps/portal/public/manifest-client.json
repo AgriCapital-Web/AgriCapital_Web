@@ -1,8 +1,8 @@
 {
-  "name": "AgriCapital · Espace Client",
-  "short_name": "AgriCapital",
+  "name": "AC_Clients",
+  "short_name": "AC_Clients",
   "description": "Espace Client AgriCapital — suivi complet de vos plantations de palmier à huile (progression, médias, documents, carte, rapports, messagerie) et paiement sécurisé.",
-  "start_url": "/?app=agricapital-client-v5",
+  "start_url": "/?app=AC_Clients",
   "scope": "/",
   "display": "standalone",
   "background_color": "#00643C",
@@ -25,7 +25,7 @@
   "categories": ["finance", "lifestyle"],
   "lang": "fr-FR",
   "dir": "ltr",
-  "id": "agricapital-client-v5",
+  "id": "ac-clients",
   "prefer_related_applications": false,
   "related_applications": []
 }
