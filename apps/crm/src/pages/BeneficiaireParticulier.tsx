@@ -81,8 +81,9 @@ const BeneficiaireParticulier = () => {
       toast({ variant: "destructive", title: "Informations manquantes", description: "Le nom complet et le numéro de pièce sont obligatoires." });
       return;
     }
-    if (!proprietaire.nom_complet.trim() || !parcelle.code_parc.trim()) {
-      toast({ variant: "destructive", title: "Rattachement incomplet", description: "Le propriétaire foncier et la référence de parcelle sont obligatoires." });
+    const proprietaireNomComplet = [proprietaire.nom, proprietaire.prenoms].filter(Boolean).join(" ").trim();
+    if (!proprietaire.nom.trim() || !proprietaire.prenoms.trim() || !parcelle.code_parc.trim()) {
+      toast({ variant: "destructive", title: "Rattachement incomplet", description: "Le nom, les prénoms du propriétaire foncier et la référence de parcelle sont obligatoires." });
       return;
     }
 
@@ -97,7 +98,7 @@ const BeneficiaireParticulier = () => {
 
       const { data, error } = await (supabase as any).rpc("register_beneficiaire_particulier", {
         p_beneficiaire: beneficiaire,
-        p_proprietaire: proprietaire,
+        p_proprietaire: { ...proprietaire, nom_complet: proprietaireNomComplet },
         p_parcelle: parcelle,
         p_plantation: plantation,
         p_documents: docs,
@@ -144,7 +145,7 @@ const BeneficiaireParticulier = () => {
 
       toast({
         title: "Bénéficiaire enregistré",
-        description: "Le bénéficiaire, le propriétaire foncier, la parcelle et l’actif agricole ont été rattachés. Aucun accès portail n’a été créé.",
+        description: "Le bénéficiaire, le propriétaire foncier, la parcelle et l’actif agricole ont été enregistrés.",
       });
       navigate(`/client/${ids.client_id}`);
     } catch (error: any) {
@@ -164,7 +165,7 @@ const BeneficiaireParticulier = () => {
         </Button>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Bénéficiaire particulier</h1>
-          <p className="text-muted-foreground">Enregistrement interne d’un actif agricole remis à titre gracieux — sans compte portail.</p>
+  
         </div>
       </div>
 
@@ -172,7 +173,7 @@ const BeneficiaireParticulier = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2"><UserRound className="h-5 w-5" /> Bénéficiaire</CardTitle>
-            <Badge variant="secondary">Externe · sans portail</Badge>
+
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div><Label>Nom de famille *</Label><Input value={beneficiaire.nom_famille} onChange={e=>setBeneficiaire({...beneficiaire,nom_famille:e.target.value})}/></div>
@@ -192,7 +193,7 @@ const BeneficiaireParticulier = () => {
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><LandPlot className="h-5 w-5" /> Propriétaire foncier</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><Label>Nom complet *</Label><Input value={proprietaire.nom_complet} onChange={e=>setProprietaire({...proprietaire,nom_complet:e.target.value})}/></div>
+            
             <div><Label>Nom</Label><Input value={proprietaire.nom} onChange={e=>setProprietaire({...proprietaire,nom:e.target.value})}/></div>
             <div><Label>Prénoms</Label><Input value={proprietaire.prenoms} onChange={e=>setProprietaire({...proprietaire,prenoms:e.target.value})}/></div>
             <CountryPhoneInput label="Téléphone du propriétaire" countryCode={proprietaire.telephone_indicatif||"+225"} localValue={proprietaire.telephone_local||""} onChange={v=>setProprietaire(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
@@ -207,7 +208,7 @@ const BeneficiaireParticulier = () => {
             <div><Label>Référence parcelle *</Label><Input value={parcelle.code_parc} onChange={e=>setParcelle({...parcelle,code_parc:e.target.value})}/></div>
             <div><Label>Superficie physique de la parcelle (ha) *</Label><Input type="number" step="0.01" min="0" value={parcelle.surface_totale_ha} onChange={e=>setParcelle({...parcelle,surface_totale_ha:e.target.value})}/></div>
             <div className="md:col-span-3"><Label>Localisation administrative</Label><GeographieCascade districtId={parcelle.district_id} regionId={parcelle.region_id} departementId={parcelle.departement_id} sousPrefectureId={parcelle.sous_prefecture_id} villageId={parcelle.village_id} required onChange={(g)=>{const next={...parcelle,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village_id:g.villageId||"",village:g.villageName||""};setParcelle(next);setProprietaire((x:any)=>({...x,district_id:next.district_id,region_id:next.region_id,departement_id:next.departement_id,sous_prefecture_id:next.sous_prefecture_id,village_id:next.village_id,village:next.village}));}}/></div>
-            <div className="md:col-span-3"><p className="text-sm text-muted-foreground">La parcelle reste une parcelle foncière physique. Le système calcule automatiquement la quote-part propriétaire (50 %) et la quote-part bénéficiaire, sans paiement ni activation manuelle du propriétaire.</p></div>
+            
           </CardContent>
         </Card>
 
