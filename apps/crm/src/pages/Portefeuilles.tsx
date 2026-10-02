@@ -42,8 +42,8 @@ export default function Portefeuilles(){
     setLoading(true);
     try{
       const [pr,pf,cm,vp,lines]=await Promise.all([
-        (supabase as any).from("profiles").select("id,user_id,nom_complet,telephone,equipe_id,actif").eq("actif",true).order("nom_complet"),
-        (supabase as any).from("portefeuilles").select("*").order("updated_at",{ascending:false}),
+        (supabase as any).from("profiles").select("id,user_id,nom_complet,telephone,equipe_id,actif").eq("actif",true).ilike("nom_complet", search.trim() ? `%${search.trim()}%` : "%").order("nom_complet").limit(50),
+        (supabase as any).from("portefeuilles").select("*").order("updated_at",{ascending:false}).limit(50),
         (supabase as any).from("commissions").select("id,profile_id,client_id,paiement_id,type_commission,montant_base,taux_commission,montant_commission,periode,statut,date_calcul,client:clients(id,id_unique,nom_complet,famille_offre,formule_code,formule_nom),paiement:paiements(id,reference,date_paiement)").order("periode",{ascending:false}).limit(2000),
         (supabase as any).from("portefeuille_versements").select("*").order("periode_debut",{ascending:false}),
         (supabase as any).from("portefeuille_versement_lignes").select("commission_id,versement_id"),
@@ -60,7 +60,7 @@ export default function Portefeuilles(){
     }catch(e:any){toast({variant:"destructive",title:"Portefeuilles indisponibles",description:e?.message||"Erreur de chargement."});}
     finally{setLoading(false);}
   };
-  useEffect(()=>{void load();},[]);
+  useEffect(()=>{ const t=window.setTimeout(()=>void load(),250); return ()=>window.clearTimeout(t); },[search]);
 
   const visibleProfiles=useMemo(()=>{
     if(isSuperAdmin||isPdg||can("portefeuilles.manage_payouts"))return profiles;
