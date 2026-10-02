@@ -120,7 +120,7 @@ const Dashboard = () => {
           ? (supabase as any).from("plantations").select("id,id_unique,client_id,superficie_ha,superficie_activee,surface_reellement_plantee,statut_global,created_at,region_id,departement_id,village_nom,village,alerte_non_paiement,alerte_visite_retard")
           : Promise.resolve({ data: [] }),
         canPayments || globalAdmin
-          ? (supabase as any).from("paiements").select("id,client_id,montant,montant_paye,statut,date_paiement,date_echeance,type_paiement,mode_paiement,reference,est_paiement_initial,est_depot_initial,created_at").order("date_paiement", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false })
+          ? (supabase as any).from("paiements").select("id,client_id,plantation_id,montant,montant_paye,statut,date_paiement,date_echeance,type_paiement,mode_paiement,reference,est_paiement_initial,est_depot_initial,created_at").order("date_paiement", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false })
           : Promise.resolve({ data: [] }),
         canFinance || canClients || globalAdmin
           ? (supabase as any).from("v_client_synthese").select("*")
@@ -191,6 +191,25 @@ const Dashboard = () => {
         : 0;
       const forecastRevenue = contractRows.reduce((s: number, r: any) => s + Number(r.montant_total_contrat || 0), 0);
       const dueAmount = contractRows.reduce((s: number, r: any) => s + Number(r.reste_a_payer || 0), 0);
+
+      // Crédit réellement disponible chez les clients : paiements de redevance validés
+      // supérieurs à la consommation courante de la plantation.
+      const redevancePayeParPlantation = new Map<string, number>();
+      validPayments
+        .filter((p: any) => p.type_paiement === "REDEVANCE" && p.plantation_id)
+        .forEach((p: any) => {
+          redevancePayeParPlantation.set(
+            String(p.plantation_id),
+            (redevancePayeParPlantation.get(String(p.plantation_id)) || 0) + Number(p.montant_paye ?? p.montant ?? 0)
+          );
+        });
+      const clientCredit = plantations.reduce((sum: number, plant: any) => {
+        if (!plant.date_activation) return sum;
+        const days = Math.max(0, Math.floor((Date.now() - new Date(plant.date_activation).getTime()) / 86400000));
+        const monthlyRate = Number(plant.montant_contribution_mensuelle || 1900);
+        const expected = days * (monthlyRate / 30) * Number(plant.superficie_activee || plant.superficie_ha || 0);
+        return sum + Math.max(0, (redevancePayeParPlantation.get(String(plant.id)) || 0) - expected);
+      }, 0);
       const contractEndDates = contractRows
         .map((r: any) => r.contrat_fin_at ? new Date(r.contrat_fin_at) : null)
         .filter((d: Date | null): d is Date => Boolean(d && d.getTime() > Date.now()));
@@ -229,7 +248,7 @@ const Dashboard = () => {
         commissions: commissionTotal,
         portfolio: portfolioTotal,
         forecastRevenue,
-        clientCredit: 0,
+        clientCredit,
       });
 
       // IMPORTANT: "Clients récents" = ordre de création récent, pas numéro métier.
@@ -615,7 +634,7 @@ const Dashboard = () => {
                               <TableCell className="font-mono text-xs">{c.id_unique}</TableCell>
                               <TableCell className="font-medium">{c.nom_complet}</TableCell>
                               <TableCell>{c.nombre_plantations || 0}</TableCell>
-                              <TableCell><Badge variant={c.statut_global === "actif" ? "default" : "secondary"}>{c.statut_global || "—"}</Badge></TableCell>
+                              <TableCell><Badge variant={c.statut_global === "actif" ? "default" : c.statut_global === "retard" ? "destructive" : "secondary"}>{c.statut_global === "actif" ? "Actif" : c.statut_global === "retard" ? "Retard" : "Suspendu"}</Badge></TableCell>
                             </TableRow>
                           )) : <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">Aucun client accessible.</TableCell></TableRow>}
                         </TableBody></Table>
