@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
+import { formatUserShortName } from "@/lib/utils";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -72,7 +73,7 @@ export default function Commissions() {
     for (const row of rows) {
       const key = row.profile_id || row.profile?.nom_complet || "sans-commercial";
       const current = map.get(key) || {
-        key, profile_id: row.profile_id, nom: row.profile?.nom_complet || "Collaborateur non renseigné", type: row.type_commission === "technique" ? "Technicien" : "Commercial", equipe: row.profile?.equipe?.nom || "Sans équipe",
+        key, profile_id: row.profile_id, nom: formatUserShortName(row.profile?.nom_complet || "Collaborateur non renseigné"), type: row.type_commission === "technique" ? "Technicien" : "Commercial", equipe: row.profile?.equipe?.nom || "Sans équipe",
         total: 0, base: 0, count: 0, calculee: 0, validee: 0, payee: 0, details: []
       };
       current.total += Number(row.montant_commission || 0);
