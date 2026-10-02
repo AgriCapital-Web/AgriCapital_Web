@@ -159,13 +159,11 @@ const RapportsTechniques = () => {
 
   useRealtime({ table: "interventions_techniques", onChange: fetchData });
   useRealtime({ table: "tickets_techniques", onChange: fetchData });
-  useRealtime({ table: "photos_plantation", onChange: fetchData });
 
   const statsCards = [
     { title: "Total Interventions", value: stats.totalInterventions, icon: ClipboardCheck, color: "text-blue-600" },
     { title: "Tickets Ouverts", value: stats.ticketsOuverts, icon: AlertTriangle, color: "text-orange-600" },
     { title: "Tickets Résolus", value: stats.ticketsResolus, icon: FileText, color: "text-green-600" },
-    { title: "Photos Archivées", value: stats.photosTotal, icon: Camera, color: "text-purple-600" },
   ];
 
   const getTypeColor = (type: string) => {
@@ -254,7 +252,7 @@ const RapportsTechniques = () => {
             <TabsList>
               <TabsTrigger value="interventions">Interventions</TabsTrigger>
               <TabsTrigger value="tickets">Tickets Techniques</TabsTrigger>
-              <TabsTrigger value="photos">Photos Plantations</TabsTrigger>
+              
             </TabsList>
 
             <TabsContent value="interventions" className="space-y-4">
@@ -375,7 +373,7 @@ const RapportsTechniques = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="photos" className="space-y-4">
+            {false && <TabsContent value="photos" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Documentation Photographique</CardTitle>
@@ -430,7 +428,7 @@ const RapportsTechniques = () => {
                   </Table>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </TabsContent>}
           </Tabs>
         </div>
       </MainLayout>
