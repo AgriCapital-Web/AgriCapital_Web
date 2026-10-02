@@ -64,6 +64,9 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
   const [equipes, setEquipes] = useState<any[]>([]);
   const [photoPreview, setPhotoPreview] = useState<string>(utilisateur?.photo_url || "");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [pieceRectoFile, setPieceRectoFile] = useState<File | null>(null);
+  const [pieceVersoFile, setPieceVersoFile] = useState<File | null>(null);
+  const [piecePassportFile, setPiecePassportFile] = useState<File | null>(null);
   const relationRH = watch("relation_rh");
   const departementSelectionne = watch("departement") ?? utilisateur?.departement;
 
@@ -151,6 +154,9 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
     try {
 
       let photoUrl = utilisateur?.photo_url;
+      let pieceRectoUrl = utilisateur?.piece_identite_recto_url || utilisateur?.piece_identite_url || null;
+      let pieceVersoUrl = utilisateur?.piece_identite_verso_url || null;
+      let piecePassportUrl = utilisateur?.piece_identite_page_principale_url || null;
 
       // Les photos administrées sont rangées dans le dossier du compte cible.
       const file = photoFile;
@@ -171,6 +177,26 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
       }
 
       if (utilisateur) {
+        const targetUserId = utilisateur?.user_id || utilisateur?.id;
+        if (!targetUserId) throw new Error("Compte utilisateur introuvable");
+        const uploadIdentity = async (file: File | null, side: string) => {
+          if (!file) return null;
+          const ext = file.name.split('.').pop();
+          const path = `profiles/${targetUserId}/identity-${side}-${Date.now()}.${ext}`;
+          const { error } = await supabase.storage.from("pieces-identite").upload(path, file);
+          if (error) throw error;
+          return path;
+        };
+        if (data.type_piece_identite === "passeport") {
+          piecePassportUrl = (await uploadIdentity(piecePassportFile, "passport")) || piecePassportUrl;
+          pieceRectoUrl = null;
+          pieceVersoUrl = null;
+        } else {
+          pieceRectoUrl = (await uploadIdentity(pieceRectoFile, "recto")) || pieceRectoUrl;
+          pieceVersoUrl = (await uploadIdentity(pieceVersoFile, "verso")) || pieceVersoUrl;
+          piecePassportUrl = null;
+        }
+
         // Update existing user
         const { error: profileError } = await (supabase as any)
           .from("profiles")
@@ -191,6 +217,12 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             region_id: data.region_id || null,
             equipe_id: showEquipe ? (data.equipe_id || null) : null,
             photo_url: photoUrl || null,
+            type_piece_identite: data.type_piece_identite || null,
+            numero_piece_identite: data.numero_piece_identite || null,
+            piece_identite_url: pieceRectoUrl || null,
+            piece_identite_recto_url: pieceRectoUrl || null,
+            piece_identite_verso_url: pieceVersoUrl || null,
+            piece_identite_page_principale_url: piecePassportUrl || null,
           })
           .eq("id", utilisateur.id);
 
@@ -242,6 +274,8 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             taux_commission: data.taux_commission || null,
             region_id: data.region_id || null,
             photo_url: photoUrl,
+            type_piece_identite: data.type_piece_identite || null,
+            numero_piece_identite: data.numero_piece_identite || null,
             roles: selectedRoles,
           }
         });
@@ -262,6 +296,33 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
             .update({ photo_url: fileName })
             .eq("user_id", result.user_id);
           if (photoProfileError) throw photoProfileError;
+        }
+
+        if (result.user_id && (pieceRectoFile || pieceVersoFile || piecePassportFile)) {
+          const uploadIdentity = async (file: File | null, side: string) => {
+            if (!file) return null;
+            const ext = file.name.split('.').pop();
+            const path = `profiles/${result.user_id}/identity-${side}-${Date.now()}.${ext}`;
+            const { error } = await supabase.storage.from("pieces-identite").upload(path, file);
+            if (error) throw error;
+            return path;
+          };
+          let recto = null, verso = null, passport = null;
+          if (data.type_piece_identite === "passeport") {
+            passport = await uploadIdentity(piecePassportFile, "passport");
+          } else {
+            recto = await uploadIdentity(pieceRectoFile, "recto");
+            verso = await uploadIdentity(pieceVersoFile, "verso");
+          }
+          const { error: identityError } = await (supabase as any).from("profiles").update({
+            piece_identite_url: recto,
+            piece_identite_recto_url: recto,
+            piece_identite_verso_url: verso,
+            piece_identite_page_principale_url: passport,
+            type_piece_identite: data.type_piece_identite || null,
+            numero_piece_identite: data.numero_piece_identite || null,
+          }).eq("user_id", result.user_id);
+          if (identityError) throw identityError;
         }
 
         toast({
@@ -355,6 +416,64 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
               </div>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Pièce d'identité</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Type de pièce</Label>
+            <Select value={watch("type_piece_identite") || utilisateur?.type_piece_identite || ""} onValueChange={(value) => setValue("type_piece_identite", value)}>
+              <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cni">CNI</SelectItem>
+                <SelectItem value="carte_cedeao">Carte CEDEAO</SelectItem>
+                <SelectItem value="carte_consulaire">Carte consulaire</SelectItem>
+                <SelectItem value="permis">Permis de conduire</SelectItem>
+                <SelectItem value="passeport">Passeport</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Numéro de pièce</Label>
+            <Input {...register("numero_piece_identite")} />
+          </div>
+          {(watch("type_piece_identite") || utilisateur?.type_piece_identite) === "passeport" ? (
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Page principale du passeport</Label>
+              <FileUploadVisual
+                label="Page principale du passeport"
+                field="piecePassport"
+                accept="image/*,application/pdf"
+                currentPreview={utilisateur?.piece_identite_page_principale_url || ""}
+                onFileChange={(_, f) => setPiecePassportFile(f)}
+              />
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label>Recto</Label>
+                <FileUploadVisual
+                  label="Recto de la pièce"
+                  field="pieceRecto"
+                  accept="image/*,application/pdf"
+                  currentPreview={utilisateur?.piece_identite_recto_url || utilisateur?.piece_identite_url || ""}
+                  onFileChange={(_, f) => setPieceRectoFile(f)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Verso</Label>
+                <FileUploadVisual
+                  label="Verso de la pièce"
+                  field="pieceVerso"
+                  accept="image/*,application/pdf"
+                  currentPreview={utilisateur?.piece_identite_verso_url || ""}
+                  onFileChange={(_, f) => setPieceVersoFile(f)}
+                />
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
