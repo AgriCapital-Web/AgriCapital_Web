@@ -11,7 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatUserShortName } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { COMMERCIAL_ASSIGNABLE_ROLES, normalizeRole, roleLabel } from "@/lib/roles";
 
@@ -51,7 +51,7 @@ const CommercialCombobox = ({
       const list = (profiles || [])
         .map((p: any) => {
           const uid = p.user_id || p.id;
-          return { id: uid, nom: p.nom_complet || p.email || "Sans nom", roles: rolesByUser.get(uid) || [] };
+          return { id: uid, nom: formatUserShortName(p.nom_complet || p.email || "Sans nom"), roles: rolesByUser.get(uid) || [] };
         })
         .filter((p: any) => p.roles.some((r: string) => COMMERCIAL_ASSIGNABLE_ROLES.includes(r)));
 
