@@ -152,6 +152,8 @@ const ClientPortal = () => {
     sessionStorage.removeItem('agri_paiements');
     sessionStorage.removeItem("agri_portal_access_token");
     sessionStorage.removeItem("agri_demo");
+    sessionStorage.removeItem("agri_demo_token");
+    sessionStorage.removeItem("agri_demo_code");
     setView('home');
   };
 
