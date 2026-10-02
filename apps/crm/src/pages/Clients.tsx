@@ -42,10 +42,20 @@ const Clients = () => {
     try {
       // La liste principale ne dépend d'aucune relation imbriquée : une erreur
       // sur une table secondaire ne doit jamais transformer l'écran en « 0 ».
-      const { data: baseClients, error: clientsError } = await supabase
+      const safeSearch = searchTerm.trim().replace(/[,%()]/g, " ");
+      let clientsQuery = supabase
         .from("clients")
         .select("*")
-        .order("numero_ordre_global", { ascending: true, nullsFirst: false });
+        .order("numero_ordre_global", { ascending: true, nullsFirst: false })
+        .limit(50);
+
+      if (safeSearch) {
+        clientsQuery = clientsQuery.or(
+          `id_unique.ilike.%${safeSearch}%,nom_complet.ilike.%${safeSearch}%,telephone.ilike.%${safeSearch}%`
+        );
+      }
+
+      const { data: baseClients, error: clientsError } = await clientsQuery;
 
       if (clientsError) throw clientsError;
 
@@ -116,8 +126,9 @@ const Clients = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const timer = window.setTimeout(() => { void fetchData(); }, searchTerm ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [searchTerm]);
 
   useRealtime({ table: "clients", onChange: fetchData });
   useRealtime({ table: "plantations", onChange: fetchData });
