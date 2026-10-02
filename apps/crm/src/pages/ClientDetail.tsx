@@ -24,6 +24,7 @@ const formatMontant = (m: number) => new Intl.NumberFormat("fr-FR").format(Math.
 const ClientDetail = () => {
   const { can } = usePermissions();
   const canViewClientMoney = can("clients.view_money");
+  const canViewClientPayments = can("paiements.view");
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -166,7 +167,7 @@ const ClientDetail = () => {
     if (id) {
       fetchData();
     }
-  }, [id, canViewClientMoney]);
+  }, [id, canViewClientMoney, canViewClientPayments]);
 
   const formatMontant = (montant: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -398,7 +399,7 @@ const ClientDetail = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="paiements">
+            {canViewClientPayments && <TabsContent value="paiements">
               <Card>
                 <CardHeader>
                   <CardTitle>Historique des Paiements</CardTitle>
@@ -608,7 +609,7 @@ const ClientDetail = () => {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
+            </TabsContent>}
           </Tabs>
 
           {/* Traçabilité et historique */}
