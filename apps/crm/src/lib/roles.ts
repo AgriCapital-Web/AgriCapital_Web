@@ -3,6 +3,7 @@
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
   PDG: 'pdg',
+  DG: 'dg',
   RESPONSABLE_OPERATIONS: 'responsable_operations',
   RESPONSABLE_COMMERCIAL: 'responsable_commercial',
   COMPTABLE: 'comptable',
@@ -31,6 +32,7 @@ export interface RoleDefinition {
 export const OFFICIAL_ROLES: RoleDefinition[] = [
   { code: ROLES.SUPER_ADMIN, nom: 'Super Admin', court: 'Admin', description: 'Accès complet à toutes les fonctionnalités techniques et administratives', niveau: 1, niveauLabel: 'Administration', couleur: 'bg-destructive/10 text-destructive' },
   { code: ROLES.PDG, nom: 'PDG', court: 'PDG', description: 'Accès total à la plateforme au titre de la Direction Générale', niveau: 1, niveauLabel: 'Direction Générale', couleur: 'bg-primary/10 text-primary' },
+  { code: ROLES.DG, nom: 'DG', court: 'DG', description: 'Accès total à la plateforme au titre de la Direction Générale', niveau: 1, niveauLabel: 'Direction Générale', couleur: 'bg-primary/10 text-primary' },
   { code: ROLES.RESPONSABLE_OPERATIONS, nom: 'Responsable des Opérations', court: 'ROps', description: 'Pilotage des opérations, offres et paramétrage métier', niveau: 2, niveauLabel: 'Direction', couleur: 'bg-primary/10 text-primary' },
   { code: ROLES.RESPONSABLE_COMMERCIAL, nom: 'Responsable Commercial', court: 'RCom', description: "Pilotage commercial et gestion d'une zone", niveau: 3, niveauLabel: 'Management', couleur: 'bg-accent/20 text-accent-foreground' },
   { code: ROLES.COMPTABLE, nom: 'Comptable', court: 'Compta', description: 'Gestion financière, paiements et comptabilité', niveau: 3, niveauLabel: 'Management', couleur: 'bg-accent/20 text-accent-foreground' },
@@ -95,7 +97,7 @@ export const TERRITORIAL_ROLES: string[] = [
 export function hasPermission(userRoles: string[], permission: readonly string[]): boolean {
   const normalized = normalizeRoles(userRoles);
   // Super Admin et PDG sont des rôles de niveau global : aucun écran métier ne doit leur être refusé par une matrice de permission.
-  if (normalized.includes(ROLES.SUPER_ADMIN) || normalized.includes(ROLES.PDG)) return true;
+  if (normalized.includes(ROLES.SUPER_ADMIN) || normalized.includes(ROLES.PDG) || normalized.includes(ROLES.DG)) return true;
   return normalized.some((role) => (permission as readonly string[]).includes(role));
 }
 
