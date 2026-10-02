@@ -152,11 +152,13 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
       let photoUrl = utilisateur?.photo_url;
 
-      // Upload photo si présent
+      // Les photos administrées sont rangées dans le dossier du compte cible.
       const file = photoFile;
       if (file) {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
+        const targetUserId = utilisateur?.user_id || utilisateur?.id;
+        if (!targetUserId) throw new Error("Compte utilisateur introuvable");
+        const fileName = `profiles/${targetUserId}/photo-${Date.now()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('photos-profils')
