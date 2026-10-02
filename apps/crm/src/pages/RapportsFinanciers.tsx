@@ -338,7 +338,7 @@ const RapportsFinanciers = () => {
                   <CardTitle>Toutes les Commissions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto"><Table className="min-w-[900px]">
+                  <div className="overflow-x-auto"><Table className="responsive-data-table" className="min-w-[900px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
