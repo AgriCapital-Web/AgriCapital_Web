@@ -42,7 +42,7 @@ const Utilisateurs = () => {
   const { hasRole } = useAuth();
   const { toast } = useToast();
   const isSuperAdmin = hasRole("super_admin");
-  const canManageUserCredentials = isSuperAdmin || hasRole("pdg") || hasRole("responsable_operations");
+  const canManageUserCredentials = isSuperAdmin || hasRole("pdg") || hasRole("dg") || hasRole("responsable_operations");
 
   const fetchUtilisateurs = async () => {
     try {
