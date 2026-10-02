@@ -252,7 +252,7 @@ const Utilisateurs = () => {
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.nom_complet}</TableCell>
+                  <TableCell className="font-medium">{formatUserShortName(user.nom_complet)}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell className="font-mono text-xs">{user.username || "—"}</TableCell>
                   <TableCell>{user.telephone || "N/A"}</TableCell>
@@ -342,14 +342,14 @@ const Utilisateurs = () => {
 
       <Dialog open={!!viewUser} onOpenChange={(o) => !o && setViewUser(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Fiche utilisateur — {viewUser?.nom_complet || "Utilisateur"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Fiche utilisateur — {formatUserShortName(viewUser?.nom_complet || "Utilisateur")}</DialogTitle></DialogHeader>
           {viewUser && (
             <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-6">
               <div className="flex justify-center">
-                {viewPhotoUrl ? <img src={viewPhotoUrl} alt={viewUser.nom_complet} className="h-32 w-32 rounded-2xl object-cover border" /> : <div className="h-32 w-32 rounded-2xl border bg-muted flex items-center justify-center text-muted-foreground text-xs text-center">Aucune photo</div>}
+                {viewPhotoUrl ? <img src={viewPhotoUrl} alt={formatUserShortName(viewUser.nom_complet)} className="h-32 w-32 rounded-2xl object-cover border" /> : <div className="h-32 w-32 rounded-2xl border bg-muted flex items-center justify-center text-muted-foreground text-xs text-center">Aucune photo</div>}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div><span className="text-muted-foreground">Nom</span><p className="font-medium">{viewUser.nom_complet || "—"}</p></div>
+                <div><span className="text-muted-foreground">Nom</span><p className="font-medium">{formatUserShortName(viewUser.nom_complet || "—")}</p></div>
                 <div><span className="text-muted-foreground">Email</span><p className="font-medium break-all">{viewUser.email || "—"}</p></div>
                 <div><span className="text-muted-foreground">Téléphone</span><p>{viewUser.telephone || "—"}</p></div>
                 <div><span className="text-muted-foreground">Relation RH</span><p>{viewUser.relation_rh || "—"}</p></div>
@@ -366,9 +366,9 @@ const Utilisateurs = () => {
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {adminAction === "roles" && `Rôles de ${adminTarget?.nom_complet}`}
-              {adminAction === "password" && `Nouveau mot de passe — ${adminTarget?.nom_complet}`}
-              {adminAction === "username" && `Identifiant — ${adminTarget?.nom_complet}`}
+              {adminAction === "roles" && `Rôles de ${formatUserShortName(adminTarget?.nom_complet)}`}
+              {adminAction === "password" && `Nouveau mot de passe — ${formatUserShortName(adminTarget?.nom_complet)}`}
+              {adminAction === "username" && `Identifiant — ${formatUserShortName(adminTarget?.nom_complet)}`}
             </DialogTitle>
           </DialogHeader>
 
