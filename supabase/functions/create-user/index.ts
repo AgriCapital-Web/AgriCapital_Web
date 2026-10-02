@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
 
     const existingProfile = existingProfiles?.[0] || null;
 
-    if (existingProfile) {
+    if (existingProfile?.user_id) {
       return jsonResponse({
         success: false,
         error: "Un compte existe déjà avec cet email. Utilisez la gestion des utilisateurs ou la réinitialisation du mot de passe.",
