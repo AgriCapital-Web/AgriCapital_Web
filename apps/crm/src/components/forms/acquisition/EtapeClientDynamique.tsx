@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select";
 import SearchableSelect from "@/components/common/SearchableSelect";
+import GeographieCascade from "@/components/common/GeographieCascade";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
@@ -15,12 +16,7 @@ const upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
 const CODES=[["+225","Côte d’Ivoire"],["+33","France"],["+1","USA / Canada"],["+32","Belgique"],["+41","Suisse"],["+44","Royaume-Uni"],["+221","Sénégal"],["+224","Guinée"],["+226","Burkina Faso"],["+223","Mali"],["+237","Cameroun"],["+228","Togo"],["+229","Bénin"]];
 
 export const EtapeClientDynamique=({formData,updateFormData}:Props)=>{
- const [districts,setDistricts]=useState<any[]>([]),[regions,setRegions]=useState<any[]>([]),[departements,setDepartements]=useState<any[]>([]),[sps,setSps]=useState<any[]>([]),[villages,setVillages]=useState<any[]>([]);
- useEffect(()=>{(async()=>{const {data}=await (supabase as any).from("districts").select("id,nom").eq("est_actif",true).order("nom");setDistricts(data||[]);})();},[]);
- useEffect(()=>{if(!formData.district_id){setRegions([]);return;} (async()=>{const {data}=await (supabase as any).from("v_geo_regions").select("id,nom").eq("district_id",formData.district_id).eq("est_active_effectif",true).order("nom");setRegions(data||[]);})();},[formData.district_id]);
- useEffect(()=>{if(!formData.region_id){setDepartements([]);return;} (async()=>{const {data}=await (supabase as any).from("v_geo_departements").select("id,nom").eq("region_id",formData.region_id).eq("est_actif_effectif",true).order("nom");setDepartements(data||[]);})();},[formData.region_id]);
- useEffect(()=>{if(!formData.departement_id){setSps([]);setVillages([]);return;} (async()=>{const {data}=await (supabase as any).from("v_geo_sous_prefectures").select("id,nom").eq("departement_id",formData.departement_id).eq("est_active_effectif",true).order("nom");setSps(data||[]);})();},[formData.departement_id]);
- useEffect(()=>{if(!formData.sous_prefecture_id){setVillages([]);return;} (async()=>{const {data}=await (supabase as any).from("v_geo_villages").select("id,nom").eq("sous_prefecture_id",formData.sous_prefecture_id).eq("est_actif_effectif",true).order("nom");setVillages(data||[]);})();},[formData.sous_prefecture_id]);
+
  const file=(field:string,label:string,accept=".pdf,image/jpeg,image/png",ocr=false)=><FileUploadVisual label={label} field={field} accept={accept} required currentFile={formData[field+"_file"]||null} currentPreview={formData[field+"_preview"]||""} onFileChange={(f,value,preview)=>updateFormData({[field+"_file"]:value,[field+"_preview"]:preview})} onIdentityNumberDetected={ocr?n=>updateFormData({numero_piece:n}):undefined} identityDocumentType={formData.type_piece}/>;
  const phone=(field:"telephone"|"whatsapp",label:string)=> <CountryPhoneInput label={label} required={field==="telephone"} countryCode={formData[field+"_indicatif"]||"+225"} localValue={formData[field+"_local"]||""} onChange={v=>updateFormData({[field+"_indicatif"]:v.callingCode,[field+"_local"]:v.localValue,[field]:v.internationalValue})}/>;
  return <div className="space-y-6">
@@ -39,13 +35,7 @@ export const EtapeClientDynamique=({formData,updateFormData}:Props)=>{
    <div className="grid md:grid-cols-2 gap-4">{phone("telephone","Téléphone *")}{phone("whatsapp","WhatsApp")}</div>
    <div><Label>Email</Label><Input type="email" value={formData.email||""} onChange={e=>updateFormData({email:e.target.value})}/></div>
    <div><Label>Adresse complète *</Label><Input value={formData.domicile||""} onChange={e=>updateFormData({domicile:e.target.value})} placeholder="Quartier, rue, commune, ville..."/></div>
-   <div className="grid md:grid-cols-4 gap-4">
-    <div><Label>District</Label><SearchableSelect value={formData.district_id||""} onValueChange={v=>updateFormData({district_id:v,region_id:null,departement_id:null,sous_prefecture_id:null,village_id:null})} options={districts.map(x=>({value:x.id,label:x.nom}))} placeholder="District" searchPlaceholder="Rechercher un district..." /></div>
-    <div><Label>Région</Label><SearchableSelect value={formData.region_id||""} onValueChange={v=>updateFormData({region_id:v,departement_id:null,sous_prefecture_id:null,village_id:null})} disabled={!formData.district_id} options={regions.map(x=>({value:x.id,label:x.nom}))} placeholder="Région" searchPlaceholder="Rechercher une région..." /></div>
-    <div><Label>Département</Label><SearchableSelect value={formData.departement_id||""} onValueChange={v=>updateFormData({departement_id:v,sous_prefecture_id:null,village_id:null})} disabled={!formData.region_id} options={departements.map(x=>({value:x.id,label:x.nom}))} placeholder="Département" searchPlaceholder="Rechercher un département..." /></div>
-    <div><Label>Sous-préfecture</Label><SearchableSelect value={formData.sous_prefecture_id||""} onValueChange={v=>updateFormData({sous_prefecture_id:v,village_id:null})} disabled={!formData.departement_id} options={sps.map(x=>({value:x.id,label:x.nom}))} placeholder="Sous-préfecture" searchPlaceholder="Rechercher une sous-préfecture..." /></div>
-    <div><Label>Village / localité</Label><SearchableSelect value={formData.village_id||""} onValueChange={v=>updateFormData({village_id:v})} disabled={!formData.sous_prefecture_id} options={villages.map(x=>({value:x.id,label:x.nom}))} placeholder="Village / localité" searchPlaceholder="Rechercher un village..." /></div>
-   </div>
+   <GeographieCascade districtId={formData.district_id} regionId={formData.region_id} departementId={formData.departement_id} sousPrefectureId={formData.sous_prefecture_id} villageId={formData.village_id} required onChange={(g)=>updateFormData({district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village_id:g.villageId||""})}/>
   </CardContent></Card>
  </div>;
 };
