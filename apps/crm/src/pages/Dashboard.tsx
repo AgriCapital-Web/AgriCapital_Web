@@ -354,7 +354,7 @@ const Dashboard = () => {
       const superficieGroups = [
         { label: "1 ha", min: 1, max: 1 },
         { label: "2 ha", min: 2, max: 2 },
-        { label: "3 ha", min: 3, max: 3 },
+        { label: "3–5 ha", min: 3, max: 5 },
         { label: "5–10 ha", min: 5, max: 10 },
         { label: "10–50 ha", min: 10, max: 50 },
         { label: "50–100 ha", min: 50, max: 100 },
