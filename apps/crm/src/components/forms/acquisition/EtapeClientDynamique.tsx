@@ -1,14 +1,11 @@
-import { useEffect,useState } from "react";
 import { Card,CardContent,CardDescription,CardHeader,CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select";
-import SearchableSelect from "@/components/common/SearchableSelect";
 import GeographieCascade from "@/components/common/GeographieCascade";
 import { FileUploadVisual } from "@/components/ui/file-upload-visual";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
-import { supabase } from "@/integrations/supabase/client";
 
 interface Props{formData:any;updateFormData:(data:any)=>void;}
 
