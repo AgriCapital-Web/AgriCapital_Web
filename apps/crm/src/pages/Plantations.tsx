@@ -139,7 +139,7 @@ const Plantations = () => {
                 {productionOnly ? "Plantations en production" : "Registre des Plantations"}
               </h1>
               <p className="text-muted-foreground text-sm mt-1">
-                {productionOnly ? "Plantations actuellement en phase de production." : "Les plantations sont créées automatiquement après validation de la mise en terre."}
+                {productionOnly ? "Plantations actuellement en phase de production." : "Suivi des plantations enregistrées."}
               </p>
             </div>
           </div>
