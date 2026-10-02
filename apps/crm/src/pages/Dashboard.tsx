@@ -40,7 +40,9 @@ const Dashboard = () => {
 
   const isClientOnly = userRoles.length > 0 && userRoles.every((r) => r === "user");
   const globalAdmin = userRoles.some((r) => r === "super_admin" || r === "pdg" || r === "dg");
-  const canFinancialOverview = globalAdmin || userRoles.some((r) => ["comptable","responsable_operations"].includes(r));
+  const canFinancialOverview = userRoles.some((r) => ["super_admin","pdg","dg","responsable_operations"].includes(r));
+  const canCommercialTeamPerformance = globalAdmin || userRoles.some((r) => ["responsable_operations","responsable_commercial","chef_equipe_commercial"].includes(r));
+  const canTechnicalTeamPerformance = globalAdmin || userRoles.some((r) => ["responsable_operations","chef_equipe_technique"].includes(r));
 
   const canClients = hasPermission(userRoles, PERMISSIONS.VIEW_CLIENTS);
   const canLeads = hasPermission(userRoles, PERMISSIONS.VIEW_LEADS);
@@ -95,6 +97,7 @@ const Dashboard = () => {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [topClients, setTopClients] = useState<any[]>([]);
   const [regional, setRegional] = useState<any[]>([]);
+  const [teamPerformance, setTeamPerformance] = useState<any[]>([]);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -113,7 +116,8 @@ const Dashboard = () => {
         commissionsRes,
         portfoliosRes,
         regionsRes,
-        monnaieRes
+        monnaieRes,
+        directoryRes
       ] = await Promise.all([
         canClients || canTechnical || canPlantations || globalAdmin
           ? (supabase as any).from("clients").select("id,id_unique,nom_complet,created_at,updated_at,statut_global,nombre_plantations,total_hectares,formule_nom,formule_code,phase_actuelle,compte_actif,numero_ordre_global,paiement_initial_paye_at,pi_paye_at,type_client")
@@ -156,6 +160,9 @@ const Dashboard = () => {
           : Promise.resolve({ data: [] }),
         canClients || canPayments || globalAdmin
           ? (supabase as any).from("v_monnaie_clients").select("client_id,monnaie_client")
+          : Promise.resolve({ data: [] }),
+        canCommercialTeamPerformance || canTechnicalTeamPerformance
+          ? (supabase as any).from("profils_annuaire").select("id,user_id,nom_complet,equipe_id")
           : Promise.resolve({ data: [] })
       ]);
 
@@ -173,6 +180,7 @@ const Dashboard = () => {
       const portfolios = portfoliosRes.data || [];
       const regions = regionsRes.data || [];
       const monnaieRows = monnaieRes.data || [];
+      const directory = directoryRes.data || [];
 
       const validPayments = payments.filter((p: any) => p.statut === "valide" && Number(p.montant_paye ?? p.montant ?? 0) > 0);
       const collected = validPayments.reduce((s: number, p: any) => s + Number(p.montant_paye ?? p.montant ?? 0), 0);
@@ -271,6 +279,15 @@ const Dashboard = () => {
       });
       setOfferPerformance([...offerMap.values()].sort((a, b) => b.clients - a.clients).slice(0, 8));
 
+      if (canCommercialTeamPerformance || canTechnicalTeamPerformance) {
+        const profileByUser = new Map(directory.map((p: any) => [p.user_id, p]));
+        const profileById = new Map(directory.map((p: any) => [p.id, p]));
+        const teamMap = new Map<string, any>();
+        if (canCommercialTeamPerformance) clients.forEach((cl: any) => { const p=profileByUser.get(cl.created_by); const teamId=p?.equipe_id; if(!teamId)return; const key="commercial:"+teamId; const row=teamMap.get(key)||{key,teamId,type:"commercial",nom:"Équipe commerciale",clients:0,hectares:0,interventions:0}; row.clients+=1; row.hectares+=Number(cl.total_hectares||0); teamMap.set(key,row); });
+        if (canTechnicalTeamPerformance) interventions.forEach((i: any) => { const p=profileById.get(i.agent_technique_id); const teamId=p?.equipe_id; if(!teamId)return; const key="technique:"+teamId; const row=teamMap.get(key)||{key,teamId,type:"technique",nom:"Équipe technique",clients:0,hectares:0,interventions:0}; row.interventions+=1; teamMap.set(key,row); });
+        setTeamPerformance([...teamMap.values()].sort((a,b)=>(b.clients+b.interventions)-(a.clients+a.interventions)).slice(0,10));
+      }
+
       const funnelMap = new Map<string, number>();
       leads.forEach((l: any) => funnelMap.set(l.statut || "non renseigné", (funnelMap.get(l.statut || "non renseigné") || 0) + 1));
       setLeadFunnel([...funnelMap.entries()].map(([name, value]) => ({ name, value })));
@@ -286,7 +303,7 @@ const Dashboard = () => {
           String(c.type_client || "").toLowerCase() === "beneficiaire_particulier"
         )
       );
-      const technicalClientIds = new Set(technicalClients.map((c: any) => c.id).filter(Boolean));
+      const technicalClientIds = new Set([...technicalClients.map((c: any) => c.id).filter(Boolean), ...interventions.map((i: any) => i.client_id).filter(Boolean)]);
 
       const cycleTypes = [
         ["validation_parcelle", "Parcelles validées"],
@@ -539,12 +556,21 @@ const Dashboard = () => {
                         ["Chiffre d'affaires prévisionnel", money(stats.forecastRevenue)],
                         ["Montant encaissé", money(stats.collected)],
                         ["Montant restant à encaisser", money(stats.dueAmount)],
-                        ["Monnaie disponible chez les clients", money(stats.clientCredit)],
+                        ["Monnaie client", money(stats.clientCredit)],
 ].map(([label, value]) => <div key={label} className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-base font-bold">{value}</p></div>)}
                     </div>
                   </CardContent>
                 </Card>
               ) : null}
+
+              {teamPerformance.length > 0 && (
+                <Card>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><Award className="h-5 w-5 text-primary" />Performance par équipe</CardTitle></CardHeader>
+                  <CardContent><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{teamPerformance.map((team) => (
+                    <div key={team.key} className="rounded-xl border p-3"><div className="flex items-center justify-between gap-3"><div><p className="font-semibold">{team.nom}</p><p className="text-xs text-muted-foreground">{team.type === "commercial" ? "Équipe commerciale" : "Équipe technique"}</p></div><Badge variant="secondary">{team.type === "commercial" ? team.clients+" dossier(s)" : team.interventions+" intervention(s)"}</Badge></div>{team.type === "commercial" && <p className="mt-2 text-sm">{num(team.hectares)} ha rattachés</p>}</div>
+                  ))}</div></CardContent>
+                </Card>
+              )}
 
               {canLeads && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
