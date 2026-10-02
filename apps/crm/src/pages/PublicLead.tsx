@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import logoV2 from "@/assets/logo-agricapital-v2.png";
 import { getSafeErrorMessage } from "@/lib/safeError";
-import RegionSelect from "@/components/common/RegionSelect";
+import GeographieCascade from "@/components/common/GeographieCascade";
 
 const CRENEAUX = [
   { v: "08_10", l: "08h00 – 10h00" }, { v: "10_12", l: "10h00 – 12h00" },
@@ -26,7 +26,7 @@ export default function PublicLead() {
   const [done, setDone] = useState(false);
   const [f, setF] = useState({
     nom: "", prenoms: "", telephone: "", telephone_indicatif: "+225", telephone_local: "", whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "", email: "",
-    region_residence: "", est_diaspora: false, pays_diaspora: "",
+    district_id: "", region_id: "", departement_id: "", sous_prefecture_id: "", village_id: "", region_residence: "", est_diaspora: false, pays_diaspora: "",
     dispose_terrain: false,
     superficie_disponible_ha: "", superficie_a_valoriser_ha: "", superficie_souhaitee_ha: "",
     delai_demarrage: "", date_contact_souhaitee: "", creneau_prefere: "",
@@ -37,7 +37,7 @@ export default function PublicLead() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!f.nom || !f.prenoms || !f.telephone || !f.region_residence) {
+    if (!f.nom || !f.prenoms || !f.telephone || !f.district_id) {
       toast({ variant: "destructive", title: "Champs requis manquants" });
       return;
     }
@@ -45,7 +45,7 @@ export default function PublicLead() {
     const payload: any = {
       nom: f.nom.trim(), prenoms: f.prenoms.trim(), telephone: f.telephone.trim(),
       whatsapp: f.whatsapp || null, email: f.email || null,
-      region_residence: f.region_residence,
+      district_id: f.district_id || null, region_id: f.region_id || null, departement_id: f.departement_id || null, sous_prefecture_id: f.sous_prefecture_id || null, village_id: f.village_id || null, region_residence: f.region_residence || null,
       est_diaspora: f.est_diaspora, pays_diaspora: f.est_diaspora ? f.pays_diaspora || null : null,
       dispose_terrain: f.dispose_terrain,
       superficie_disponible_ha: f.dispose_terrain && f.superficie_disponible_ha ? Number(f.superficie_disponible_ha) : null,
@@ -111,14 +111,25 @@ export default function PublicLead() {
           <Card>
             <CardHeader><CardTitle>Localisation</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label>Région de résidence *</Label>
-                <RegionSelect
-                  withDiaspora
-                  value={f.region_residence}
-                  onChange={(v, isDiaspora) => { set("region_residence", v); set("est_diaspora", isDiaspora); }}
-                />
-              </div>
+              <GeographieCascade
+                districtId={f.district_id}
+                regionId={f.region_id}
+                departementId={f.departement_id}
+                sousPrefectureId={f.sous_prefecture_id}
+                villageId={f.village_id}
+                required
+                onChange={(g) => setF(x => ({
+                  ...x,
+                  district_id:g.districtId||"",
+                  region_id:g.regionId||"",
+                  departement_id:g.departementId||"",
+                  sous_prefecture_id:g.sousPrefectureId||"",
+                  village_id:g.villageId||"",
+                  region_residence:g.regionName||x.region_residence||"",
+                  est_diaspora:Boolean(g.districtId && !g.regionId),
+                }))}
+              />
+              {f.est_diaspora && <div><Label>Pays de résidence</Label><Input value={f.pays_diaspora} onChange={e=>set("pays_diaspora",e.target.value)} placeholder="Ex: France, USA..." /></div>}
               {f.est_diaspora && (
                 <div><Label>Pays de résidence</Label><Input value={f.pays_diaspora} onChange={e=>set("pays_diaspora",e.target.value)} placeholder="Ex: France, USA..." /></div>
               )}
