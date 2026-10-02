@@ -21,6 +21,8 @@ import ClientMessagingPanel from "@/components/clients/ClientMessagingPanel";
 const formatMontant = (m: number) => new Intl.NumberFormat("fr-FR").format(Math.round(m || 0));
 
 const ClientDetail = () => {
+  const { can } = usePermissions();
+  const canViewClientMoney = can("clients.view_money");
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -48,8 +50,12 @@ const ClientDetail = () => {
       if (clientError) throw clientError;
       setClient(clientData);
 
-      const { data: monnaieData } = await (supabase as any).from("v_monnaie_clients").select("monnaie_client").eq("client_id", id).maybeSingle();
-      setMonnaieClient(Number(monnaieData?.monnaie_client || 0));
+      if (canViewClientMoney) {
+        const { data: monnaieData } = await (supabase as any).from("v_monnaie_clients").select("monnaie_client").eq("client_id", id).maybeSingle();
+        setMonnaieClient(Number(monnaieData?.monnaie_client || 0));
+      } else {
+        setMonnaieClient(0);
+      }
 
       if (clientData.parcelle_id) {
         const { data: parcelleData } = await (supabase as any)
@@ -146,7 +152,7 @@ const ClientDetail = () => {
     if (id) {
       fetchData();
     }
-  }, [id]);
+  }, [id, canViewClientMoney]);
 
   const formatMontant = (montant: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -260,9 +266,9 @@ const ClientDetail = () => {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Monnaie client</CardTitle></CardHeader>
+              {canViewClientMoney && <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Monnaie client</CardTitle></CardHeader>}
               <CardContent>
-                <p className="text-lg font-semibold">{formatMontant(monnaieClient)} F CFA</p>
+                {canViewClientMoney && <p className="text-lg font-semibold">{formatMontant(monnaieClient)} F CFA</p>}
               </CardContent>
             </Card>
 
