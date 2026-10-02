@@ -219,7 +219,7 @@ const Equipes = () => {
                     {equipe.nom}
                   </div>
                 </TableCell>
-                <TableCell>{equipe.responsable?.nom_complet || "Non assigné"}</TableCell>
+                <TableCell>{formatUserShortName(equipe.responsable?.nom_complet || "Non assigné")}</TableCell>
                 <TableCell className="hidden sm:table-cell">{equipe.region?.nom || "-"}</TableCell>
                 <TableCell>
                   <Badge className={equipe.actif ? "bg-green-500" : "bg-red-500"}>
@@ -300,7 +300,7 @@ const Equipes = () => {
                   <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
                   <SelectContent>
                     {responsablesDisponibles.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.nom_complet}</SelectItem>
+                      <SelectItem key={p.id} value={p.id}>{formatUserShortName(p.nom_complet)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -404,7 +404,7 @@ const Equipes = () => {
               <SelectContent>
                 {availableMembers.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.nom_complet} ({p.roles.map((r: string) => ROLE_SHORT[r] || r).join(", ")})
+                    {formatUserShortName(p.nom_complet)} ({p.roles.map((r: string) => ROLE_SHORT[r] || r).join(", ")})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -421,7 +421,7 @@ const Equipes = () => {
               members.map((m) => (
                 <div key={m.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
-                    <p className="font-medium text-sm">{m.nom_complet}</p>
+                    <p className="font-medium text-sm">{formatUserShortName(m.nom_complet)}</p>
                     <div className="flex gap-1 mt-1">
                       {m.roles.map((r: string) => (
                         <Badge key={r} variant="secondary" className="text-xs">
