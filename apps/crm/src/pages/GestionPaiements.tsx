@@ -278,6 +278,7 @@ const GestionPaiements = () => {
       }));
     },
     staleTime: 30_000,
+    enabled: canViewClientMoney,
   });
 
   const { data: financeSynthese = [] } = useQuery({
@@ -841,7 +842,7 @@ const GestionPaiements = () => {
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                {canManage && (
+                                {canManage && canViewClientMoney && (
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -863,7 +864,7 @@ const GestionPaiements = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </TabsContent>}
 
             {/* Operations Tab */}
             <TabsContent value="operations" className="space-y-4">
