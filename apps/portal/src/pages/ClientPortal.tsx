@@ -165,6 +165,7 @@ const ClientPortal = () => {
   };
 
   return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F7FAF8] flex items-center justify-center text-[#00643C]">Chargement de votre espace…</div>}>
     <>
       <InstallPrompt />
 
@@ -250,6 +251,7 @@ const ClientPortal = () => {
         <PaymentReturn onBack={handleBackFromPaymentReturn} />
       )}
     </>
+    </Suspense>
   );
 };
 
