@@ -336,7 +336,7 @@ const Dashboard = () => {
             "achevee",
           ].includes(statut);
         }).map((i: any) => i.client_id).filter(Boolean));
-        const total = technicalClients.length;
+        const total = technicalClientIds.size;
         const done = doneClientIds.size;
         return { label, total, done, pct: total ? Math.round((done / total) * 100) : 0 };
       }));
