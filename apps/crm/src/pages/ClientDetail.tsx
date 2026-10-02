@@ -331,10 +331,10 @@ const ClientDetail = () => {
                 <Sprout className="h-4 w-4 mr-2" />
                 Plantations
               </TabsTrigger>
-              <TabsTrigger value="paiements">
+              {canViewClientPayments && <TabsTrigger value="paiements">
                 <DollarSign className="h-4 w-4 mr-2" />
                 Paiements
-              </TabsTrigger>
+              </TabsTrigger>}
               <TabsTrigger value="interventions">
                 <FileText className="h-4 w-4 mr-2" />
                 Interventions
@@ -443,7 +443,7 @@ const ClientDetail = () => {
                   </Table>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </TabsContent>}
 
             <TabsContent value="interventions">
               <Card>
