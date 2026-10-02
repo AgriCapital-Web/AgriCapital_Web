@@ -38,7 +38,7 @@ async function fetchRemoteBuildFingerprint(): Promise<string | null> {
     });
     if (!res.ok) return null;
     const html = await res.text();
-    const match = html.match(/\\/assets\\/[^"']*\\.js/);
+    const match = html.match(/\/assets\/[^"']*\.js/);
     return match ? match[0] : null;
   } catch {
     return null;
