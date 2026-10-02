@@ -72,7 +72,7 @@ export default function Commissions() {
     for (const row of rows) {
       const key = row.profile_id || row.profile?.nom_complet || "sans-commercial";
       const current = map.get(key) || {
-        key, profile_id: row.profile_id, nom: row.profile?.nom_complet || "Commercial non renseigné",
+        key, profile_id: row.profile_id, nom: row.profile?.nom_complet || "Collaborateur non renseigné", type: row.type_commission === "technique" ? "Technicien" : "Commercial", equipe: row.profile?.equipe?.nom || "Sans équipe",
         total: 0, base: 0, count: 0, calculee: 0, validee: 0, payee: 0, details: []
       };
       current.total += Number(row.montant_commission || 0);
@@ -82,6 +82,20 @@ export default function Commissions() {
       if (row.statut === "validee") current.validee += Number(row.montant_commission || 0);
       if (row.statut === "payee") current.payee += Number(row.montant_commission || 0);
       current.details.push(row);
+      map.set(key, current);
+    }
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [rows]);
+
+  const teamGroups = useMemo(() => {
+    const map = new Map<string, any>();
+    for (const row of rows) {
+      const key = row.profile?.equipe_id || "sans-equipe";
+      const current = map.get(key) || { key, equipe: row.profile?.equipe?.nom || "Sans équipe", total: 0, payee: 0, aPayer: 0 };
+      const amount = Number(row.montant_commission || 0);
+      current.total += amount;
+      if (row.statut === "payee") current.payee += amount;
+      else if (row.statut !== "annule") current.aPayer += amount;
       map.set(key, current);
     }
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
@@ -124,12 +138,14 @@ export default function Commissions() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table className="responsive-data-table min-w-[720px]">
-                  <TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Opérations</TableHead><TableHead>Base</TableHead><TableHead>Total commission</TableHead><TableHead>À valider</TableHead><TableHead>Payées</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Type</TableHead><TableHead>Équipe</TableHead><TableHead>Opérations</TableHead><TableHead>Base</TableHead><TableHead>Total commission</TableHead><TableHead>À valider</TableHead><TableHead>Payées</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {loading ? <TableRow><TableCell colSpan={6} className="py-8 text-center">Chargement…</TableCell></TableRow> :
-                      filtered.length === 0 ? <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Aucune commission.</TableCell></TableRow> :
+                    {loading ? <TableRow><TableCell colSpan={8} className="py-8 text-center">Chargement…</TableCell></TableRow> :
+                      filtered.length === 0 ? <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucune commission.</TableCell></TableRow> :
                       filtered.map((g: any) => <TableRow key={g.key} className="cursor-pointer hover:bg-muted/40" onClick={() => setSelected(g)}>
                         <TableCell className="font-medium">{g.nom}</TableCell>
+                        <TableCell><Badge variant="outline">{g.type}</Badge></TableCell>
+                        <TableCell>{g.equipe}</TableCell>
                         <TableCell>{g.count}</TableCell>
                         <TableCell>{money(g.base)}</TableCell>
                         <TableCell className="font-bold">{money(g.total)}</TableCell>
@@ -138,6 +154,18 @@ export default function Commissions() {
                       </TableRow>)
                     }
                   </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-0">
+              <div className="p-4"><h2 className="font-semibold">Commissions par équipe</h2><p className="text-sm text-muted-foreground">Total des commissions rattachées à chaque équipe.</p></div>
+              <div className="overflow-x-auto">
+                <Table className="responsive-data-table min-w-[560px]">
+                  <TableHeader><TableRow><TableHead>Équipe</TableHead><TableHead>Total commissions</TableHead><TableHead>Payées</TableHead><TableHead>À payer</TableHead></TableRow></TableHeader>
+                  <TableBody>{teamGroups.map((g: any) => <TableRow key={g.key}><TableCell className="font-medium">{g.equipe}</TableCell><TableCell>{money(g.total)}</TableCell><TableCell>{money(g.payee)}</TableCell><TableCell>{money(g.aPayer)}</TableCell></TableRow>)}</TableBody>
                 </Table>
               </div>
             </CardContent>
