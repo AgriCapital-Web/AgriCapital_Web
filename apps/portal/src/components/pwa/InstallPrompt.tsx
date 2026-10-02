@@ -76,7 +76,7 @@ const InstallPrompt = () => {
     localStorage.setItem(dismissedKey, 'true');
   };
 
-  const appName = isClientPortal ? "Portail Client" : "CRM AgriCapital";
+  const appName = isClientPortal ? "AC_Clients" : "AC_Teams";
   const appDescription = isClientPortal
     ? "Installez le portail sur votre écran d'accueil pour payer et suivre vos plantations plus vite."
     : "Installez AgriCapital pour ouvrir votre espace en plein écran, sans chercher l'adresse.";
