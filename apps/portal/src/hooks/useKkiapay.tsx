@@ -1,11 +1,14 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+
 
 declare global {
   interface Window {
-    openKkiapayWidget: (config: KkiapayConfig) => void;
-    addKkiapayListener: (event: string, callback: (data: any) => void) => void;
-    removeKkiapayListener: (event: string, callback: (data: any) => void) => void;
+    openKkiapayWidget?: (config: KkiapayConfig) => void;
+    addSuccessListener?: (callback: (data: any) => void) => void;
+    addFailedListener?: (callback: (data: any) => void) => void;
+    addKkiapayCloseListener?: (callback: () => void) => void;
+    addKkiapayListener?: (event: string, callback: (data: any) => void) => void;
+    removeKkiapayListener?: (event: string, callback: (data: any) => void) => void;
   }
 }
 
@@ -21,6 +24,8 @@ export interface KkiapayConfig {
   theme?: string;
   countries?: string[];
   paymentMethods?: ('momo' | 'card')[];
+  paymentmethod?: ('momo' | 'card')[];
+  position?: 'left' | 'right' | 'center';
 }
 
 export interface KkiapayResponse {
@@ -36,95 +41,140 @@ export interface KkiapayResponse {
   stateData?: Record<string, any>;
   event?: string;
 }
+export interface KkiapayError { reason: string; error?: string; }
 
-export interface KkiapayError {
-  reason: string;
-  error?: string;
-}
+const KKIAPAY_PUBLIC_KEY =
+  import.meta.env.VITE_KKIAPAY_PUBLIC_KEY ||
+  '193bbb7e7387d1c3ac16ced9d47fe52fad2b228e';
+
+const KKIAPAY_SCRIPT_SRC = 'https://cdn.kkiapay.me/k.js';
 
 export const useKkiapay = () => {
   const scriptLoaded = useRef(false);
-  const publicKey = useRef<string | null>(null);
+  const loadPromise = useRef<Promise<boolean> | null>(null);
+  const listenersAttached = useRef(false);
   const successCallback = useRef<((response: KkiapayResponse) => void) | null>(null);
   const failedCallback = useRef<((error: KkiapayError) => void) | null>(null);
   const closeCallback = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    if (scriptLoaded.current) return;
-    const existingScript = document.querySelector('script[src="https://cdn.kkiapay.me/k.js"]');
-    if (existingScript) { scriptLoaded.current = true; return; }
+  const attachListeners = useCallback(() => {
+    if (listenersAttached.current || typeof window === 'undefined') return;
 
-    const script = document.createElement('script');
-    script.src = 'https://cdn.kkiapay.me/k.js';
-    script.async = true;
-    script.onload = () => {
+    const success = (response: KkiapayResponse) => successCallback.current?.(response);
+    const failed = (error: KkiapayError) => failedCallback.current?.(error);
+    const close = () => closeCallback.current?.();
+
+    if (window.addSuccessListener) window.addSuccessListener(success);
+    else if (window.addKkiapayListener) window.addKkiapayListener('success', success);
+
+    if (window.addFailedListener) window.addFailedListener(failed);
+    else if (window.addKkiapayListener) window.addKkiapayListener('failed', failed);
+
+    if (window.addKkiapayCloseListener) window.addKkiapayCloseListener(close);
+    else if (window.addKkiapayListener) window.addKkiapayListener('close', close);
+
+    listenersAttached.current = true;
+  }, []);
+
+  const ensureLoaded = useCallback(() => {
+    if (typeof window === 'undefined') return Promise.resolve(false);
+
+    if (window.openKkiapayWidget) {
       scriptLoaded.current = true;
-      console.log('KKiaPay SDK chargé');
-      if (window.addKkiapayListener) {
-        window.addKkiapayListener('success', (response: KkiapayResponse) => {
-          console.log('KKiaPay Success:', response);
-          successCallback.current?.(response);
-        });
-        window.addKkiapayListener('failed', (error: KkiapayError) => {
-          console.log('KKiaPay Failed:', error);
-          failedCallback.current?.(error);
-        });
-        window.addKkiapayListener('close', () => {
-          console.log('KKiaPay fermé');
-          closeCallback.current?.();
-        });
-      }
-    };
-    script.onerror = () => console.error('Erreur chargement KKiaPay SDK');
-    document.body.appendChild(script);
-  }, []);
-
-  // Fetch the public key from edge function (cached)
-  const getPublicKey = useCallback(async (): Promise<string | null> => {
-    if (publicKey.current) return publicKey.current;
-    try {
-      const { data, error } = await supabase.functions.invoke('kkiapay-create-transaction', {
-        body: { amount: 0, description: 'key-fetch', reference: 'init' }
-      });
-      if (data?.config?.key) {
-        publicKey.current = data.config.key;
-        return data.config.key;
-      }
-    } catch (e) {
-      console.error('Impossible de récupérer la clé KKiaPay:', e);
+      attachListeners();
+      return Promise.resolve(true);
     }
-    return null;
-  }, []);
+
+    if (loadPromise.current) return loadPromise.current;
+
+    loadPromise.current = new Promise<boolean>((resolve) => {
+      let settled = false;
+      let pollTimer: number | undefined;
+      let timeoutTimer: number | undefined;
+
+      const finish = (ok: boolean) => {
+        if (settled) return;
+        settled = true;
+        if (pollTimer) window.clearInterval(pollTimer);
+        if (timeoutTimer) window.clearTimeout(timeoutTimer);
+        scriptLoaded.current = ok;
+        if (ok) attachListeners();
+        resolve(ok);
+      };
+
+      const checkReady = () => {
+        if (window.openKkiapayWidget) finish(true);
+      };
+
+      const existing = document.querySelector(
+        `script[src="${KKIAPAY_SCRIPT_SRC}"]`
+      ) as HTMLScriptElement | null;
+
+      if (existing) {
+        existing.addEventListener('load', checkReady, { once: true });
+        existing.addEventListener('error', () => finish(false), { once: true });
+        pollTimer = window.setInterval(checkReady, 100);
+        timeoutTimer = window.setTimeout(() => finish(false), 15000);
+        checkReady();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = KKIAPAY_SCRIPT_SRC;
+      script.async = true;
+      script.onload = checkReady;
+      script.onerror = () => finish(false);
+      document.body.appendChild(script);
+
+      pollTimer = window.setInterval(checkReady, 100);
+      timeoutTimer = window.setTimeout(() => finish(false), 15000);
+    });
+
+    return loadPromise.current;
+  }, [attachListeners]);
+
+  useEffect(() => { void ensureLoaded(); }, [ensureLoaded]);
 
   const openPayment = useCallback(async (config: Omit<KkiapayConfig, 'key'>) => {
-    if (!window.openKkiapayWidget) {
-      console.error('KKiaPay SDK non chargé');
-      return false;
-    }
-    const key = await getPublicKey();
-    if (!key) {
-      console.error('Clé KKiaPay non disponible');
-      return false;
-    }
+    const ready = await ensureLoaded();
+    if (!ready || !window.openKkiapayWidget) return false;
+
+    const amount = Math.round(Number(config.amount) || 0);
+    if (amount <= 0) return false;
+
     try {
+      const paymentMethods = config.paymentMethods || config.paymentmethod || ['momo', 'card'];
+
       window.openKkiapayWidget({
         ...config,
-        key,
+        amount,
+        key: KKIAPAY_PUBLIC_KEY,
         sandbox: false,
-        countries: ['CI'],
-        paymentMethods: config.paymentMethods || ['momo', 'card'],
-        theme: '#00643C'
+        position: config.position || 'center',
+        countries: config.countries || ['CI'],
+        paymentMethods,
+        paymentmethod: paymentMethods,
+        theme: config.theme || '#00643C',
       });
+
       return true;
     } catch (error) {
       console.error('Erreur ouverture widget KKiaPay:', error);
       return false;
     }
-  }, [getPublicKey]);
+  }, [ensureLoaded]);
 
-  const onSuccess = useCallback((callback: (response: KkiapayResponse) => void) => { successCallback.current = callback; }, []);
-  const onFailed = useCallback((callback: (error: KkiapayError) => void) => { failedCallback.current = callback; }, []);
-  const onClose = useCallback((callback: () => void) => { closeCallback.current = callback; }, []);
+  const onSuccess = useCallback((callback: (response: KkiapayResponse) => void) => {
+    successCallback.current = callback;
+  }, []);
+
+  const onFailed = useCallback((callback: (error: KkiapayError) => void) => {
+    failedCallback.current = callback;
+  }, []);
+
+  const onClose = useCallback((callback: () => void) => {
+    closeCallback.current = callback;
+  }, []);
 
   return { openPayment, onSuccess, onFailed, onClose, isLoaded: scriptLoaded.current };
 };
