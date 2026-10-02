@@ -32,6 +32,7 @@ const ClientDetail = () => {
   const [parcelle, setParcelle] = useState<any>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const [attributions, setAttributions] = useState<any[]>([]);
+  const [monnaieClient, setMonnaieClient] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
 
@@ -46,6 +47,9 @@ const ClientDetail = () => {
 
       if (clientError) throw clientError;
       setClient(clientData);
+
+      const { data: monnaieData } = await (supabase as any).from("v_monnaie_clients").select("monnaie_client").eq("client_id", id).maybeSingle();
+      setMonnaieClient(Number(monnaieData?.monnaie_client || 0));
 
       if (clientData.parcelle_id) {
         const { data: parcelleData } = await (supabase as any)
@@ -253,6 +257,12 @@ const ClientDetail = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-lg font-semibold">{plantations.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Monnaie client</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-lg font-semibold">{formatMontant(monnaieClient)} F CFA</p>
               </CardContent>
             </Card>
 
