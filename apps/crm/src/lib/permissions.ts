@@ -131,6 +131,7 @@ const only = (...prefixes: string[]) =>
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.SUPER_ADMIN]: all(),
   [ROLES.PDG]: all(),
+  [ROLES.DG]: all(),
   [ROLES.RESPONSABLE_OPERATIONS]: only(
     "utilisateurs.", "offres.", "promotions.", "leads.", "clients.", "plantations.",
     "documents.", "rapports.", "tickets.", "commissions.view",
