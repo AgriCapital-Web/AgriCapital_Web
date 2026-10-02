@@ -46,7 +46,7 @@ export function SyncQueueContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Synchronisation</h1>
           <p className="text-sm text-muted-foreground">
@@ -54,18 +54,18 @@ export function SyncQueueContent() {
             {lastSync ? ` • dernière synchro : ${new Date(lastSync).toLocaleString("fr-FR")}` : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <OnlineBadge isOnline={isOnline} />
           <Button
             variant="outline"
             size="sm"
             onClick={async () => { await retryAllQueuedFiles(); await syncNow(); load(); }}
-            disabled={!isOnline || fileStats.error + fileStats.waiting === 0}
+            disabled={!isOnline || fileStats.error + fileStats.waiting === 0} className="w-full sm:w-auto"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Relancer les échecs ({fileStats.error + fileStats.waiting})
           </Button>
-          <Button onClick={syncNow} disabled={!isOnline || isSyncing} size="sm">
+          <Button onClick={syncNow} disabled={!isOnline || isSyncing} size="sm" className="w-full sm:w-auto">
             <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? "animate-spin" : ""}`} />
             Synchroniser
           </Button>
@@ -160,7 +160,7 @@ export function SyncQueueContent() {
                       )}
                       {(f.form_id || f.field) && <p className="text-xs text-muted-foreground mt-1">Formulaire {f.form_id || "—"} • {f.field || "pièce jointe"}</p>}
                     </TableCell>
-                    <TableCell className="text-right space-x-1">
+                    <TableCell className="text-right whitespace-nowrap">\n                      <div className="flex justify-end gap-1">
                       <Button size="sm" variant="outline" onClick={async () => { await retryQueuedFile(f.id); await syncNow(); load(); }} disabled={!isOnline}>
                         <RotateCcw className="h-3 w-3" />
                       </Button>
