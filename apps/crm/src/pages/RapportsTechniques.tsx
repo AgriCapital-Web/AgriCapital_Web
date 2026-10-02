@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
+import { formatUserShortName } from "@/lib/utils";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -296,7 +297,7 @@ const RapportsTechniques = () => {
                                 {intervention.type_intervention?.replace(/_/g, " ")}
                               </Badge>
                             </TableCell>
-                            <TableCell>{intervention.agent_technique?.nom_complet}</TableCell>
+                            <TableCell>{formatUserShortName(intervention.agent_technique?.nom_complet)}</TableCell>
                             <TableCell className="max-w-xs truncate">
                               {intervention.observations || "—"}
                             </TableCell>
@@ -360,7 +361,7 @@ const RapportsTechniques = () => {
                                 {ticket.statut?.replace(/_/g, " ")}
                               </Badge>
                             </TableCell>
-                            <TableCell>{ticket.cree_par?.nom_complet}</TableCell>
+                            <TableCell>{formatUserShortName(ticket.cree_par?.nom_complet)}</TableCell>
                             <TableCell className="max-w-xs truncate">
                               {ticket.description}
                             </TableCell>
