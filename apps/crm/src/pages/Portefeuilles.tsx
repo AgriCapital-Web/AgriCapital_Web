@@ -151,7 +151,7 @@ export default function Portefeuilles(){
         </div>
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[["Solde disponible",stats.solde,Wallet],["Total gagné",stats.gagne,TrendingUp],["Total versé",stats.verse,CircleDollarSign],["À traiter",stats.pending,CalendarClock]].map(([label,value,Icon]:any)=>
+          {[["Solde total disponible",stats.solde,Wallet],["Total des commissions",stats.gagne,TrendingUp],["Total versé",stats.verse,CircleDollarSign],["Versements à traiter",stats.pending,CalendarClock]].map(([label,value,Icon]:any)=>
             <Card key={label as string}><CardContent className="p-4"><div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{label}</span><Icon className="h-4 w-4 text-primary"/></div><div className="mt-2 text-xl font-bold">{money(value)}</div></CardContent></Card>
           )}
         </div>
