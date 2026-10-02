@@ -821,8 +821,7 @@ const GestionPaiements = () => {
                             <TableRow key={sous?.id}>
                               <TableCell className="font-medium">{sous?.nom_complet}</TableCell>
                               <TableCell>{sous?.telephone}</TableCell>
-                              <TableCell>{formatMontant(sous?.totalPaye || 0)}</TableCell>
-                              <TableCell>{formatMontant(sous?.montantAttendu || 0)}</TableCell>
+                              
                               <TableCell>
                                 <Badge className="bg-amber-100 text-amber-800">
                                   {formatMontant(sous?.monnaie || 0)}
