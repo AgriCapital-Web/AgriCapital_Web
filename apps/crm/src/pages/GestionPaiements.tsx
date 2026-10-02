@@ -294,6 +294,7 @@ const GestionPaiements = () => {
       paiementsValides: valides.length,
       paiementsEnAttente: enAttente.length,
       montantTotal: totalValide,
+      montantRestant: enAttente.reduce((sum, p) => sum + Number(p.montant || 0), 0),
       monnaieDisponible: totalMonnaie
     };
   }, [paiements, clientsMonnaie]);
@@ -644,6 +645,20 @@ const GestionPaiements = () => {
                   <div>
                     <p className="text-xs text-muted-foreground">Montant encaissé</p>
                     <p className="text-sm font-bold">{formatMontant(stats.montantTotal)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <ArrowUpRight className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Montant restant à encaisser</p>
+                    <p className="text-sm font-bold">{formatMontant(stats.montantRestant)}</p>
                   </div>
                 </div>
               </CardContent>
