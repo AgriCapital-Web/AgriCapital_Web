@@ -130,9 +130,6 @@ export default function PublicLead() {
                 }))}
               />
               {f.est_diaspora && <div><Label>Pays de résidence</Label><Input value={f.pays_diaspora} onChange={e=>set("pays_diaspora",e.target.value)} placeholder="Ex: France, USA..." /></div>}
-              {f.est_diaspora && (
-                <div><Label>Pays de résidence</Label><Input value={f.pays_diaspora} onChange={e=>set("pays_diaspora",e.target.value)} placeholder="Ex: France, USA..." /></div>
-              )}
             </CardContent>
           </Card>
 
