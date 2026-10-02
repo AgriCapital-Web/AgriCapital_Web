@@ -22,7 +22,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Target, TrendingUp, Users, MapPin, PhoneCall, ArrowRight, Copy, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getSafeErrorMessage } from "@/lib/safeError";
-import RegionSelect from "@/components/common/RegionSelect";
+import GeographieCascade from "@/components/common/GeographieCascade";
 
 
 const STATUTS = [
@@ -55,7 +55,7 @@ export default function Leads() {
   const [selected, setSelected] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const emptyLead = {
-    nom: "", prenoms: "", telephone: "", telephone_indicatif: "+225", telephone_local: "", whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "", email: "", region_residence: "",
+    nom: "", prenoms: "", telephone: "", telephone_indicatif: "+225", telephone_local: "", whatsapp: "", whatsapp_indicatif: "+225", whatsapp_local: "", email: "", district_id: "", region_id: "", departement_id: "", sous_prefecture_id: "", village_id: "", region_residence: "",
     est_diaspora: "non", pays_diaspora: "",
     dispose_terrain: "non", superficie_disponible_ha: "", superficie_a_valoriser_ha: "", superficie_souhaitee_ha: "",
     delai_demarrage: "", date_contact_souhaitee: "", creneau_prefere: "", mode_contact_prefere: "appel",
@@ -159,7 +159,7 @@ export default function Leads() {
         telephone: leadForm.telephone,
         whatsapp: leadForm.whatsapp || null,
         email: leadForm.email || null,
-        region_residence: leadForm.region_residence,
+        district_id: leadForm.district_id || null, region_id: leadForm.region_id || null, departement_id: leadForm.departement_id || null, sous_prefecture_id: leadForm.sous_prefecture_id || null, village_id: leadForm.village_id || null, region_residence: leadForm.region_residence,
         est_diaspora: leadForm.est_diaspora === "oui",
         pays_diaspora: leadForm.est_diaspora === "oui" ? (leadForm.pays_diaspora || null) : null,
         dispose_terrain: leadForm.dispose_terrain === "oui",
@@ -409,12 +409,15 @@ export default function Leads() {
               <CountryPhoneInput label="Téléphone" required countryCode={leadForm.telephone_indicatif||"+225"} localValue={leadForm.telephone_local||""} onChange={v=>setLeadForm(x=>({...x,telephone_indicatif:v.callingCode,telephone_local:v.localValue,telephone:v.internationalValue}))}/>
               <CountryPhoneInput label="WhatsApp" countryCode={leadForm.whatsapp_indicatif||"+225"} localValue={leadForm.whatsapp_local||""} onChange={v=>setLeadForm(x=>({...x,whatsapp_indicatif:v.callingCode,whatsapp_local:v.localValue,whatsapp:v.internationalValue}))}/>
               <div><Label>Email</Label><Input type="email" value={leadForm.email} onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })} /></div>
-              <div>
-                <Label>Région *</Label>
-                <RegionSelect
-                  withDiaspora
-                  value={leadForm.region_residence}
-                  onChange={(v, isDiaspora) => setLeadForm({ ...leadForm, region_residence: v, est_diaspora: isDiaspora ? "oui" : leadForm.est_diaspora })}
+              <div className="sm:col-span-2">
+                <GeographieCascade
+                  districtId={leadForm.district_id}
+                  regionId={leadForm.region_id}
+                  departementId={leadForm.departement_id}
+                  sousPrefectureId={leadForm.sous_prefecture_id}
+                  villageId={leadForm.village_id}
+                  required
+                  onChange={(g)=>setLeadForm(x=>({...x,district_id:g.districtId||"",region_id:g.regionId||"",departement_id:g.departementId||"",sous_prefecture_id:g.sousPrefectureId||"",village_id:g.villageId||"",region_residence:g.regionName||x.region_residence||"",est_diaspora:(g.districtId&&!g.regionId)?"oui":x.est_diaspora}))}
                 />
               </div>
               <div>
@@ -514,7 +517,7 @@ export default function Leads() {
               <Button variant="outline" onClick={() => setCreateOpen(false)}>Annuler</Button>
               <Button
                 onClick={() => createLead.mutate()}
-                disabled={createLead.isPending || !leadForm.nom.trim() || !leadForm.prenoms.trim() || !leadForm.telephone.trim() || !leadForm.region_residence.trim()}
+                disabled={createLead.isPending || !leadForm.nom.trim() || !leadForm.prenoms.trim() || !leadForm.telephone.trim() || !leadForm.district_id.trim()}
               >{createLead.isPending ? "Enregistrement…" : "Enregistrer"}</Button>
             </DialogFooter>
           </DialogContent>
