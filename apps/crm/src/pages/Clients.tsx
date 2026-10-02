@@ -331,7 +331,7 @@ const Clients = () => {
 
             <TabsContent value="table">
               <div className="border rounded-lg overflow-x-auto">
-                <Table>
+                <Table className="responsive-data-table">
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID Unique</TableHead>
