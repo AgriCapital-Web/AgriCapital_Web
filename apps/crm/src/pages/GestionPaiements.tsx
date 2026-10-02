@@ -760,18 +760,18 @@ const GestionPaiements = () => {
                   <TableBody>
                     {isLoading ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
+                        <TableCell colSpan={5} className="text-center py-8">
                           <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                         </TableCell>
                       </TableRow>
                     ) : filteredPaiements.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                           Aucun paiement trouvé
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredPaiements.slice(0, 100).map((paiement) => (
+                      filteredPaiements.slice(0, 50).map((paiement) => (
                         <TableRow key={paiement.id}>
                           <TableCell className="text-sm">
                             {new Date(paiement.date_paiement || paiement.created_at).toLocaleDateString('fr-FR')}
