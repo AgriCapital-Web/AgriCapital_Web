@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","super_admin","pdg"];
+const TECH_ROLES=["technicien","chef_equipe_technique","responsable_operations","super_admin","pdg","dg"];
 const STAGES_AGRICAPITAL=[
   ["validation_parcelle","Validation de la parcelle"],
   ["defrichage","Défrichage"],
@@ -41,7 +41,7 @@ const TechnicienTerrain=()=>{
   const {toast}=useToast();
   const {can}=usePermissions();
   const allowed=can("rapports.view_technique") || userRoles.some(r=>TECH_ROLES.includes(r));
-  const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin","pdg"].includes(r));
+  const manager=userRoles.some(r=>["chef_equipe_technique","responsable_operations","super_admin","pdg","dg"].includes(r));
   const [plantations,setPlantations]=useState<any[]>([]);
   const [clients,setClients]=useState<any[]>([]);
   const [parcelles,setParcelles]=useState<any[]>([]);
@@ -156,7 +156,7 @@ const TechnicienTerrain=()=>{
       };
       const {error}=await offlineInsert("interventions_techniques",payload);
       if(error)throw error;
-      toast({title:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"Mise en terre validée":"Intervention enregistrée",description:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"La plantation sera créée automatiquement par la base de données.":undefined});
+      toast({title:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"Mise en terre validée":"Intervention enregistrée",description:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"Intervention technique enregistrée.":undefined});
       setIntervention({plantation_id:"",client_id:"",parcelle_id:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"140"});
       load();
     }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
