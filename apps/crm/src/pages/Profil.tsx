@@ -105,15 +105,16 @@ const Profil = () => {
     try {
       if (!user?.id) throw new Error("Session invalide");
       const ext = file.name.split('.').pop();
-      const path = `${user?.id}/${field}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('photos-profils').upload(path, file, { upsert: true });
+      const path = `profiles/${user.id}/${field}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('photos-profils').upload(path, file);
       if (uploadError) throw uploadError;
 
       // Stocke uniquement le chemin; l'URL signée courte est générée à l'affichage
-      await (supabase as any).from('profiles').upsert(
-        { id: profile.id || user.id, user_id: user.id, email: profile.email || user.email, nom_complet: profile.nom_complet || (user.email || '').split('@')[0], [field]: path, actif: true },
-        { onConflict: 'id' }
-      );
+      const { error: profileError } = await (supabase as any)
+        .from('profiles')
+        .update({ [field]: path })
+        .eq('user_id', user.id);
+      if (profileError) throw profileError;
       setProfile({ ...profile, [field]: path });
       toast({ title: "Photo mise à jour" });
     } catch (error: any) {
