@@ -225,7 +225,7 @@ const TechnicienTerrain=()=>{
       </TabsContent>
 
       <TabsContent value="intervention" className="space-y-5">
-        <Card><CardHeader><CardTitle>Intervention technique</CardTitle><CardDescription>Pour une intervention avant plantation, sélectionnez le Client et sa parcelle. La plantation n’est créée automatiquement qu’après validation de la mise en terre réalisée.</CardDescription></CardHeader><CardContent className="space-y-5">
+        <Card><CardHeader><CardTitle>Intervention technique</CardTitle><CardDescription>Enregistrez l’intervention selon le dossier et l’étape technique.</CardDescription></CardHeader><CardContent className="space-y-5">
           <div className="grid md:grid-cols-3 gap-4">
             <div><Label>Client / dossier *</Label><Select value={intervention.client_id} onValueChange={v=>setIntervention((x:any)=>({...x,client_id:v,parcelle_id:clients.find(c=>c.id===v)?.parcelle_id||x.parcelle_id,plantation_id:""}))}><SelectTrigger><SelectValue placeholder="Sélectionner un Client"/></SelectTrigger><SelectContent>{clients.map(c=><SelectItem key={c.id} value={c.id}>{c.nom_complet} · {c.id_unique}</SelectItem>)}</SelectContent></Select></div>
             {isPalmInvest(interventionClient||interventionPlantation)&&<div><Label>Parcelle *</Label><Select value={intervention.parcelle_id} onValueChange={v=>setIntervention((x:any)=>({...x,parcelle_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une parcelle"/></SelectTrigger><SelectContent>{parcelles.filter(pa=>!intervention.client_id||clients.find(c=>c.id===intervention.client_id)?.parcelle_id===pa.id).map(pa=><SelectItem key={pa.id} value={pa.id}>{pa.id_unique}{pa.village?` · ${pa.village}`:""}</SelectItem>)}</SelectContent></Select></div>}
