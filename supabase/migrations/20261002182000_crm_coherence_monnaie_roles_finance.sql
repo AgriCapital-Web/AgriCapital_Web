@@ -1,6 +1,8 @@
 -- CRM coherence: monnaie client, statuts métier, rôles DG, accès métiers,
 -- paramètres financiers personnalisés et affectation technique par zone.
 
+alter view public.v_client_synthese set (security_invoker=true);
+
 create or replace function private.is_global_admin(_user_id uuid)
 returns boolean language sql stable security definer set search_path to ''
 as $$ select exists(select 1 from public.user_roles where user_id=_user_id and role in ('super_admin','pdg','dg')); $$;
@@ -114,3 +116,14 @@ select distinct role,'leads.create' from public.user_roles where role is not nul
 insert into public.role_permissions(role_code,permission_code) values('dg','leads.create'),('dg','leads.view'),('dg','clients.view'),('dg','commissions.view'),('dg','portefeuilles.view') on conflict(role_code,permission_code) do nothing;
 
 create index if not exists idx_portail_support_requests_assigne_a on public.portail_support_requests(assigne_a);
+
+insert into public.role_permissions(role_code,permission_code)
+select x.role_code,x.permission_code
+from (values
+ ('service_client','clients.view'),('service_client','leads.create'),('service_client','leads.view'),('service_client','tickets.view'),('service_client','tickets.create'),('service_client','tickets.update'),('service_client','paiements.view'),('service_client','paiements.record'),
+ ('commercial','clients.view'),('commercial','clients.create'),('commercial','clients.update'),('commercial','leads.create'),('commercial','leads.view'),('commercial','leads.update'),('commercial','commissions.view'),('commercial','portefeuilles.view'),
+ ('chef_equipe_commercial','clients.view'),('chef_equipe_commercial','clients.create'),('chef_equipe_commercial','clients.update'),('chef_equipe_commercial','leads.create'),('chef_equipe_commercial','leads.view'),('chef_equipe_commercial','leads.update'),('chef_equipe_commercial','commissions.view'),('chef_equipe_commercial','portefeuilles.view'),
+ ('technicien','clients.view'),('technicien','plantations.view'),('technicien','documents.view'),('technicien','documents.upload'),('technicien','tickets.view'),('technicien','tickets.create'),('technicien','tickets.update'),('technicien','commissions.view'),('technicien','portefeuilles.view'),
+ ('chef_equipe_technique','clients.view'),('chef_equipe_technique','plantations.view'),('chef_equipe_technique','documents.view'),('chef_equipe_technique','documents.upload'),('chef_equipe_technique','tickets.view'),('chef_equipe_technique','tickets.create'),('chef_equipe_technique','tickets.update'),('chef_equipe_technique','commissions.view'),('chef_equipe_technique','portefeuilles.view')
+) x(role_code,permission_code)
+on conflict(role_code,permission_code) do nothing;
