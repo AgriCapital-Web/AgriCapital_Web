@@ -44,18 +44,43 @@ const ClientPortal = () => {
   useEffect(() => {
     if (view !== "home") return;
     const token = sessionStorage.getItem("agri_portal_access_token");
+    const isDemo = sessionStorage.getItem("agri_demo") === "1";
     const restore = async () => {
+      if (isDemo) {
+        const storedClient = JSON.parse(sessionStorage.getItem("agri_client") || "null");
+        if (!storedClient) return;
+        const { data, error } = await supabase.functions.invoke("subscriber-lookup", {
+          body: {
+            telephone: storedClient.telephone,
+            silent: true,
+            demo_token: sessionStorage.getItem("agri_demo_token"),
+            demo_code: sessionStorage.getItem("agri_demo_code"),
+          },
+        });
+        if (!error && data?.success && data?.demo) {
+          setClient(data.souscripteur || data.client);
+          setPlantations(data.plantations || []);
+          setPaiements(data.paiements || []);
+          setView("dashboard");
+          return;
+        }
+        sessionStorage.removeItem("agri_demo");
+        sessionStorage.removeItem("agri_demo_token");
+        sessionStorage.removeItem("agri_demo_code");
+        return;
+      }
+
       if (!token) return;
       const { data, error } = await supabase.functions.invoke("client-portal-data", { body: { access_token: token } });
       if (!error && data?.success) {
-        setClient(data.client || data.client);
+        setClient(data.client || data.souscripteur);
         setPlantations(data.plantations || []);
         setPaiements(data.paiements || []);
         setView("dashboard");
       } else {
         sessionStorage.removeItem("agri_portal_access_token");
         sessionStorage.removeItem("agri_client");
-        sessionStorage.removeItem("agri_client");
+        sessionStorage.removeItem("agri_souscripteur");
         sessionStorage.removeItem("agri_plantations");
         sessionStorage.removeItem("agri_paiements");
         sessionStorage.removeItem("agri_demo");
