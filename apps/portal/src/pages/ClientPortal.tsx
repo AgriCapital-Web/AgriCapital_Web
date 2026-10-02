@@ -202,7 +202,7 @@ const ClientPortal = () => {
 
       {view === 'plantation-hub' && (
         <ClientPlantationHub
-          client={client}
+          souscripteur={client}
           plantations={plantations}
           onBack={() => setView('dashboard')}
         />
@@ -221,7 +221,7 @@ const ClientPortal = () => {
       
       {view === 'portfolio' && (
         <ClientPortfolio
-          client={client}
+          souscripteur={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
@@ -230,7 +230,7 @@ const ClientPortal = () => {
 
       {view === 'history' && (
         <ClientPaymentHistory
-          client={client}
+          souscripteur={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
@@ -239,7 +239,7 @@ const ClientPortal = () => {
 
       {view === 'statistics' && (
         <ClientStatistics
-          client={client}
+          souscripteur={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
