@@ -102,7 +102,7 @@ export default function Commissions() {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <Table className="min-w-[720px]">
+                <Table className="responsive-data-table" className="min-w-[720px]">
                   <TableHeader><TableRow><TableHead>Commercial</TableHead><TableHead>Opérations</TableHead><TableHead>Base</TableHead><TableHead>Total commission</TableHead><TableHead>À valider</TableHead><TableHead>Payées</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {loading ? <TableRow><TableCell colSpan={6} className="py-8 text-center">Chargement…</TableCell></TableRow> :
