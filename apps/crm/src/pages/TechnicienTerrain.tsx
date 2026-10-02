@@ -34,7 +34,18 @@ const STAGES_AGRICAPITAL=[
 ];
 const STAGES_PALMTERROIR_AVANT_PLANTATION=[["validation_parcelle","Validation de la parcelle"],["piquetage","Piquetage"],["trouaison","Trouaison"],["mise_en_terre","Planting / mise en terre"]];
 const STAGES_PALMTERROIR_APRES_PLANTATION=[["suivi_mensuel","Suivi / encadrement technique"],["autre","Autre suivi technique"]];
-const isPalmTerroir=(p:any)=>String(p?.formule_code||p?.client?.formule_code||"").toLowerCase().includes("palm-terroir");
+const isPalmInvest=(p:any)=>{
+  const code=String(p?.formule_code||p?.client?.formule_code||"").toUpperCase();
+  const family=String(p?.famille_offre||p?.client?.famille_offre||"").toUpperCase();
+  return code.includes("PALMINVEST") || family.includes("PALMINVEST");
+};
+const ETATS_PLANTATION=[
+  ["bon_etat","Bon état"],
+  ["a_surveiller","À surveiller"],
+  ["degrade","Dégradé"],
+  ["intervention_urgente","Intervention urgente"],
+  ["autre","Autre"],
+];
 
 const TechnicienTerrain=()=>{
   const {user,userRoles}=useAuth();
@@ -53,7 +64,7 @@ const TechnicienTerrain=()=>{
   const [saving,setSaving]=useState(false);
   const [report,setReport]=useState<any>({
     plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",
-    constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",contenu_client:"",
+    constat:"",travaux_realises:"",etat_plantation:"",etat_plantation_autre:"",observations:"",recommandations:"",contenu_client:"",
     prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""
   });
   const [media,setMedia]=useState<File[]>([]);
@@ -91,8 +102,8 @@ const TechnicienTerrain=()=>{
     if(!p)return null;
     return {...p,client:clients.find(c=>c.id===p.client_id)||null};
   },[plantations,clients,report.plantation_id]);
-  const palmTerroir=useMemo(()=>isPalmTerroir(plantation),[plantation]);
-  const applicableStages=palmTerroir?(plantation?.date_plantation?STAGES_PALMTERROIR_APRES_PLANTATION:STAGES_PALMTERROIR_AVANT_PLANTATION):STAGES_AGRICAPITAL;
+  const palmInvest=useMemo(()=>isPalmInvest(plantation),[plantation]);
+  const applicableStages=!palmInvest?(plantation?.date_plantation?STAGES_PALMTERROIR_APRES_PLANTATION:STAGES_PALMTERROIR_AVANT_PLANTATION):STAGES_AGRICAPITAL;
 
   const saveReport=async(submit:boolean)=>{
     if(!report.plantation_id){toast({variant:"destructive",title:"Plantation requise"});return;}
@@ -104,7 +115,7 @@ const TechnicienTerrain=()=>{
       const payload={
         id,plantation_id:report.plantation_id,client_id:plantation?.client_id||null,agent_technique_id:profile.id,equipe_id:profile.equipe_id||null,ticket_id:report.ticket_id||null,
         date_visite:new Date(report.date_visite).toISOString(),type_visite:report.type_visite,
-        constat:report.constat||null,travaux_realises:report.travaux_realises||null,etat_plantation:report.etat_plantation||null,
+        constat:report.constat||null,travaux_realises:report.travaux_realises||null,etat_plantation:report.etat_plantation==="autre" ? (report.etat_plantation_autre||null) : (report.etat_plantation||null),
         observations:report.observations||null,recommandations:report.recommandations||null,contenu_client:report.contenu_client||null,
         prochaine_intervention:report.prochaine_intervention||null,
         localisation_gps_lat:report.localisation_gps_lat?Number(report.localisation_gps_lat):null,
@@ -124,7 +135,7 @@ const TechnicienTerrain=()=>{
       }
       toast({title:submit?"Rapport soumis":"Brouillon enregistré",description:media.length?`${media.length} média(s) rattaché(s).`:undefined});
       setMedia([]);
-      setReport({ticket_id:"",plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",constat:"",travaux_realises:"",etat_plantation:"",observations:"",recommandations:"",contenu_client:"",prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""});
+      setReport({ticket_id:"",plantation_id:"",date_visite:new Date().toISOString().slice(0,16),type_visite:"suivi",constat:"",travaux_realises:"",etat_plantation:"",etat_plantation_autre:"",observations:"",recommandations:"",contenu_client:"",prochaine_intervention:"",localisation_gps_lat:"",localisation_gps_lng:""});
       load();
     }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
     finally{setSaving(false);}
@@ -134,13 +145,14 @@ const TechnicienTerrain=()=>{
     const interventionPlantation=plantations.find(p=>p.id===intervention.plantation_id);
     const interventionClient=clients.find(c=>c.id===(intervention.client_id||interventionPlantation?.client_id));
     const targetClientId=intervention.client_id||interventionPlantation?.client_id||null;
-    const targetParcelleId=intervention.parcelle_id||interventionClient?.parcelle_id||interventionPlantation?.parcelle_id||null;
+    const requiresParcelle=isPalmInvest(interventionClient||interventionPlantation);
+    const targetParcelleId=requiresParcelle ? (intervention.parcelle_id||interventionClient?.parcelle_id||interventionPlantation?.parcelle_id||null) : null;
     const isPrePlantationStage=["defrichage","piquetage","trouaison","mise_en_terre"].includes(intervention.type_intervention);
     if(!targetClientId){toast({variant:"destructive",title:"Client / dossier requis",description:"Sélectionnez le Client ou dossier concerné."});return;}
-    if(!targetParcelleId){toast({variant:"destructive",title:"Parcelle requise",description:"La parcelle doit être rattachée au Client avant l’intervention."});return;}
+    if(requiresParcelle&&!targetParcelleId){toast({variant:"destructive",title:"Parcelle requise",description:"La parcelle doit être rattachée au Client avant l’intervention."});return;}
     if(!isPrePlantationStage && !intervention.plantation_id){toast({variant:"destructive",title:"Plantation requise",description:"Cette étape intervient après la création de la plantation."});return;}
     const technicalContext={...interventionPlantation,client:interventionClient,date_plantation:interventionPlantation?.date_plantation};
-    const interventionStages=isPalmTerroir(technicalContext)
+    const interventionStages=!isPalmInvest(technicalContext)
       ? (interventionPlantation?.date_plantation?STAGES_PALMTERROIR_APRES_PLANTATION:STAGES_PALMTERROIR_AVANT_PLANTATION)
       : STAGES_AGRICAPITAL;
     if(!interventionStages.some(([code])=>code===intervention.type_intervention)){toast({variant:"destructive",title:"Étape non applicable",description:"Cette étape n’est pas autorisée pour le parcours ou la phase actuelle."});return;}
@@ -194,11 +206,18 @@ const TechnicienTerrain=()=>{
             <div><Label>Demande support</Label><Select value={report.ticket_id||"none"} onValueChange={v=>setReport((x:any)=>({...x,ticket_id:v==="none"?"":v}))}><SelectTrigger><SelectValue placeholder="Aucune demande liée"/></SelectTrigger><SelectContent><SelectItem value="none">Aucune</SelectItem>{tickets.map(t=><SelectItem key={t.id} value={t.id}>{t.titre}</SelectItem>)}</SelectContent></Select></div><div><Label>Plantation *</Label><Select value={report.plantation_id} onValueChange={v=>setReport((x:any)=>({...x,plantation_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une plantation"/></SelectTrigger><SelectContent>{plantations.map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Date et heure *</Label><Input type="datetime-local" value={report.date_visite} onChange={e=>setReport((x:any)=>({...x,date_visite:e.target.value}))}/></div>
             <div><Label>Type de visite</Label><Select value={report.type_visite} onValueChange={v=>setReport((x:any)=>({...x,type_visite:v}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="suivi">Suivi</SelectItem><SelectItem value="installation">Installation</SelectItem><SelectItem value="controle">Contrôle</SelectItem><SelectItem value="incident">Incident</SelectItem><SelectItem value="remise">Remise de plantation</SelectItem></SelectContent></Select></div>
-            <div><Label>État de la plantation</Label><Input value={report.etat_plantation} onChange={e=>setReport((x:any)=>({...x,etat_plantation:e.target.value}))} placeholder="Bon, à surveiller, intervention urgente…"/></div>
+            <div>
+  <Label>État de la plantation</Label>
+  <Select value={report.etat_plantation||"none"} onValueChange={v=>setReport((x:any)=>({...x,etat_plantation:v==="none"?"":v,etat_plantation_autre:v==="autre"?x.etat_plantation_autre:""}))}>
+    <SelectTrigger><SelectValue placeholder="Sélectionner l’état"/></SelectTrigger>
+    <SelectContent><SelectItem value="none">Sélectionner</SelectItem>{ETATS_PLANTATION.map(([v,l])=><SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
+  </Select>
+  {report.etat_plantation==="autre"&&<Input className="mt-2" value={report.etat_plantation_autre||""} onChange={e=>setReport((x:any)=>({...x,etat_plantation_autre:e.target.value}))} placeholder="Préciser l’état"/>}
+</div>
           </div>
           <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat</Label><Textarea value={report.constat} onChange={e=>setReport((x:any)=>({...x,constat:e.target.value}))}/></div><div><Label>{palmTerroir?"Actions d’encadrement / suivi":"Travaux réalisés"}</Label><Textarea value={report.travaux_realises} onChange={e=>setReport((x:any)=>({...x,travaux_realises:e.target.value}))}/></div></div>
           <div className="grid md:grid-cols-2 gap-4"><div><Label>Observations internes</Label><Textarea value={report.observations} onChange={e=>setReport((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations internes</Label><Textarea value={report.recommandations} onChange={e=>setReport((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
-          <div><Label>Message destiné au client</Label><Textarea value={report.contenu_client} onChange={e=>setReport((x:any)=>({...x,contenu_client:e.target.value}))} placeholder="Ce message pourra être publié dans l’espace client après validation technique."/><p className="text-xs text-muted-foreground mt-1">Seul ce contenu est destiné à être présenté au client.</p>{palmTerroir&&<p className="text-xs text-amber-700 mt-1">PalmTerroir : après la mise en terre, AgriCapital assure l’encadrement, les recommandations et le suivi ; les travaux d’entretien et les intrants restent à la charge du client.</p>}</div>
+          <div><Label>Message destiné au client</Label><Textarea value={report.contenu_client} onChange={e=>setReport((x:any)=>({...x,contenu_client:e.target.value}))} placeholder="Ce message pourra être publié dans l’espace client après validation technique."/>}</div>
           <div className="grid md:grid-cols-3 gap-4"><div><Label>Prochaine intervention</Label><Input type="date" value={report.prochaine_intervention} onChange={e=>setReport((x:any)=>({...x,prochaine_intervention:e.target.value}))}/></div><div><Label>Latitude</Label><Input value={report.localisation_gps_lat} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lat:e.target.value}))}/></div><div><Label>Longitude</Label><Input value={report.localisation_gps_lng} onChange={e=>setReport((x:any)=>({...x,localisation_gps_lng:e.target.value}))}/></div></div>
           <div><Label>Photos / vidéos</Label><MediaUploadVisual label="Photos / vidéos" files={media} onChange={setMedia}/><p className="text-xs text-muted-foreground mt-1">Les médias restent privés jusqu’à validation du rapport.</p></div>
           <div className="flex gap-3 justify-end"><Button variant="outline" disabled={saving} onClick={()=>saveReport(false)}>Enregistrer brouillon</Button><Button disabled={saving} onClick={()=>saveReport(true)}>Soumettre le rapport</Button></div>
@@ -209,7 +228,7 @@ const TechnicienTerrain=()=>{
         <Card><CardHeader><CardTitle>Intervention technique</CardTitle><CardDescription>Pour une intervention avant plantation, sélectionnez le Client et sa parcelle. La plantation n’est créée automatiquement qu’après validation de la mise en terre réalisée.</CardDescription></CardHeader><CardContent className="space-y-5">
           <div className="grid md:grid-cols-3 gap-4">
             <div><Label>Client / dossier *</Label><Select value={intervention.client_id} onValueChange={v=>setIntervention((x:any)=>({...x,client_id:v,parcelle_id:clients.find(c=>c.id===v)?.parcelle_id||x.parcelle_id,plantation_id:""}))}><SelectTrigger><SelectValue placeholder="Sélectionner un Client"/></SelectTrigger><SelectContent>{clients.map(c=><SelectItem key={c.id} value={c.id}>{c.nom_complet} · {c.id_unique}</SelectItem>)}</SelectContent></Select></div>
-            <div><Label>Parcelle *</Label><Select value={intervention.parcelle_id} onValueChange={v=>setIntervention((x:any)=>({...x,parcelle_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une parcelle"/></SelectTrigger><SelectContent>{parcelles.filter(pa=>!intervention.client_id||clients.find(c=>c.id===intervention.client_id)?.parcelle_id===pa.id).map(pa=><SelectItem key={pa.id} value={pa.id}>{pa.id_unique}{pa.village?` · ${pa.village}`:""}</SelectItem>)}</SelectContent></Select></div>
+            {isPalmInvest(interventionClient||interventionPlantation)&&<div><Label>Parcelle *</Label><Select value={intervention.parcelle_id} onValueChange={v=>setIntervention((x:any)=>({...x,parcelle_id:v}))}><SelectTrigger><SelectValue placeholder="Sélectionner une parcelle"/></SelectTrigger><SelectContent>{parcelles.filter(pa=>!intervention.client_id||clients.find(c=>c.id===intervention.client_id)?.parcelle_id===pa.id).map(pa=><SelectItem key={pa.id} value={pa.id}>{pa.id_unique}{pa.village?` · ${pa.village}`:""}</SelectItem>)}</SelectContent></Select></div>}
             <div><Label>Plantation</Label><Select value={intervention.plantation_id||"none"} onValueChange={v=>{const p=plantations.find(x=>x.id===v);const density=Number(intervention.densite_plants||140);const planned=p?.superficie_ha?Math.round(Number(p.superficie_ha)*density):"";setIntervention((x:any)=>({...x,plantation_id:v==="none"?"":v,client_id:p?.client_id||x.client_id,parcelle_id:p?.parcelle_id||clients.find(c=>c.id===p?.client_id)?.parcelle_id||x.parcelle_id,nombre_plants_prevus:planned}));}}><SelectTrigger><SelectValue placeholder="Aucune si avant plantation"/></SelectTrigger><SelectContent><SelectItem value="none">Aucune — avant plantation</SelectItem>{plantations.filter(p=>!intervention.client_id||p.client_id===intervention.client_id).map(p=><SelectItem key={p.id} value={p.id}>{p.nom_plantation||p.nom||p.id_unique} · {p.id_unique}</SelectItem>)}</SelectContent></Select></div>
             <div><Label>Date *</Label><Input type="date" value={intervention.date_intervention} onChange={e=>setIntervention((x:any)=>({...x,date_intervention:e.target.value}))}/></div>
           </div>
