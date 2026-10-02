@@ -87,6 +87,8 @@ export default function Commissions() {
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
   }, [rows]);
 
+  const canSeeTeamCommission = userRoles.some((r: string) => ["super_admin","pdg","dg","responsable_operations","responsable_commercial","chef_equipe_commercial","chef_equipe_technique"].includes(r));
+
   const teamGroups = useMemo(() => {
     const map = new Map<string, any>();
     for (const row of rows) {
@@ -159,6 +161,7 @@ export default function Commissions() {
             </CardContent>
           </Card>
 
+          {canSeeTeamCommission && (
           <Card>
             <CardContent className="p-0">
               <div className="p-4"><h2 className="font-semibold">Commissions par équipe</h2><p className="text-sm text-muted-foreground">Total des commissions rattachées à chaque équipe.</p></div>
@@ -170,6 +173,8 @@ export default function Commissions() {
               </div>
             </CardContent>
           </Card>
+
+          )}
 
           <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
             <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
