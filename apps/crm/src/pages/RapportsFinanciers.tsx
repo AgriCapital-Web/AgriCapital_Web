@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { PERMISSIONS } from "@/lib/roles";
@@ -17,6 +18,7 @@ export default function RapportsFinanciers(){
   const [rows,setRows]=useState<any[]>([]);
   const [payments,setPayments]=useState<any[]>([]);
   const [commissions,setCommissions]=useState<any[]>([]);
+  const [moneyRows,setMoneyRows]=useState<any[]>([]);
   const [districts,setDistricts]=useState<any[]>([]);
   const [regions,setRegions]=useState<any[]>([]);
   const [clients,setClients]=useState<any[]>([]);
@@ -30,16 +32,17 @@ export default function RapportsFinanciers(){
   const load=async()=>{
     setLoading(true);
     try{
-      const [s,c,p,cm,d,r]=await Promise.all([
+      const [s,c,p,cm,m,d,r]=await Promise.all([
         (supabase as any).from("v_client_synthese").select("*").eq("compte_actif",true).order("nom_complet"),
         (supabase as any).from("clients").select("id,id_unique,district_id,region_id,formule_nom,formule_code").eq("compte_actif",true),
         (supabase as any).from("paiements").select("id,client_id,montant,montant_paye,statut,date_paiement,type_paiement").order("date_paiement",{ascending:false}),
         (supabase as any).from("commissions").select("id,client_id,montant_commission,statut,date_calcul"),
+        (supabase as any).from("v_monnaie_clients").select("client_id,monnaie_client"),
         (supabase as any).from("districts").select("id,nom").eq("est_actif",true).order("nom"),
         (supabase as any).from("regions").select("id,nom").order("nom"),
       ]);
       if(s.error)throw s.error;if(c.error)throw c.error;if(p.error)throw p.error;if(cm.error)throw cm.error;
-      setRows(s.data||[]);setClients(c.data||[]);setPayments(p.data||[]);setCommissions(cm.data||[]);setDistricts(d.data||[]);setRegions(r.data||[]);
+      setRows(s.data||[]);setClients(c.data||[]);setPayments(p.data||[]);setCommissions(cm.data||[]);setMoneyRows(m.data||[]);setDistricts(d.data||[]);setRegions(r.data||[]);
     }catch(e:any){console.error(e);}
     finally{setLoading(false);}
   };
@@ -65,7 +68,7 @@ export default function RapportsFinanciers(){
   const forecast=filtered.reduce((s,r)=>s+Number(r.montant_total_contrat||0),0);
   const collected=filteredPayments.filter(p=>p.statut==="valide").reduce((s,p)=>s+Number(p.montant_paye??p.montant??0),0);
   const remaining=Math.max(0,forecast-collected);
-  const clientMoney=0; // rempli depuis la vue interne uniquement pour les rôles autorisés
+  const clientMoney=moneyRows.filter(r=>ids.has(r.client_id)).reduce((s,r)=>s+Number(r.monnaie_client||0),0);
   const commissionsPaid=filteredCommissions.filter(c=>c.statut==="payee").reduce((s,c)=>s+Number(c.montant_commission||0),0);
   const gross=collected;
   const net=collected-commissionsPaid;
