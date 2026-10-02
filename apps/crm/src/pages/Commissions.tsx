@@ -4,6 +4,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,12 +16,13 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const money = (n: any) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(Number(n || 0));
-const typeLabel = (t: string) => t === "acquisition" ? "Acquisition" : t === "recouvrement_mensuel" ? "Recouvrement mensuel" : t || "—";
+const typeLabel = (t: string) => t === "acquisition" ? "Commercial" : t === "recouvrement_mensuel" ? "Recouvrement mensuel" : t === "technique" ? "Technicien" : t || "—";
 const statusLabel = (s: string) => s === "calculee" ? "À valider" : s === "validee" ? "Validée" : s === "payee" ? "Payée" : s === "annule" ? "Annulée" : s || "—";
 const statusVariant = (s: string) => s === "payee" ? "default" : s === "validee" ? "secondary" : s === "calculee" ? "outline" : "destructive";
 
 export default function Commissions() {
   const { toast } = useToast();
+  const { profile, userRoles } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -31,11 +33,30 @@ export default function Commissions() {
     try {
       const { data, error } = await (supabase as any)
         .from("commissions")
-        .select("*,profile:profiles!commissions_profile_id_fkey(nom_complet,telephone),plantation:plantations(id_unique,nom_plantation),client:clients(id,id_unique,nom_complet,famille_offre,formule_code,formule_nom)")
+        .select("*,profile:profiles!commissions_profile_id_fkey(nom_complet,telephone,equipe_id,equipe:equipes!profiles_equipe_id_fkey(nom)),plantation:plantations(id_unique,nom_plantation),client:clients(id,id_unique,nom_complet,famille_offre,formule_code,formule_nom)")
         .order("periode", { ascending: false })
         .limit(2000);
       if (error) throw error;
-      setRows(data || []);
+      const allRows = data || [];
+      const global = userRoles.some((r: string) => ["super_admin", "pdg", "dg"].includes(r));
+      const isTech = userRoles.includes("technicien");
+      const isTechManager = userRoles.includes("chef_equipe_technique");
+      const isCommercial = userRoles.includes("commercial");
+      const isCommercialManager = userRoles.includes("chef_equipe_commercial");
+      const isCommercialDirector = userRoles.includes("responsable_commercial");
+      const isFinance = userRoles.includes("comptable") || userRoles.includes("responsable_operations");
+      let scopedRows = allRows;
+
+      if (!global && !isFinance && profile?.id) {
+        if (isTech || isCommercial) {
+          scopedRows = allRows.filter((row: any) => row.profile_id === profile.id);
+        } else if (isTechManager || isCommercialManager) {
+          scopedRows = allRows.filter((row: any) => row.profile?.equipe_id && row.profile.equipe_id === profile.equipe_id);
+        } else if (isCommercialDirector) {
+          scopedRows = allRows.filter((row: any) => ["acquisition", "recouvrement_mensuel"].includes(row.type_commission));
+        }
+      }
+      setRows(scopedRows);
     } catch (e: any) {
       toast({ variant: "destructive", title: "Commissions indisponibles", description: e?.message || "Erreur." });
     } finally {
@@ -87,7 +108,7 @@ export default function Commissions() {
       <MainLayout>
         <div className="min-w-0 space-y-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div><h1 className="text-2xl font-bold">Commissions</h1><p className="text-sm text-muted-foreground">Suivi des commissions par commercial.</p></div>
+            <div><h1 className="text-2xl font-bold">Commissions</h1><p className="text-sm text-muted-foreground">Suivi des commissions commerciales et techniques.</p></div>
             <Button variant="outline" size="sm" onClick={() => void load()}><RefreshCw className="mr-2 h-4 w-4" />Actualiser</Button>
           </div>
 
@@ -102,8 +123,8 @@ export default function Commissions() {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <Table className="responsive-data-table" className="min-w-[720px]">
-                  <TableHeader><TableRow><TableHead>Commercial</TableHead><TableHead>Opérations</TableHead><TableHead>Base</TableHead><TableHead>Total commission</TableHead><TableHead>À valider</TableHead><TableHead>Payées</TableHead></TableRow></TableHeader>
+                <Table className="responsive-data-table min-w-[720px]">
+                  <TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Opérations</TableHead><TableHead>Base</TableHead><TableHead>Total commission</TableHead><TableHead>À valider</TableHead><TableHead>Payées</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {loading ? <TableRow><TableCell colSpan={6} className="py-8 text-center">Chargement…</TableCell></TableRow> :
                       filtered.length === 0 ? <TableRow><TableCell colSpan={6} className="py-8 text-center text-muted-foreground">Aucune commission.</TableCell></TableRow> :
