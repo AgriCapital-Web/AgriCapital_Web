@@ -211,7 +211,7 @@ const GestionPaiements = () => {
     queryFn: async () => {
       const selectClause = `
         *,
-        clients!inner (nom_complet, telephone, id_unique),
+        clients!inner (nom_complet, telephone, id_unique, statut_global),
         plantations (id_unique, nom_plantation)
       `;
       const safeSearch = searchTerm.trim().replace(/[,%()]/g, " ");
@@ -371,6 +371,13 @@ const GestionPaiements = () => {
       default:
         return <Badge variant="outline">{statut}</Badge>;
     }
+  };  const getStatutClientBadge = (statut: string) => {
+    const value = statut === "a_jour" || statut === "actif" ? "À jour" :
+      statut === "retard" ? "En retard" :
+      statut === "suspendu" ? "Suspendu" :
+      statut === "ferme" ? "Fermé" : "À jour";
+    const variant = statut === "retard" ? "destructive" : statut === "suspendu" ? "secondary" : "default";
+    return <Badge variant={variant}>{value}</Badge>;
   };
 
   // Search client by phone
@@ -746,7 +753,7 @@ const GestionPaiements = () => {
                           <TableCell className="font-bold">
                             {formatMontant(paiement.montant_paye || paiement.montant)}
                           </TableCell>
-                          <TableCell>{getStatutBadge(paiement.statut)}</TableCell>
+                          <TableCell>{getStatutClientBadge(paiement.clients?.statut_global)}</TableCell>
                           <TableCell>
                             <div className="flex gap-1 flex-wrap">
                               <Button
