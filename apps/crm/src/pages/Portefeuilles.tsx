@@ -169,7 +169,7 @@ export default function Portefeuilles(){
           <CardHeader><CardTitle className="text-base">Portefeuilles</CardTitle></CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <Table className="min-w-[700px]"><TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Rôle</TableHead><TableHead>Solde</TableHead><TableHead>Total gagné</TableHead><TableHead>Total versé</TableHead></TableRow></TableHeader>
+              <Table className="responsive-data-table" className="min-w-[700px]"><TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Rôle</TableHead><TableHead>Solde</TableHead><TableHead>Total gagné</TableHead><TableHead>Total versé</TableHead></TableRow></TableHeader>
               <TableBody>
                 {loading?<TableRow><TableCell colSpan={5} className="py-8 text-center">Chargement…</TableCell></TableRow>:filtered.length===0?<TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Aucun portefeuille.</TableCell></TableRow>:filtered.map((p:any)=><TableRow key={p.id} className="cursor-pointer hover:bg-muted/40" onClick={()=>setSelected(p)}>
                   <TableCell className="font-medium">{p.user?.nom_complet||"—"}</TableCell>
