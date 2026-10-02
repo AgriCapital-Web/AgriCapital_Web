@@ -177,7 +177,7 @@ const Parcelles = () => {
           <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Rechercher..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" /></div>
 
           <div className="border rounded-lg overflow-x-auto">
-            <Table>
+            <Table className="responsive-data-table">
               <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Propriétaire</TableHead><TableHead>Localisation</TableHead><TableHead>Total</TableHead><TableHead>AgriCapital</TableHead><TableHead>Utilisation</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
               <TableBody>
                 {loading ? <TableRow><TableCell colSpan={7} className="text-center py-8">Chargement...</TableCell></TableRow>
