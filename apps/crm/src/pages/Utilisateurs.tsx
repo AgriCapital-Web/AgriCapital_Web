@@ -237,7 +237,7 @@ const Utilisateurs = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="responsive-data-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Nom Complet</TableHead>
