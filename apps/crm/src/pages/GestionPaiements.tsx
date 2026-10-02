@@ -79,6 +79,7 @@ interface Paiement {
 const GestionPaiements = () => {
   const { toast } = useToast();
   const { hasRole } = useAuth();
+  const canFinancialOverview = hasRole("super_admin") || hasRole("pdg") || hasRole("dg") || hasRole("comptable") || hasRole("responsable_operations");
   const queryClient = useQueryClient();
   const { openPayment, onSuccess, onFailed, onClose } = useKkiapay();
   const [searchTerm, setSearchTerm] = useState("");
@@ -607,6 +608,7 @@ const GestionPaiements = () => {
             </div>
           </div>
 
+          {canFinancialOverview && (
           {/* Indicateurs financiers */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
@@ -642,6 +644,8 @@ const GestionPaiements = () => {
               </CardContent>
             </Card>
           </div>
+
+          )}
 
           {/* Tabs */}
           <Tabs defaultValue="paiements" className="space-y-4">
