@@ -38,6 +38,19 @@ const ClientDetail = () => {
   const [monnaieClient, setMonnaieClient] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
+  const [isRachatOpen,setIsRachatOpen]=useState(false);
+  const [rachatJours,setRachatJours]=useState("1");
+
+  const handleRachatMonnaie=async()=>{
+    if(!canViewClientMoney||!id)return;
+    const jours=Math.max(1,Number(rachatJours||0));
+    try{
+      const {data,error}=await (supabase as any).rpc("rachater_monnaie_client",{p_client_id:id,p_jours:jours});
+      if(error)throw error;
+      toast({title:"Rachat enregistré",description:"La monnaie client a été utilisée pour la période sélectionnée."});
+      setIsRachatOpen(false);setRachatJours("1");setMonnaieClient(Number(data||0));await fetchData();
+    }catch(e:any){toast({variant:"destructive",title:"Rachat impossible",description:e?.message||"Opération non autorisée"});}
+  };
 
   const fetchData = async () => {
     try {
@@ -221,7 +234,17 @@ const ClientDetail = () => {
                 <p className="text-muted-foreground">{client.id_unique}</p>
               </div>
             </div>
-            <Dialog open={isTicketOpen} onOpenChange={setIsTicketOpen}>
+            <Dialog open={isRachatOpen} onOpenChange={setIsRachatOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Racheter la monnaie client</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">Monnaie disponible : <b>{formatMontant(monnaieClient)} F CFA</b></p>
+            <div><Label>Nombre de jours</Label><Input type="number" min="1" value={rachatJours} onChange={e=>setRachatJours(e.target.value)}/></div>
+            <Button className="w-full" onClick={handleRachatMonnaie}>Confirmer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isTicketOpen} onOpenChange={setIsTicketOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Settings className="mr-2 h-4 w-4" />
@@ -268,7 +291,10 @@ const ClientDetail = () => {
             </Card>
             {canViewClientMoney && <Card>
               <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Monnaie client</CardTitle></CardHeader>
-              <CardContent><p className="text-lg font-semibold">{formatMontant(monnaieClient)} F CFA</p></CardContent>
+              <CardContent className="space-y-2">
+                <p className="text-lg font-semibold">{formatMontant(monnaieClient)} F CFA</p>
+                <Button size="sm" variant="outline" onClick={()=>setIsRachatOpen(true)} disabled={!monnaieClient}>Racheter</Button>
+              </CardContent>
             </Card>}
 
             <Card>
