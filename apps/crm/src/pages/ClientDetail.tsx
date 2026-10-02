@@ -265,12 +265,10 @@ const ClientDetail = () => {
                 <p className="text-lg font-semibold">{plantations.length}</p>
               </CardContent>
             </Card>
-            <Card>
-              {canViewClientMoney && <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Monnaie client</CardTitle></CardHeader>}
-              <CardContent>
-                {canViewClientMoney && <p className="text-lg font-semibold">{formatMontant(monnaieClient)} F CFA</p>}
-              </CardContent>
-            </Card>
+            {canViewClientMoney && <Card>
+              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Monnaie client</CardTitle></CardHeader>
+              <CardContent><p className="text-lg font-semibold">{formatMontant(monnaieClient)} F CFA</p></CardContent>
+            </Card>}
 
             <Card>
               <CardHeader>
