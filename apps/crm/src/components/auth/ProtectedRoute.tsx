@@ -13,7 +13,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requiredRole, requiredPermission, requiredPermissionCode }: ProtectedRouteProps) => {
   const { user, loading, hasRole, userRoles } = useAuth();
-  const privileged = userRoles.includes('super_admin') || userRoles.includes('pdg');
+  const privileged = userRoles.includes('super_admin') || userRoles.includes('pdg') || userRoles.includes('dg');
   const { can } = usePermissions();
   const navigate = useNavigate();
 
