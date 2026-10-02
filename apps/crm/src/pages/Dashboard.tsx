@@ -530,7 +530,7 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {canFinancialOverview || canCommissions || canPortfolios ? (
+              {canFinancialOverview ? (
                 <Card>
                   <CardHeader><CardTitle className="text-base flex items-center gap-2"><Wallet className="h-5 w-5 text-primary" />Situation financière</CardTitle></CardHeader>
                   <CardContent>
@@ -540,8 +540,7 @@ const Dashboard = () => {
                         ["Montant encaissé", money(stats.collected)],
                         ["Montant restant à encaisser", money(stats.dueAmount)],
                         ["Monnaie disponible chez les clients", money(stats.clientCredit)],
-                        ...(canCommissions ? [["Commissions", money(stats.commissions)]] : []),
-                        ...(canPortfolios ? [["Portefeuilles", money(stats.portfolio)]] : []),].map(([label, value]) => <div key={label} className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-base font-bold">{value}</p></div>)}
+].map(([label, value]) => <div key={label} className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-base font-bold">{value}</p></div>)}
                     </div>
                   </CardContent>
                 </Card>
