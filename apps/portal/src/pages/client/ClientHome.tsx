@@ -21,7 +21,8 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const [accessCode, setAccessCode] = useState("");
   const [confirmCode, setConfirmCode] = useState("");
   const [clientName, setClientName] = useState("");
-  const [supportOpen, setSupportOpen] = useState(false);\n  const [demoData, setDemoData] = useState<any>(null);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [demoData, setDemoData] = useState<any>(null);
 
   useEffect(() => { document.title = "Portail Client | AgriCapital"; }, []);
 
