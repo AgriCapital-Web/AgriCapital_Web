@@ -42,7 +42,28 @@ begin
       add constraint commissions_valide_par_fkey
       foreign key (valide_par) references public.profiles(id) on delete set null;
   end if;
-end $$;
+end $;
+
+do $
+begin
+  if not exists (select 1 from pg_constraint where conname = 'portefeuilles_user_id_fkey') then
+    alter table public.portefeuilles
+      add constraint portefeuilles_user_id_fkey
+      foreign key (user_id) references auth.users(id) on delete set null;
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'remboursements_traite_par_fkey') then
+    alter table public.remboursements
+      add constraint remboursements_traite_par_fkey
+      foreign key (traite_par) references auth.users(id) on delete set null;
+  end if;
+
+  if not exists (select 1 from pg_constraint where conname = 'transferts_paiements_effectue_par_fkey') then
+    alter table public.transferts_paiements
+      add constraint transferts_paiements_effectue_par_fkey
+      foreign key (effectue_par) references auth.users(id) on delete set null;
+  end if;
+end $;
 
 create index if not exists idx_paiements_client_created_at
   on public.paiements(client_id, created_at desc);
