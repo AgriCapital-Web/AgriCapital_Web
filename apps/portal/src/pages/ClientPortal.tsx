@@ -175,14 +175,14 @@ const ClientPortal = () => {
       
       {view === 'dashboard' && client?.portal_primary_role !== "client" ? (
         <StakeholderDashboard
-          client={client}
+          souscripteur={client}
           plantations={plantations}
           onPlantationHub={() => setView('plantation-hub')}
           onLogout={handleLogout}
         />
       ) : view === 'dashboard' && (
         <ClientDashboard
-          client={client}
+          souscripteur={client}
           plantations={plantations}
           paiements={paiements}
           syncStatus={status}
@@ -210,7 +210,7 @@ const ClientPortal = () => {
       
       {view === 'payment' && (
         <ClientPayment
-          client={client}
+          souscripteur={client}
           plantations={plantations}
           paiements={paiements}
           onBack={() => setView('dashboard')}
