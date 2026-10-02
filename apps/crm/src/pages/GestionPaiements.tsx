@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PERMISSIONS } from "@/lib/roles";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useKkiapay } from "@/hooks/useKkiapay";
 import { Button } from "@/components/ui/button";
@@ -514,6 +515,7 @@ const GestionPaiements = () => {
 
   // Handle convert monnaie to payment
   const handleConvertMonnaie = async () => {
+    if (!canViewClientMoney) return;
     if (!selectedClientId || convertCount <= 0) return;
     setLoading(true);
 
@@ -646,7 +648,7 @@ const GestionPaiements = () => {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-amber-100 rounded-lg"><Coins className="h-5 w-5 text-amber-600" /></div>
-                  <div><p className="text-xs text-amber-700">Monnaie disponible chez les clients</p><p className="text-sm font-bold text-amber-800">{formatMontant(stats.monnaieDisponible)}</p></div>
+                  {canViewClientMoney && <div><p className="text-xs text-amber-700">Monnaie client</p><p className="text-sm font-bold text-amber-800">{formatMontant(stats.monnaieDisponible)}</p></div>}
                 </div>
               </CardContent>
             </Card>
@@ -661,7 +663,7 @@ const GestionPaiements = () => {
                 <CreditCard className="h-4 w-4" />
                 Paiements
               </TabsTrigger>
-              <TabsTrigger value="monnaie" className="gap-2">
+              {canViewClientMoney && <TabsTrigger value="monnaie" className="gap-2">
                 <Coins className="h-4 w-4" />
                 Monnaie
               </TabsTrigger>
@@ -796,7 +798,7 @@ const GestionPaiements = () => {
             </TabsContent>
 
             {/* Monnaie Tab */}
-            <TabsContent value="monnaie" className="space-y-4">
+            {canViewClientMoney && <TabsContent value="monnaie" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
