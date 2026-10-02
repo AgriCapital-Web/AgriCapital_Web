@@ -337,12 +337,19 @@ const GestionPaiements = () => {
         return <Badge variant="outline">{statut}</Badge>;
     }
   };  const getStatutClientBadge = (statut: string) => {
-    const value = statut === "a_jour" || statut === "actif" ? "À jour" :
-      statut === "retard" ? "En retard" :
-      statut === "suspendu" ? "Suspendu" :
-      statut === "ferme" ? "Fermé" : "À jour";
-    const variant = statut === "retard" ? "destructive" : statut === "suspendu" ? "secondary" : "default";
-    return <Badge variant={variant}>{value}</Badge>;
+    const normalized = String(statut || "").toLowerCase();
+    const value = normalized === "a_jour" || normalized === "actif" ? "À jour" :
+      normalized === "retard" ? "En retard" :
+      normalized === "suspendu" ? "Suspendu" :
+      normalized === "ferme" ? "Fermé" : "À jour";
+    const cls = normalized === "retard"
+      ? "bg-red-100 text-red-800 border-red-200"
+      : normalized === "suspendu"
+      ? "bg-amber-100 text-amber-800 border-amber-200"
+      : normalized === "ferme"
+      ? "bg-slate-100 text-slate-700 border-slate-200"
+      : "bg-green-100 text-green-800 border-green-200";
+    return <Badge variant="outline" className={cls}>{value}</Badge>;
   };
 
   // Search client by phone
