@@ -33,6 +33,7 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [teamPerformance,setTeamPerformance]=useState<any[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<any>(null);
   const { toast } = useToast();
@@ -60,11 +61,12 @@ const Clients = () => {
       if (clientsError) throw clientsError;
 
       const ids = (baseClients || []).map((c: any) => c.id);
-      const [plantationsRes, attributionsRes, offresRes, regionsRes] = await Promise.all([
+      const [plantationsRes, attributionsRes, offresRes, regionsRes, teamPerfRes] = await Promise.all([
         supabase.from("plantations").select("id,client_id,superficie_ha,superficie_activee,surface_reellement_plantee,role_attribution").in("client_id", ids),
         (supabase as any).from("beneficiaire_attributions").select("id,client_id,plantation_id,surface_attribuee_ha,role_attribution,statut").eq("statut", "active").in("client_id", ids),
         supabase.from("offres").select("id,nom,couleur"),
         supabase.from("regions").select("id,nom"),
+        (supabase as any).from("v_performance_equipes").select("id,nom,type_equipe,clients,hectares,interventions"),
       ]);
 
       const plantations = plantationsRes.data || [];
@@ -92,6 +94,7 @@ const Clients = () => {
         };
       });
 
+      setTeamPerformance(teamPerfRes.data||[]);
       setAttributions(attributionsData);
       setClients(enrichedData);
     } catch (error: any) {
@@ -312,6 +315,15 @@ const Clients = () => {
             <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Sprout className="h-4 w-4 text-primary"/>Plantations</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.plantations}</div><p className="text-xs text-muted-foreground">actifs agricoles distincts</p></CardContent></Card>
             <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><LandPlot className="h-4 w-4 text-primary"/>Superficie rattachée</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.totalHectares.toFixed(2)} ha</div><p className="text-xs text-muted-foreground">toutes personnes confondues</p></CardContent></Card>
           </div>
+
+          {teamPerformance.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Performance par équipe</CardTitle></CardHeader>
+              <CardContent><div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {teamPerformance.map((team:any)=>{ const tech=String(team.type_equipe||"").toLowerCase().includes("technique"); return <div key={team.id} className="rounded-xl border p-3 flex items-center justify-between gap-3"><div><p className="font-semibold">{team.nom}</p><p className="text-xs text-muted-foreground">{tech?"Équipe technique":"Équipe commerciale"}</p></div><div className="text-right"><p className="font-bold">{tech?team.interventions:team.clients}</p><p className="text-xs text-muted-foreground">{tech?"interventions":Number(team.hectares||0).toFixed(1)+" ha"}</p></div></div>; })}
+              </div></CardContent>
+            </Card>
+          )}
 
           <Tabs defaultValue="table" className="space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
