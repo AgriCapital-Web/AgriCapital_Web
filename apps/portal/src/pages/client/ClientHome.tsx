@@ -11,7 +11,7 @@ import PortalAccessSupportDialog from "@/components/client/PortalAccessSupportDi
 interface ClientHomeProps {
   onLogin: (client: any, plantations: any[], paiements: any[]) => void;
 }
-type Step = "phone" | "setup" | "login";
+type Step = "phone" | "setup" | "login" | "demo";
 
 const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const { toast } = useToast();
@@ -21,7 +21,7 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const [accessCode, setAccessCode] = useState("");
   const [confirmCode, setConfirmCode] = useState("");
   const [clientName, setClientName] = useState("");
-  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);\n  const [demoData, setDemoData] = useState<any>(null);
 
   useEffect(() => { document.title = "Portail Client | AgriCapital"; }, []);
 
@@ -29,17 +29,24 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
   const formatPhoneDisplay = (value: string) => value.replace(/\D/g, "").slice(0, 10).replace(/(\d{2})(?=\d)/g, "$1 ").trim();
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => setTelephone(e.target.value.replace(/\D/g, "").slice(0, 10));
 
-  const saveSession = (data: any, token?: string) => {
+  const saveSession = (data: any, token?: string, demo = false, demoToken?: string, demoCode?: string) => {
     const client = data.client || data.souscripteur;
     sessionStorage.setItem("agri_client", JSON.stringify(client));
     sessionStorage.setItem("agri_souscripteur", JSON.stringify(client));
     sessionStorage.setItem("agri_plantations", JSON.stringify(data.plantations || []));
     sessionStorage.setItem("agri_paiements", JSON.stringify(data.paiements || []));
+    sessionStorage.setItem("agri_demo", demo ? "1" : "0");
     if (token) sessionStorage.setItem("agri_portal_access_token", token);
-    sessionStorage.setItem("agri_demo", "0");
-    sessionStorage.removeItem("agri_demo_token");
-    sessionStorage.removeItem("agri_demo_code");
+    else sessionStorage.removeItem("agri_portal_access_token");
+    if (demoToken) sessionStorage.setItem("agri_demo_token", demoToken);
+    else sessionStorage.removeItem("agri_demo_token");
+    if (demoCode) sessionStorage.setItem("agri_demo_code", demoCode);
+    else sessionStorage.removeItem("agri_demo_code");
     onLogin(client, data.plantations || [], data.paiements || []);
+  };
+
+  const saveDemoSession = (data: any) => {
+    saveSession(data, undefined, true, data.demo_token || sessionStorage.getItem("agri_demo_token") || undefined, data.demo_code || sessionStorage.getItem("agri_demo_code") || undefined);
   };
 
   const loadRealClient = async (token: string) => {
@@ -57,11 +64,28 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("portal-access", { body: { action: "inspect", telephone: phone } });
-      if (error || !data?.success) throw new Error(data?.error || error?.message || "Vérification impossible.");
-      setClientName(data.nom_complet || "");
+
+      if (!error && data?.success) {
+        setClientName(data.nom_complet || "");
+        setAccessCode("");
+        setConfirmCode("");
+        setDemoData(null);
+        setStep(data.needs_access_code_setup ? "setup" : "login");
+        return;
+      }
+
+      // Retour au parcours historique : numéro inconnu => démonstration,
+      // sans SMS/OTP et sans création de données CRM.
+      const demoResponse = await supabase.functions.invoke("subscriber-lookup", { body: { telephone: phone } });
+      if (demoResponse.error || !demoResponse.data?.success || !demoResponse.data?.demo) {
+        throw new Error(data?.error || error?.message || demoResponse.data?.error || demoResponse.error?.message || "Vérification impossible.");
+      }
+
+      setClientName("");
       setAccessCode("");
       setConfirmCode("");
-      setStep(data.needs_access_code_setup ? "setup" : "login");
+      setDemoData(demoResponse.data);
+      setStep("demo");
     } catch (e: any) {
       toast({ variant: "destructive", title: "Erreur", description: e.message || "Connexion impossible." });
     } finally { setLoading(false); }
@@ -100,11 +124,20 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
     } finally { setLoading(false); }
   };
 
+  const handleDemoEnter = () => {
+    if (!demoData?.demo_token || !demoData?.demo_code) {
+      toast({ variant: "destructive", title: "Démonstration indisponible", description: "Veuillez relancer la vérification du numéro." });
+      return;
+    }
+    saveDemoSession(demoData);
+  };
+
   const reset = () => {
     setStep("phone");
     setAccessCode("");
     setConfirmCode("");
     setClientName("");
+    setDemoData(null);
   };
 
   const codeInput = (value: string, setter: (v: string) => void) => (
@@ -134,7 +167,9 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
               <h1 className="text-2xl font-bold text-[#123326]">Votre espace client</h1>
               <p className="mt-2 text-sm text-[#68756E]">
                 {step === "phone" ? "Connectez-vous avec le numéro utilisé lors de votre contractualisation."
-                  : step === "setup" ? "Créez votre code d'accès personnel." : welcomeText}
+                  : step === "setup" ? "Créez votre code d'accès personnel."
+                  : step === "demo" ? "Ce numéro n'est pas encore enregistré : découvrez le portail en mode démonstration."
+                  : welcomeText}
               </p>
             </div>
 
@@ -168,6 +203,23 @@ const ClientHome = ({ onLogin }: ClientHomeProps) => {
                 <div><label className="mb-2 block text-sm font-semibold text-[#24352D]">Confirmer le code</label>{codeInput(confirmCode, setConfirmCode)}</div>
                 <Button onClick={() => void handleSetup()} disabled={loading} className="h-14 w-full rounded-xl bg-[#00643C] text-white hover:bg-[#004D2E]">
                   {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Création…</> : <>Créer mon accès <CheckCircle2 className="ml-2 h-5 w-5" /></>}
+                </Button>
+              </div>
+            )}
+
+            {step === "demo" && (
+              <div className="space-y-5">
+                <div className="rounded-xl border border-[#E5C46A] bg-[#FFF9E8] p-5 text-center">
+                  <Sparkles className="mx-auto mb-2 h-6 w-6 text-[#B47A00]" />
+                  <p className="text-sm font-semibold text-[#5E4700]">Mode démonstration</p>
+                  <p className="mt-1 text-xs text-[#76651E]">Aucune donnée réelle ne sera créée ou modifiée.</p>
+                  <div className="mt-4 rounded-xl bg-white px-4 py-3">
+                    <p className="text-[11px] uppercase tracking-wider text-[#7B7564]">Code de démonstration</p>
+                    <p className="mt-1 text-3xl font-black tracking-[0.35em] text-[#00643C]">{demoData?.demo_code || "----"}</p>
+                  </div>
+                </div>
+                <Button onClick={handleDemoEnter} disabled={loading} className="h-14 w-full rounded-xl bg-[#00643C] text-white hover:bg-[#004D2E]">
+                  Explorer la démonstration <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             )}
