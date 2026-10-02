@@ -824,7 +824,7 @@ const GestionPaiements = () => {
                       <TableBody>
                         {clientsMonnaie.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                            <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                               Aucun client avec monnaie disponible
                             </TableCell>
                           </TableRow>
