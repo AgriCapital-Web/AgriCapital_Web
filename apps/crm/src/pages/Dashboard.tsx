@@ -81,6 +81,8 @@ const Dashboard = () => {
     avgDaysRemaining: null as number | null,
     commissions: 0,
     portfolio: 0,
+    forecastRevenue: 0,
+    clientCredit: 0,
   });
 
   const [recentClients, setRecentClients] = useState<any[]>([]);
@@ -187,6 +189,7 @@ const Dashboard = () => {
       const avgProgress = contractRows.length
         ? Math.round(contractRows.reduce((s: number, r: any) => s + Number(r.pourcentage_avancement || 0), 0) / contractRows.length)
         : 0;
+      const forecastRevenue = contractRows.reduce((s: number, r: any) => s + Number(r.montant_total_contrat || 0), 0);
       const dueAmount = contractRows.reduce((s: number, r: any) => s + Number(r.reste_a_payer || 0), 0);
       const contractEndDates = contractRows
         .map((r: any) => r.contrat_fin_at ? new Date(r.contrat_fin_at) : null)
@@ -225,6 +228,8 @@ const Dashboard = () => {
         avgDaysRemaining,
         commissions: commissionTotal,
         portfolio: portfolioTotal,
+        forecastRevenue,
+        clientCredit: 0,
       });
 
       // IMPORTANT: "Clients récents" = ordre de création récent, pas numéro métier.
@@ -523,13 +528,12 @@ const Dashboard = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                       {[
-                        ["Encaissé", money(stats.collected)],
-                        ["Restant dû", money(stats.dueAmount)],
-                        ["En retard", money(stats.overdueAmount)],
-                        ["Taux recouvrement", `${stats.recoveryRate}%`],
+                        ["Chiffre d'affaires prévisionnel", money(stats.forecastRevenue)],
+                        ["Montant encaissé", money(stats.collected)],
+                        ["Montant restant à encaisser", money(stats.dueAmount)],
+                        ["Monnaie disponible chez les clients", money(stats.clientCredit)],
                         ...(canCommissions ? [["Commissions", money(stats.commissions)]] : []),
-                        ...(canPortfolios ? [["Portefeuilles", money(stats.portfolio)]] : []),
-                      ].map(([label, value]) => <div key={label} className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-base font-bold">{value}</p></div>)}
+                        ...(canPortfolios ? [["Portefeuilles", money(stats.portfolio)]] : []),].map(([label, value]) => <div key={label} className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-base font-bold">{value}</p></div>)}
                     </div>
                   </CardContent>
                 </Card>
