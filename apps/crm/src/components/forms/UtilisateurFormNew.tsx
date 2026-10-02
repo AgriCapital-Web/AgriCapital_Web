@@ -154,7 +154,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
       // Les photos administrées sont rangées dans le dossier du compte cible.
       const file = photoFile;
-      if (file) {
+      if (file && utilisateur) {
         const fileExt = file.name.split('.').pop();
         const targetUserId = utilisateur?.user_id || utilisateur?.id;
         if (!targetUserId) throw new Error("Compte utilisateur introuvable");
@@ -248,6 +248,21 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
         if (error) throw error;
         if (!result.success) throw new Error(result.error);
+
+        if (file && result.user_id) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `profiles/${result.user_id}/photo-${Date.now()}.${fileExt}`;
+          const { error: photoUploadError } = await supabase.storage
+            .from('photos-profils')
+            .upload(fileName, file);
+          if (photoUploadError) throw photoUploadError;
+
+          const { error: photoProfileError } = await (supabase as any)
+            .from("profiles")
+            .update({ photo_url: fileName })
+            .eq("user_id", result.user_id);
+          if (photoProfileError) throw photoProfileError;
+        }
 
         toast({
           title: "Utilisateur créé",
