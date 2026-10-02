@@ -600,7 +600,7 @@ const GestionPaiements = () => {
                     <CreditCard className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="text-xs text-muted-foreground">Paiements prévus</p>
                     <p className="text-lg font-bold">{stats.totalPaiements}</p>
                   </div>
                 </div>
@@ -614,7 +614,7 @@ const GestionPaiements = () => {
                     <CheckCircle className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Validés</p>
+                    <p className="text-xs text-muted-foreground">Paiements encaissés</p>
                     <p className="text-lg font-bold">{stats.paiementsValides}</p>
                   </div>
                 </div>
@@ -628,7 +628,7 @@ const GestionPaiements = () => {
                     <Clock className="h-5 w-5 text-yellow-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">En attente</p>
+                    <p className="text-xs text-muted-foreground">Paiements en attente</p>
                     <p className="text-lg font-bold">{stats.paiementsEnAttente}</p>
                   </div>
                 </div>
@@ -642,7 +642,7 @@ const GestionPaiements = () => {
                     <TrendingUp className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Montant total</p>
+                    <p className="text-xs text-muted-foreground">Montant encaissé</p>
                     <p className="text-sm font-bold">{formatMontant(stats.montantTotal)}</p>
                   </div>
                 </div>
@@ -656,7 +656,7 @@ const GestionPaiements = () => {
                     <Coins className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-amber-700">Monnaie dispo</p>
+                    <p className="text-xs text-amber-700">Monnaie clients disponible</p>
                     <p className="text-sm font-bold text-amber-800">{formatMontant(stats.monnaieDisponible)}</p>
                   </div>
                 </div>
@@ -699,13 +699,13 @@ const GestionPaiements = () => {
               </div>
 
               <div className="border rounded-lg overflow-hidden">
-                <Table>
+                <Table className="responsive-data-table">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Client</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Montant</TableHead>
+                      
+                      <TableHead>Mensualité</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -734,11 +734,6 @@ const GestionPaiements = () => {
                               <p className="font-medium">{paiement.clients?.nom_complet || '-'}</p>
                               <p className="text-xs text-muted-foreground">{paiement.clients?.telephone}</p>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {paiement.type_paiement === 'PI' ? "Paiement Initial" : 'Redevance'}
-                            </Badge>
                           </TableCell>
                           <TableCell className="font-bold">
                             {formatMontant(paiement.montant_paye || paiement.montant)}
