@@ -49,7 +49,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: CloudUpload, label: "Synchronisation", path: "/synchronisation", permission: PERMISSIONS.VIEW_DASHBOARD },
   ];
 
-  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"dashboard.view",    "/leads":"leads.view", "/acquisitions":"clients.view", "/messagerie":"clients.view", "/proprietaires-terres":"clients.view",    "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => item.path === "/dashboard" ? hasPermission(userRoles, item.permission) || can("clients.view") : can(permissionCodeByPath[item.path] || "parametres.view") || hasPermission(userRoles, item.permission));
+  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"dashboard.view",    "/leads":"leads.view", "/acquisitions":"clients.view", "/messagerie":"clients.view", "/proprietaires-terres":"clients.view",    "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => {
+    if (item.path === "/dashboard") return hasPermission(userRoles, item.permission);
+    const code = permissionCodeByPath[item.path];
+    return Boolean(code && can(code));
+  });
   const handleLogout = async () => { await signOut(); navigate("/"); };
   const getInitials = (name: string) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AG';
 
