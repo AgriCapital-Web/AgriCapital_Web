@@ -24,6 +24,7 @@ const Profil = () => {
   const [uploading, setUploading] = useState(false);
   const [phoneCountries, setPhoneCountries] = useState({ telephone: "+225", telephone_secondaire: "+225", whatsapp: "+225", contact1: "+225", contact2: "+225" });
   const photoUrl = useSignedUrl('photos-profils', profile.photo_url);
+  const pieceIdentiteUrl = useSignedUrl('pieces-identite', profile.piece_identite_url);
 
   useEffect(() => {
     if (user) fetchProfile();
@@ -105,8 +106,11 @@ const Profil = () => {
     try {
       if (!user?.id) throw new Error("Session invalide");
       const ext = file.name.split('.').pop();
-      const path = `profiles/${user.id}/${field}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('photos-profils').upload(path, file);
+      const bucket = field === 'piece_identite_url' ? 'pieces-identite' : 'photos-profils';
+      const path = field === 'piece_identite_url'
+        ? `${user.id}/${field}-${Date.now()}.${ext}`
+        : `profiles/${user.id}/${field}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file);
       if (uploadError) throw uploadError;
 
       // Stocke uniquement le chemin; l'URL signée courte est générée à l'affichage
@@ -204,7 +208,7 @@ const Profil = () => {
                   <div>
                     <Label>Photo de la pièce d'identité</Label>
                     <div className="mt-2 flex items-center gap-4">
-                      {profile.piece_identite_url && <img src={profile.piece_identite_url} alt="Pièce" className="h-32 rounded-lg border object-cover" />}
+                      {pieceIdentiteUrl && <img src={pieceIdentiteUrl} alt="Pièce" className="h-32 rounded-lg border object-cover" />}
                       <label className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg cursor-pointer hover:bg-muted/80">
                         <Camera className="h-4 w-4" /> Télécharger
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'piece_identite_url')} disabled={uploading} />
