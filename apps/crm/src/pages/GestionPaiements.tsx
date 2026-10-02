@@ -207,21 +207,53 @@ const GestionPaiements = () => {
   });
 
   const { data: paiements = [], isLoading, refetch } = useQuery({
-    queryKey: ['gestion-paiements'],
+    queryKey: ['gestion-paiements', searchTerm.trim()],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('paiements')
-        .select(`
-          *,
-          clients (nom_complet, telephone),
-          plantations (id_unique, nom_plantation)
-        `)
-        .neq('statut', 'planifie')
-        .order('created_at', { ascending: false })
-        .limit(500);
+      const selectClause = `
+        *,
+        clients!inner (nom_complet, telephone, id_unique),
+        plantations (id_unique, nom_plantation)
+      `;
+      const safeSearch = searchTerm.trim().replace(/[,%()]/g, " ");
 
-      if (error) throw error;
-      return data as Paiement[];
+      if (!safeSearch) {
+        const { data, error } = await supabase
+          .from('paiements')
+          .select(selectClause)
+          .neq('statut', 'planifie')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        if (error) throw error;
+        return data as Paiement[];
+      }
+
+      const [paymentSearch, clientSearch] = await Promise.all([
+        supabase
+          .from('paiements')
+          .select(selectClause)
+          .neq('statut', 'planifie')
+          .or(`reference.ilike.%${safeSearch}%,id_transaction.ilike.%${safeSearch}%`)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('paiements')
+          .select(selectClause)
+          .neq('statut', 'planifie')
+          .or(`nom_complet.ilike.%${safeSearch}%,telephone.ilike.%${safeSearch}%,id_unique.ilike.%${safeSearch}%`, { referencedTable: 'clients' })
+          .order('created_at', { ascending: false })
+          .limit(50)
+      ]);
+
+      if (paymentSearch.error) throw paymentSearch.error;
+      if (clientSearch.error) throw clientSearch.error;
+
+      const merged = new Map<string, Paiement>();
+      for (const row of [...(paymentSearch.data || []), ...(clientSearch.data || [])]) {
+        merged.set(row.id, row as Paiement);
+      }
+      return Array.from(merged.values())
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 50);
     }
   });
 
