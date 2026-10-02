@@ -23,6 +23,9 @@ import { Target, TrendingUp, Users, MapPin, PhoneCall, ArrowRight, Copy, Plus } 
 import { useAuth } from "@/hooks/useAuth";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
+import CommercialCombobox from "@/components/common/CommercialCombobox";
+import { COMMERCIAL_ASSIGNABLE_ROLES } from "@/lib/roles";
+import { formatUserShortName } from "@/lib/utils";
 
 
 const STATUTS = [
@@ -52,6 +55,8 @@ export default function Leads() {
   const canSupervise = (userRoles || []).some((r: string) =>
     ["super_admin", "directeur_tc", "superviseur_tc", "responsable_zone", "responsable_commercial",
      "chef_equipe", "chef_equipe_commercial"].includes(r));
+  const isServiceClient = (userRoles || []).some((r: string) => ["service_client", "chef_equipe_service_client"].includes(r));
+  const hasCommercialAccess = (userRoles || []).some((r: string) => COMMERCIAL_ASSIGNABLE_ROLES.includes(r));
   const [selected, setSelected] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const emptyLead = {
@@ -61,7 +66,7 @@ export default function Leads() {
     delai_demarrage: "", date_contact_souhaitee: "", creneau_prefere: "", mode_contact_prefere: "appel",
     statut: "nouveau", source: "commercial_terrain", assigned_to: "", commentaire: "",
   };
-  const [leadForm, setLeadForm] = useState<Record<string, string>>(emptyLead);
+  const [leadForm, setLeadForm] = useState<Record<string, string>>({ ...emptyLead, assigned_to: isServiceClient && hasCommercialAccess ? (user?.id || "") : "" });
   const [relanceOpen, setRelanceOpen] = useState(false);
   const [relance, setRelance] = useState<any>({ canal: "appel", resultat: "interesse", commentaire: "", prochaine_relance: "" });
   const [reassignOpen, setReassignOpen] = useState(false);
@@ -174,7 +179,9 @@ export default function Leads() {
         statut: leadForm.statut || "nouveau",
         source: leadForm.source || "commercial_terrain",
         created_by: user.id,
-        assigned_to: (canSupervise && leadForm.assigned_to) ? leadForm.assigned_to : user.id,
+        assigned_to: (leadForm.source === "commercial_terrain" && (canSupervise || isServiceClient))
+        ? (leadForm.assigned_to || null)
+        : user.id,
       });
       if (error) throw error;
     },
@@ -498,17 +505,19 @@ export default function Leads() {
                   </SelectContent>
                 </Select>
               </div>
-              {canSupervise && (
+              {(canSupervise || isServiceClient) && leadForm.source === "commercial_terrain" && (
                 <div className="sm:col-span-2">
-                  <Label>Affecter à un commercial</Label>
-                  <Select value={leadForm.assigned_to} onValueChange={(v) => setLeadForm({ ...leadForm, assigned_to: v })}>
-                    <SelectTrigger><SelectValue placeholder="Moi-même par défaut" /></SelectTrigger>
-                    <SelectContent>
-                      {acteurs.filter((a: any) => a.user_id).map((a: any) => (
-                        <SelectItem key={a.id} value={a.user_id}>{a.nom_complet}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Commercial responsable *</Label>
+                  <CommercialCombobox
+                    value={leadForm.assigned_to || null}
+                    onChange={(v) => setLeadForm((x) => ({ ...x, assigned_to: v || "" }))}
+                    placeholder={hasCommercialAccess && user?.id ? "Moi-même par défaut — choisir un autre commercial" : "Rechercher ou sélectionner un commercial"}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {isServiceClient
+                      ? "Le Service Client peut attribuer le lead à un commercial terrain."
+                      : "Sélectionnez le commercial terrain responsable du lead."}
+                  </p>
                 </div>
               )}
               <div className="sm:col-span-2"><Label>Note / Commentaire</Label><Textarea value={leadForm.commentaire} onChange={(e) => setLeadForm({ ...leadForm, commentaire: e.target.value })} rows={3} /></div>
