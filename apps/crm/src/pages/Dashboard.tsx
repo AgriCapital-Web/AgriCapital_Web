@@ -407,7 +407,7 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [canClients, canLeads, canPlantations, canPayments, canFinance, canTechnical, canCommissions, canPortfolios, globalAdmin]);
+  }, [canClients, canLeads, canPlantations, canPayments, canFinance, canTechnical, canCommissions, canPortfolios, globalAdmin, canCommercialTeamPerformance, canTechnicalTeamPerformance]);
 
   useEffect(() => { void fetchStats(); }, [fetchStats]);
   useRealtime({ table: "clients", onChange: fetchStats });
