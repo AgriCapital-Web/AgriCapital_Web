@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
+import { formatUserShortName } from "@/lib/utils";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -147,8 +148,8 @@ const Tickets = () => {
                           {ticket.statut?.replace("_", " ")}
                         </Badge>
                       </TableCell>
-                      <TableCell>{ticket.cree_par_profile?.nom_complet || "N/A"}</TableCell>
-                      <TableCell>{ticket.assigne_a_profile?.nom_complet || "Non assigné"}</TableCell>
+                      <TableCell>{formatUserShortName(ticket.cree_par_profile?.nom_complet || "N/A")}</TableCell>
+                      <TableCell>{formatUserShortName(ticket.assigne_a_profile?.nom_complet || "Non assigné")}</TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
