@@ -104,7 +104,9 @@ const Utilisateurs = () => {
     setFilteredUsers(filtered);
   }, [search, utilisateurs]);
 
-  const paginatedUsers = filteredUsers.slice((tablePage - 1) * pageSize, tablePage * pageSize);\n\n  const getRoles = (user: any) => {
+  const paginatedUsers = filteredUsers.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+
+  const getRoles = (user: any) => {
     return user.user_roles?.map((r: any) => r.role) || [];
   };
 
