@@ -166,8 +166,11 @@ const ProprietairesTerres = () => {
       const partAgriHa = surfaceTotale ? (surfaceTotale * agriPct) / 100 : null;
       const partProprietaireHa = surfaceTotale ? (surfaceTotale * ownerPct) / 100 : null;
       const nombreLots = Math.max(0, parseInt(formData.nombre_lots_agricapital || "0", 10) || 0);
-      if (surfaceTotale && nombreLots > Math.floor(partAgriHa || 0)) {
-        throw new Error(`Le nombre de lots AgriCapital ne peut pas dépasser ${Math.floor(partAgriHa || 0)} lot(s) de 1 ha.`);
+      const maxLots = typeConvention === "plante_partage"
+        ? Math.min(Math.floor(partAgriHa || 0), Math.floor(partProprietaireHa || 0))
+        : Math.floor(partAgriHa || 0);
+      if (surfaceTotale && nombreLots > maxLots) {
+        throw new Error(`Le nombre de lots AgriCapital ne peut pas dépasser ${maxLots} lot(s) de 1 ha pour cette répartition.`);
       }
       const cautionTotale = typeConvention === "plante_partage" && partAgriHa ? partAgriHa * 50000 : 0;
       const gps = String(formData.coordonnees_gps || "").split(/[,;\s]+/).map(Number).filter(Number.isFinite);
