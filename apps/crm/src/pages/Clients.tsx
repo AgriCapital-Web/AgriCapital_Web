@@ -141,7 +141,6 @@ const Clients = () => {
     s.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.telephone?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-\n
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
       const client = clients.find(s => s.id === id);
