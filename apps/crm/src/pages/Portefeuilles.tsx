@@ -202,7 +202,7 @@ export default function Portefeuilles(){
             <TableBody>{paginatedVersements.map((v:any)=>{
               const p=profiles.find((x:any)=>x.id===v.profile_id);
               return <TableRow key={v.id}><TableCell>{p?.nom_complet||"—"}</TableCell><TableCell>{format(new Date(v.periode_debut),"dd/MM/yyyy")} — {format(new Date(v.periode_fin),"dd/MM/yyyy")}</TableCell><TableCell className="font-semibold">{money(v.montant_brut)}</TableCell><TableCell><Badge>{v.statut}</Badge></TableCell><TableCell className="text-right"><div className="flex flex-wrap justify-end gap-2">{v.statut==="brouillon"&&<Button size="sm" onClick={()=>validatePayout(v)} disabled={saving}>Valider</Button>}{v.statut==="valide"&&<Button size="sm" onClick={()=>markPaid(v)} disabled={saving}>Marquer payé</Button>}</div></TableCell></TableRow>
-            })}</TableBody></Table><ResponsiveTablePagination page={versementPage} pageSize={pageSize} total={filteredVersements.length} onPageChange={setVersementPage} />e></div>
+            })}</TableBody></Table><ResponsiveTablePagination page={versementPage} pageSize={pageSize} total={filteredVersements.length} onPageChange={setVersementPage} /></div>
           </CardContent>
         </Card>}
 
