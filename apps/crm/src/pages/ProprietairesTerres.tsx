@@ -170,6 +170,9 @@ const ProprietairesTerres = () => {
         throw new Error(`Le nombre de lots AgriCapital ne peut pas dépasser ${Math.floor(partAgriHa || 0)} lot(s) de 1 ha.`);
       }
       const cautionTotale = typeConvention === "plante_partage" && partAgriHa ? partAgriHa * 50000 : 0;
+      const gps = String(formData.coordonnees_gps || "").split(/[,;\s]+/).map(Number).filter(Number.isFinite);
+      const gpsLat = gps.length >= 2 ? gps[0] : null;
+      const gpsLng = gps.length >= 2 ? gps[1] : null;
 
       const propPayload: any = {
         nom_complet: nomComplet,
@@ -257,8 +260,8 @@ const ProprietairesTerres = () => {
           departement_id: formData.departement_id || null,
           sous_prefecture_id: formData.sous_prefecture_id || null,
           village: formData.village || null,
-          localisation_gps_lat: null,
-          localisation_gps_lng: null,
+          localisation_gps_lat: gpsLat,
+          localisation_gps_lng: gpsLng,
           duree_convention: 30,
           date_convention: formData.date_signature_convention || null,
           notes: formData.notes || null,
