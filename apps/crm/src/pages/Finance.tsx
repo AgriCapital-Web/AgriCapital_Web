@@ -157,7 +157,9 @@ export default function Finance(){
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="border-b"><th className="p-2 text-left">DATE</th><th className="p-2 text-left">TYPE</th><th className="p-2 text-left">LIBELLÉ</th><th className="p-2 text-right">MONTANT</th><th className="p-2 text-left">SOURCE</th></tr></thead>
+                <thead>
+                  <tr className="border-b"><th className="p-2 text-left">DATE</th><th className="p-2 text-left">TYPE</th><th className="p-2 text-left">LIBELLÉ</th><th className="p-2 text-right">MONTANT</th><th className="p-2 text-left">SOURCE</th></tr>
+                </thead>
                 <tbody>
                   {transactions.filter((t:any)=>JSON.stringify(t).toLowerCase().includes(tableSearch.trim().toLowerCase())).map((t:any)=>(
                     <tr key={t.id} className="border-b">
@@ -182,8 +184,6 @@ export default function Finance(){
           </CardContent>
         </Card>
       </TabsContent>
-      </TabsList>
-      <TabsContent value="journal"><Card><CardHeader><CardTitle>Journal financier</CardTitle></CardHeader><CardContent><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b"><th className="p-2 text-left">DATE</th><th className="p-2 text-left">TYPE</th><th className="p-2 text-left">LIBELLÉ</th><th className="p-2 text-right">MONTANT</th><th className="p-2 text-left">SOURCE</th></tr></thead><tbody>{transactions.map(t=><tr key={t.id} className="border-b"><td className="p-2">{new Date(t.transaction_date).toLocaleDateString("fr-FR")}</td><td className="p-2"><Badge variant="outline" className="gap-1">{t.direction==="entree"?<ArrowDownLeft className="h-3 w-3"/>:<ArrowUpRight className="h-3 w-3"}/>{t.direction.toUpperCase()}</Badge></td><td className="p-2">{t.label}</td><td className="p-2 text-right font-semibold">{money(t.amount)}</td><td className="p-2 text-muted-foreground">{t.source_type||"MANUEL"}</td></tr>)}{!transactions.length&&!loading&&<tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Aucune écriture.</td></tr>}</tbody></table></div></CardContent></Card></TabsContent>
       <TabsContent value="depenses"><div className="grid lg:grid-cols-[1fr_1.5fr] gap-4">
         {can("finance.expenses")&&<Card><CardHeader><CardTitle>Nouvelle dépense</CardTitle></CardHeader><CardContent className="space-y-3">
           <div><Label>CATÉGORIE</Label><Select value={expense.category} onValueChange={v=>setExpense({...expense,category:v})}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{["SALAIRES","CARBURANT","TRANSPORT","FOURNITURES","COMMUNICATION","PRESTATION","LOYER","BANQUE","IMPÔTS","AUTRE"].map(x=><SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent></Select></div>
