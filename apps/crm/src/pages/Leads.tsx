@@ -259,7 +259,9 @@ export default function Leads() {
 
   const publicUrl = `${window.location.origin}/leads/public`;
 
-  const filteredLeads = leads.filter((l: any) => JSON.stringify(l).toLowerCase().includes(tableSearch.trim().toLowerCase()));\n  useEffect(() => setTablePage(1), [tableSearch]);\n  const paginatedLeads = filteredLeads.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+  const filteredLeads = leads.filter((l: any) => JSON.stringify(l).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  useEffect(() => setTablePage(1), [tableSearch, pageSize]);
+  const paginatedLeads = filteredLeads.slice((tablePage - 1) * pageSize, tablePage * pageSize);
 
   const stats = {
     total: leads.length,
