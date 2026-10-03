@@ -185,10 +185,10 @@ REVOKE EXECUTE ON FUNCTION public.reconcile_user_role_coverage(uuid) FROM PUBLIC
 REVOKE EXECUTE ON FUNCTION public.validate_zone_assignment() FROM PUBLIC, anon;
 
 -- Existing role assignments are reconciled once so stale coverage cannot survive the migration.
-DO $$
+DO $do$
 DECLARE u uuid;
 BEGIN
   FOR u IN SELECT DISTINCT user_id FROM public.user_roles LOOP
     PERFORM public.reconcile_user_role_coverage(u);
   END LOOP;
-END $func$;
+END $do$;
