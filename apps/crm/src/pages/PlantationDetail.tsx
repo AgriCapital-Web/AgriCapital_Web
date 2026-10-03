@@ -16,7 +16,7 @@ const formatMoney = (value: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(Number(value || 0));
 
 const formatStatus = (value: string | null | undefined) =>
-  value === "active" ? "Actif" : (value || "—").replaceAll("_", " ");
+  value === "active" ? "Actif" : (value || "—").replace(/_/g, " ");
 
 const PlantationDetail = () => {
   const { id } = useParams();
@@ -191,7 +191,7 @@ const PlantationDetail = () => {
               <CardContent className="space-y-2">
                 {interventions.slice(0, 10).map((i: any) => (
                   <div key={i.id} className="rounded-lg border p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-medium">{i.type_intervention?.replaceAll("_", " ") || "Opération"}</span><Badge variant="outline">{formatStatus(i.statut)}</Badge></div>
+                    <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-medium">{i.type_intervention?.replace(/_/g, " ") || "Opération"}</span><Badge variant="outline">{formatStatus(i.statut)}</Badge></div>
                     <p className="mt-1 text-xs text-muted-foreground">{i.date_intervention ? new Date(i.date_intervention).toLocaleDateString("fr-FR") : "—"} · {i.agent?.nom_complet || "Équipe technique"}</p>
                     {i.observations && <p className="mt-1 text-sm">{i.observations}</p>}
                   </div>
