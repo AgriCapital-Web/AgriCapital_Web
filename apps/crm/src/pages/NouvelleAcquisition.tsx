@@ -42,7 +42,7 @@ const NouvelleAcquisition = () => {
   useEffect(()=>{
     const leadId=searchParams.get("lead_id");
     if(leadId) updateFormData({
-      lead_id:leadId, nom_famille:searchParams.get("nom")||"", prenoms:searchParams.get("prenoms")||"",
+      lead_id:leadId, commercial_id:searchParams.get("commercial_id")||undefined, nom_famille:searchParams.get("nom")||"", prenoms:searchParams.get("prenoms")||"",
       telephone:searchParams.get("telephone")||"", whatsapp:searchParams.get("whatsapp")||"", email:searchParams.get("email")||""
     });
   },[searchParams]);
