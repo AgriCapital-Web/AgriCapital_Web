@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { offlineInsert } from "@/lib/offlineWrite";
 import { uploadOrQueueFile } from "@/lib/offlineFiles";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const RapportsTechniques = () => {
   const [interventions, setInterventions] = useState<any[]>([]);
@@ -30,6 +31,7 @@ const RapportsTechniques = () => {
   const [reportSaving, setReportSaving] = useState(false);
   const [reportForm, setReportForm] = useState({ plantation_id: "", date_visite: new Date().toISOString().slice(0,16), type_visite: "suivi", observations: "", recommandations: "", client_visible: false });
   const [mediaDrafts, setMediaDrafts] = useState<Array<{file: File; client_visible: boolean; description: string}>>([]);
+  const [tableSearch, setTableSearch] = useState("");
   const [stats, setStats] = useState({
     totalInterventions: 0,
     interventionsEnCours: 0,
@@ -161,6 +163,10 @@ const RapportsTechniques = () => {
   useRealtime({ table: "interventions_techniques", onChange: fetchData });
   useRealtime({ table: "tickets_techniques", onChange: fetchData });
 
+  const filteredInterventions = interventions.filter((row) => JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const filteredTickets = tickets.filter((row) => JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const filteredPhotos = photos.filter((row) => JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+
   const statsCards = [
     { title: "Total Interventions", value: stats.totalInterventions, icon: ClipboardCheck, color: "text-blue-600" },
     { title: "Tickets Ouverts", value: stats.ticketsOuverts, icon: AlertTriangle, color: "text-orange-600" },
@@ -259,7 +265,7 @@ const RapportsTechniques = () => {
             <TabsContent value="interventions" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Interventions Techniques</CardTitle>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Interventions Techniques</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher une intervention…" /></div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -274,14 +280,14 @@ const RapportsTechniques = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {interventions.length === 0 ? (
+                      {filteredInterventions.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                             Aucune intervention enregistrée
                           </TableCell>
                         </TableRow>
                       ) : (
-                        interventions.map((intervention) => (
+                        filteredInterventions.map((intervention) => (
                           <TableRow key={intervention.id}>
                             <TableCell>
                               {new Date(intervention.date_intervention).toLocaleDateString("fr-FR")}
@@ -318,7 +324,7 @@ const RapportsTechniques = () => {
             <TabsContent value="tickets" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Tickets Techniques</CardTitle>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Tickets Techniques</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un ticket…" /></div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -333,14 +339,14 @@ const RapportsTechniques = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {tickets.length === 0 ? (
+                      {filteredTickets.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                             Aucun ticket technique
                           </TableCell>
                         </TableRow>
                       ) : (
-                        tickets.map((ticket) => (
+                        filteredTickets.map((ticket) => (
                           <TableRow key={ticket.id}>
                             <TableCell>
                               {new Date(ticket.created_at).toLocaleDateString("fr-FR")}
@@ -392,14 +398,14 @@ const RapportsTechniques = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {photos.length === 0 ? (
+                      {filteredPhotos.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                             Aucune photo archivée
                           </TableCell>
                         </TableRow>
                       ) : (
-                        photos.map((photo) => (
+                        filteredPhotos.map((photo) => (
                           <TableRow key={photo.id}>
                             <TableCell>
                               {new Date(photo.date_prise).toLocaleDateString("fr-FR")}
