@@ -1,4 +1,8 @@
 -- Geographic activation is hierarchical and mandatory across the CRM.
+-- The existing public.cascade_geo_status() remains the single downward
+-- deactivation cascade. This migration only enforces parent activation
+-- when a child is inserted/updated.
+
 CREATE OR REPLACE FUNCTION public.enforce_geo_effective_activation()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -55,8 +59,5 @@ DROP TRIGGER IF EXISTS trg_geo_effective_activation_campements ON public.campeme
 CREATE TRIGGER trg_geo_effective_activation_campements
 BEFORE INSERT OR UPDATE OF est_actif,sous_prefecture_id,village_noyau_id ON public.campements
 FOR EACH ROW EXECUTE FUNCTION public.enforce_geo_effective_activation();
-
--- Existing cascade_geo_status() remains the single deactivation cascade.
--- Only active parents may have active children; disabled parents propagate down automatically.
 
 REVOKE EXECUTE ON FUNCTION public.enforce_geo_effective_activation() FROM PUBLIC, anon, authenticated;
