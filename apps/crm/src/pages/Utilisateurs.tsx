@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatUserShortName } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useAuth } from "@/hooks/useAuth";
