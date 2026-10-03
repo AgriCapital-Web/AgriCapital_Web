@@ -103,11 +103,21 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.reconcile_user_role_coverage_trigger()
+RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
+AS $
+BEGIN
+  PERFORM public.reconcile_user_role_coverage(COALESCE(NEW.user_id, OLD.user_id));
+  RETURN COALESCE(NEW, OLD);
+END;
+$;
+
 DROP TRIGGER IF EXISTS trg_reconcile_role_coverage ON public.user_roles;
 CREATE TRIGGER trg_reconcile_role_coverage
 AFTER INSERT OR DELETE OR UPDATE OF role ON public.user_roles
 FOR EACH ROW
-EXECUTE FUNCTION public.reconcile_user_role_coverage(COALESCE(NEW.user_id, OLD.user_id));
+EXECUTE FUNCTION public.reconcile_user_role_coverage_trigger();
 
 CREATE OR REPLACE FUNCTION public.validate_zone_assignment()
 RETURNS trigger
