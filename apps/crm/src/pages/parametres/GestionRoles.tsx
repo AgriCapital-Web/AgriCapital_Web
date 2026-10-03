@@ -368,7 +368,7 @@ const GestionRoles = () => {
                 <Users className="h-5 w-5" />
                 Attribution des Rôles aux Utilisateurs
               </CardTitle>
-              <CardDescription>Assignez les 11 rôles officiels aux utilisateurs de la plateforme</CardDescription>
+              <CardDescription>Assignez les rôles officiels aux utilisateurs de la plateforme</CardDescription>
             </div>
             <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
               <DialogTrigger asChild>
