@@ -51,7 +51,7 @@ const Equipes = () => {
     try {
       const [{ data: equipesData, error }, { data: regionsData }, { data: profilesData }] = await Promise.all([
         (supabase as any).from("equipes").select(`*, responsable:profiles!equipes_responsable_id_fkey(nom_complet, telephone), region:regions(nom)`).order("created_at", { ascending: false }),
-        (supabase as any).from("regions").select("*").order("nom"),
+        (supabase as any).from("v_geo_regions").select("id,nom").eq("est_active_effectif",true).order("nom"),
         (supabase as any).from("profiles").select("id, nom_complet, user_id, actif").eq("actif", true).order("nom_complet"),
       ]);
       if (error) throw error;
