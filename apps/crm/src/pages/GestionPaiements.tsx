@@ -82,7 +82,6 @@ const GestionPaiements = () => {
   const { hasRole } = useAuth();
   const canFinancialOverview = hasRole("super_admin") || hasRole("pdg") || hasRole("dg") || hasRole("comptable") || hasRole("responsable_operations");
   const canViewClientMoney = canFinancialOverview;
-  const canViewClientMoney = hasRole("super_admin") || hasRole("pdg") || hasRole("dg") || hasRole("comptable") || hasRole("responsable_operations");
   const queryClient = useQueryClient();
   const { openPayment, onSuccess, onFailed, onClose } = useKkiapay();
   const [searchTerm, setSearchTerm] = useState("");
