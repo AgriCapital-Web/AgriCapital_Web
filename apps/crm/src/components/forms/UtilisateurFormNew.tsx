@@ -16,7 +16,7 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAppRoles, useDepartementsEntreprise } from "@/hooks/useReferentiels";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import FileUploadVisual from "@/components/ui/file-upload-visual";
-import { normalizeRoles, TERRITORIAL_ROLES, ROLES as APP_ROLES } from "@/lib/roles";
+import { ROLES as APP_ROLES } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 
 
@@ -59,7 +59,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>(
-    normalizeRoles(utilisateur?.user_roles?.map((r: any) => r.role) || []),
+    utilisateur?.user_roles?.map((r: any) => r.role).filter(Boolean) || [],
   );
   const [districts, setDistricts] = useState<any[]>([]);
   const [regions, setRegions] = useState<any[]>([]);
@@ -72,9 +72,15 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
   const relationRH = watch("relation_rh");
   const departementSelectionne = watch("departement") ?? utilisateur?.departement;
 
-  // Référentiels dynamiques (base de données, repli statique avant migration)
+  // Référentiels dynamiques : la base de données est la seule source de vérité.
   const { departements: departementsEntreprise, requiresCoverage } = useDepartementsEntreprise();
   const { roles: rolesDisponibles } = useAppRoles();
+
+  useEffect(() => {
+    if (!rolesDisponibles.length) return;
+    const officialCodes = new Set(rolesDisponibles.map((r) => r.code));
+    setSelectedRoles((current) => current.filter((role) => officialCodes.has(role)));
+  }, [rolesDisponibles]);
 
   // Affichage conditionnel : couverture territoriale pour Commercial / Technique
   // ou pour tout rôle disposant d'une couverture terrain.
