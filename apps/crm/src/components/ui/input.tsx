@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, onChange, ...props }, ref) => {
+  ({ className, type, onChange, onBlur, ...props }, ref) => {
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (type === "password") {
         onChange?.(event);
@@ -17,7 +17,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
       } as React.ChangeEvent<HTMLInputElement>;
       onChange?.(nextEvent);
     };
-    return (
+    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {\n      if (type !== "password") {\n        const value = event.target.value.toUpperCase();\n        const nextEvent = { ...event, target: { ...event.target, value }, currentTarget: { ...event.currentTarget, value } } as React.FocusEvent<HTMLInputElement>;\n        onChange?.(nextEvent as unknown as React.ChangeEvent<HTMLInputElement>);\n      }\n      onBlur?.(event);\n    };\n    return (
       <input
         type={type}
         className={cn(
