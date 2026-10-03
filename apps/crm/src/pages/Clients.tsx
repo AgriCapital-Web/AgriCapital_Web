@@ -135,7 +135,9 @@ const Clients = () => {
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void fetchData(); }, searchTerm ? 250 : 0);
-    return () => window.clearTimeout(timer);
+    const paginatedClients = filteredClients.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+
+  return () => window.clearTimeout(timer);
   }, [searchTerm]);
 
   useRealtime({ table: "clients", onChange: fetchData });
