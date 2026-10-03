@@ -20,7 +20,7 @@ export const ROLES = {
 export type AppRole = typeof ROLES[keyof typeof ROLES];
 
 export interface RoleDefinition {
-  code: AppRole;
+  code: string;
   nom: string;
   court: string;
   description: string;
@@ -48,9 +48,9 @@ export const OFFICIAL_ROLES: RoleDefinition[] = [
 
 export const OFFICIAL_ROLE_CODES: string[] = OFFICIAL_ROLES.map((r) => r.code);
 
+/** Normalisation de format uniquement. Le catalogue officiel des rôles vient de la base (app_roles). */
 export function normalizeRole(role?: string | null): string {
-  if (!role) return '';
-  return OFFICIAL_ROLE_CODES.includes(role) ? role : '';
+  return role?.trim() || '';
 }
 
 export function normalizeRoles(roles: string[] = []): string[] {
