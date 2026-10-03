@@ -232,29 +232,31 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
         if (profileError) throw profileError;
 
-        // Update roles
-        const uid = utilisateur.user_id || utilisateur.id;
+        // Les rôles sont liés au compte Auth. Un ancien profil sans compte de connexion
+        // ne doit jamais provoquer une erreur de clé étrangère.
+        const uid = utilisateur.user_id;
         const anciensRoles = normalizeRoles(utilisateur?.user_roles?.map((r: any) => r.role) || []);
-        await (supabase as any).from("user_roles").delete().eq("user_id", uid);
+        if (uid) {
+          const { error: deleteRolesError } = await (supabase as any).from("user_roles").delete().eq("user_id", uid);
+          if (deleteRolesError) throw deleteRolesError;
+          const { error: insertRolesError } = await (supabase as any).from("user_roles").insert(
+            selectedRoles.map((role) => ({ user_id: uid, role }))
+          );
+          if (insertRolesError) throw insertRolesError;
 
-        for (const role of selectedRoles) {
-          await (supabase as any).from("user_roles").insert({
-            user_id: uid,
-            role: role,
+          await logAdminAction({
+            action: "MODIFICATION_UTILISATEUR",
+            entite: "profiles",
+            entite_id: utilisateur.id,
+            cible_user_id: uid,
+            cible_libelle: data.nom_complet,
+            ancienne_valeur: { roles: anciensRoles, departement: utilisateur?.departement },
+            nouvelle_valeur: { roles: selectedRoles, departement: data.departement },
           });
+          toast({ title: "Succès", description: "Utilisateur modifié" });
+        } else {
+          toast({ title: "Profil modifié", description: "Le profil est enregistré. Aucun rôle n'a été modifié car ce personnel ne possède pas encore de compte de connexion." });
         }
-
-        await logAdminAction({
-          action: "MODIFICATION_UTILISATEUR",
-          entite: "profiles",
-          entite_id: utilisateur.id,
-          cible_user_id: uid,
-          cible_libelle: data.nom_complet,
-          ancienne_valeur: { roles: anciensRoles, departement: utilisateur?.departement },
-          nouvelle_valeur: { roles: selectedRoles, departement: data.departement },
-        });
-
-        toast({ title: "Succès", description: "Utilisateur modifié" });
 
       } else {
         const tempPassword = data.password || (
