@@ -1,4 +1,4 @@
-/** Source de vérité unique — rôles officiels AgriCapital CRM. */
+/** Constantes de compatibilité pour les codes de rôles connus. Le catalogue runtime officiel vient de public.app_roles. */
 
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
