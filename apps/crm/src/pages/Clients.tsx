@@ -135,13 +135,13 @@ const Clients = () => {
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void fetchData(); }, searchTerm ? 250 : 0);
-    const paginatedClients = filteredClients.slice((tablePage - 1) * pageSize, tablePage * pageSize);\n\n  return () => window.clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [searchTerm]);
 
   useRealtime({ table: "clients", onChange: fetchData });
   useRealtime({ table: "plantations", onChange: fetchData });
 
-  const paginatedClients = filteredClients.slice((tablePage - 1) * pageSize, tablePage * pageSize);\n\n  const filteredClients = clients.filter((s) =>
+  const filteredClients = clients.filter((s) =>
     s.id_unique?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.telephone?.toLowerCase().includes(searchTerm.toLowerCase())
