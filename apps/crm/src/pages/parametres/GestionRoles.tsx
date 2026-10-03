@@ -27,6 +27,7 @@ import { PERMISSIONS_BY_MODULE, PERMISSION_CODES } from "@/lib/permissions";
 import { normalizeRole, roleLabel, ROLES as APP_ROLES, RoleDefinition } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const emptyRole = {
   code: "",
@@ -62,6 +63,7 @@ const GestionRoles = () => {
 
   const [roleToDelete, setRoleToDelete] = useState<RoleDefinition | null>(null);
   const [userRoleToRemove, setUserRoleToRemove] = useState<any>(null);
+  const [tableSearch, setTableSearch] = useState("");
 
   const canManageRoles = isSuperAdmin || can("roles.manage_permissions");
 
@@ -74,7 +76,7 @@ const GestionRoles = () => {
       ]);
       if (profilesError) throw profilesError;
       if (rolesError) throw rolesError;
-      setProfiles((profilesData || []).map((p: any) => ({ ...p, user_id: p.user_id || p.id })));
+      setProfiles(profilesData || []);
       setUserRoles(rolesData || []);
     } catch (error: any) {
       console.error("[GestionRoles] chargement impossible", error);
@@ -89,7 +91,7 @@ const GestionRoles = () => {
 
   const getUserRoles = (profileId: string) => {
     const profile = profiles.find((p) => p.id === profileId);
-    const uid = profile?.user_id || profileId;
+    const uid = profile?.user_id;
     return userRoles.filter((ur) => ur.user_id === uid);
   };
 
@@ -108,6 +110,9 @@ const GestionRoles = () => {
       });
   }, [userRoles, roles, profiles]);
 
+  const filteredProfiles = useMemo(() => profiles.filter((p) => JSON.stringify(p).toLowerCase().includes(tableSearch.trim().toLowerCase())), [profiles, tableSearch]);
+  const filteredUserRoles = useMemo(() => userRoles.filter((r) => JSON.stringify(r).toLowerCase().includes(tableSearch.trim().toLowerCase())), [userRoles, tableSearch]);
+
   const sansRole = useMemo(
     () => profiles.filter((p) => getUserRoles(p.id).length === 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,13 +127,45 @@ const GestionRoles = () => {
     }
     setSaving(true);
     try {
-      const uid = profiles.find((p) => p.id === selectedProfile)?.user_id || selectedProfile;
-      if (userRoles.some((ur) => ur.user_id === uid && ur.role === selectedRole)) {
+      const profile = profiles.find((p) => p.id === selectedProfile);
+      if (!profile) throw new Error("Personnel introuvable");
+      if (profile.user_id && userRoles.some((ur) => ur.user_id === profile.user_id && ur.role === selectedRole)) {
         toast({ variant: "destructive", title: "Erreur", description: "Ce rôle est déjà assigné" });
         return;
       }
-      const { error } = await (supabase as any).from("user_roles").insert({ user_id: uid, role: selectedRole });
-      if (error) throw error;
+
+      let uid = profile.user_id;
+      if (!uid) {
+        const tempPassword = crypto.randomUUID().replace(/-/g, "").slice(0, 16) + "Aa!";
+        const { data: created, error: createError } = await supabase.functions.invoke("create-user", {
+          body: {
+            username: profile.username || String(profile.email || "").split("@")[0],
+            email: profile.email,
+            password: tempPassword,
+            nom_complet: profile.nom_complet,
+            telephone: profile.telephone || null,
+            telephone_indicatif: profile.telephone_indicatif || null,
+            telephone_local: profile.telephone_local || null,
+            whatsapp: profile.whatsapp || null,
+            whatsapp_indicatif: profile.whatsapp_indicatif || null,
+            whatsapp_local: profile.whatsapp_local || null,
+            departement: profile.departement || null,
+            relation_rh: profile.relation_rh || "Employé",
+            taux_commission: profile.taux_commission || null,
+            district_id: profile.district_id || null,
+            region_id: profile.region_id || null,
+            equipe_id: profile.equipe_id || null,
+            photo_url: profile.photo_url || null,
+            roles: [selectedRole],
+          },
+        });
+        if (createError || !created?.success) throw new Error(created?.error || createError?.message || "Création du compte impossible");
+        uid = created.user_id;
+        toast({ title: "Compte créé", description: `Le compte Auth a été créé et le rôle ${ROLE_LABELS[selectedRole] || selectedRole} a été attribué. Mot de passe temporaire : ${tempPassword}`, duration: 20000 });
+      } else {
+        const { error } = await (supabase as any).from("user_roles").insert({ user_id: uid, role: selectedRole });
+        if (error) throw error;
+      }
 
       await logAdminAction({
         action: "ATTRIBUTION_ROLE",
@@ -395,7 +432,8 @@ const GestionRoles = () => {
         <CardContent>
           <div className="rounded-lg border overflow-x-auto">
             <Table>
-              <TableHeader>
+              <div className="mb-3"><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un rôle ou un utilisateur…" /></div>
+                  <TableHeader>
                 <TableRow>
                   <TableHead>Utilisateur</TableHead>
                   <TableHead>Département</TableHead>
