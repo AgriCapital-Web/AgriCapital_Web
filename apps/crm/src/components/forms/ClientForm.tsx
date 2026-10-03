@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle, LandPlot, UserRound } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
+import CommercialCombobox from "@/components/common/CommercialCombobox";
 
 interface ClientFormProps { client?: any; onSuccess: () => void; onCancel: () => void; }
 
@@ -31,7 +32,7 @@ const CODES = [
 const CLIENT_COLUMNS = new Set([
   "civilite","nom_famille","prenoms","nom_complet","nom","date_naissance","lieu_naissance","statut_marital",
   "type_piece","numero_piece","date_delivrance_piece","telephone","whatsapp","email","domicile","domicile_residence",
-  "district_id","region_id","departement_id","sous_prefecture_id","village_id","offre_id","type_compte","banque_operateur",
+  "district_id","region_id","departement_id","sous_prefecture_id","village_id","offre_id","commercial_id","type_compte","banque_operateur",
   "numero_compte","nom_titulaire_compte","photo_profil_url","fichier_piece_url","fichier_piece_recto_url",
   "fichier_piece_verso_url","localite","nationalite","type_client","parcelle_id","telephone_indicatif","telephone_local",
   "whatsapp_indicatif","whatsapp_local","updated_by"
@@ -159,6 +160,20 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
   const fileUpload = (label: string, field: string, file: File | null, current: string | null, onSelect: (f: File) => void, onPreview: (s: string) => void, ocr=false) => (<FileUploadVisual label={label} field={field} accept="image/*,.pdf" currentFile={file} currentPreview={ocr ? pieceRectoPreview : undefined} onFileChange={(_,f,p)=>{if(f)onSelect(f);onPreview(p)}} onIdentityNumberDetected={ocr ? n=>setField("numero_piece",n) : undefined} identityDocumentType={form.type_piece}/>);
   return (
     <div className="space-y-5">
+      <Card>
+        <CardHeader>
+          <CardTitle>Responsable commercial</CardTitle>
+          <CardDescription>Commercial responsable du dossier Client. La recherche et la liste sont disponibles.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CommercialCombobox
+            value={form.commercial_id || null}
+            onChange={(value) => setField("commercial_id", value)}
+            placeholder="Rechercher ou sélectionner un commercial…"
+          />
+        </CardContent>
+      </Card>
+
       <div className="rounded-lg border bg-muted/30 p-3 flex flex-wrap items-center justify-between gap-3">
         <div><p className="text-xs text-muted-foreground">Dossier</p><p className="font-mono font-semibold">{client?.id_unique || "—"}</p></div>
         <div className="flex flex-wrap gap-2">
