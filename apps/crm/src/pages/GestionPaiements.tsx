@@ -260,8 +260,6 @@ const GestionPaiements = () => {
     }
   });
 
-  useEffect(() => setTablePage(1), [tableSearch, pageSize]);
-
   // Monnaie client : solde calculé par le moteur financier centralisé.
   const { data: clientsMonnaie = [] } = useQuery({
     queryKey: ['clients-monnaie'],
@@ -720,7 +718,7 @@ const GestionPaiements = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredPaiements.slice((tablePage - 1) * pageSize, tablePage * pageSize).map((paiement) => (
+                      filteredPaiements.map((paiement) => (
                         <TableRow key={paiement.id}>
                           <TableCell className="text-sm">
                             {new Date(paiement.date_paiement || paiement.created_at).toLocaleDateString('fr-FR')}
@@ -798,7 +796,6 @@ const GestionPaiements = () => {
                     )}
                   </TableBody>
                 </Table>
-                <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={filteredPaiements.length} onPageChange={setTablePage} />
               </div>
             </TabsContent>
 
