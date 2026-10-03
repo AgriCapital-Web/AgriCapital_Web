@@ -10,7 +10,6 @@ export function useRegions() {
   const [regions, setRegions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [diasporaActive, setDiasporaActive] = useState(false);
-  const [diasporaActive, setDiasporaActive] = useState(false);
 
   useEffect(() => {
     (async () => {
