@@ -239,7 +239,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
         // Les rôles sont liés au compte Auth. Un ancien profil sans compte de connexion
         // ne doit jamais provoquer une erreur de clé étrangère.
         const uid = utilisateur.user_id;
-        const anciensRoles = normalizeRoles(utilisateur?.user_roles?.map((r: any) => r.role) || []);
+        const anciensRoles = (utilisateur?.user_roles?.map((r: any) => String(r.role)).filter(Boolean) || []).filter((role: string) => rolesDisponibles.some((r) => String(r.code) === role));
         if (uid) {
           const { error: deleteRolesError } = await (supabase as any).from("user_roles").delete().eq("user_id", uid);
           if (deleteRolesError) throw deleteRolesError;
