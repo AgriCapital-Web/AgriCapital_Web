@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -12,6 +12,7 @@ import { usePromotionActive } from "@/hooks/usePromotionActive";
 import { calculPrixEffectif } from "@/lib/pricing";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import CommercialCombobox from "@/components/common/CommercialCombobox";
 
 type Offre = Tables<'offres'>;
 
@@ -139,6 +140,25 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Responsable commercial</CardTitle>
+          <CardDescription>
+            Le Client est rattaché à un commercial responsable. Le champ permet de rechercher un commercial ou de le sélectionner dans la liste.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CommercialCombobox
+            value={formData.commercial_id || null}
+            onChange={(value) => updateFormData({ commercial_id: value })}
+            placeholder={loadingCommercialDefault ? "Détermination du commercial par défaut…" : "Rechercher ou sélectionner un commercial…"}
+            disabled={loadingCommercialDefault}
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Commercial / Chef d'équipe commercial : votre compte est proposé automatiquement. Pour les autres profils autorisés, le CRM propose automatiquement le commercial le plus vendeur selon les ventes attribuées.
+          </p>
+        </CardContent>
+      </Card>
       {/* Promotion active */}
       {promotionActive && (
         <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-4">
