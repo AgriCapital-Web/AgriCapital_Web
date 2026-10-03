@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { useOffresPrixEffectif } from "@/hooks/useOffresPrixEffectif";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 type Offre = Tables<'offres'>;
 type Promotion = Tables<'promotions'>;
@@ -66,6 +67,7 @@ const Offres = () => {
   const [isPromoDialogOpen, setIsPromoDialogOpen] = useState(false);
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
   const [detailsFamily, setDetailsFamily] = useState<string | null>(null);
+  const [tableSearch, setTableSearch] = useState("");
 
   const [promoFormData, setPromoFormData] = useState({
     nom: "",
@@ -92,6 +94,8 @@ const Offres = () => {
       return data as Offre[];
     }
   });
+
+  const filteredPromotions = (promotions || []).filter((promo: any) => JSON.stringify(promo).toLowerCase().includes(tableSearch.trim().toLowerCase()));
 
   // Fetch promotions
   const { data: promotions, isLoading: loadingPromos } = useQuery({
@@ -655,11 +659,12 @@ const Offres = () => {
 
           <Card>
             <CardContent className="p-0">
+              <div className="p-4"><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher une promotion…" /></div>
               {loadingPromos ? (
                 <div className="flex items-center justify-center p-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
-              ) : promotions && promotions.length > 0 ? (
+              ) : promotions && filteredPromotions.length > 0 ? (
                 <div className="overflow-x-auto"><Table className="min-w-[760px]">
                   <TableHeader>
                     <TableRow>
@@ -671,7 +676,7 @@ const Offres = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {promotions.map((promo) => {
+                    {filteredPromotions.map((promo) => {
                       const now = new Date();
                       const isCurrentlyActive = promo.active && 
                         new Date(promo.date_debut) <= now && 
