@@ -141,9 +141,7 @@ const Clients = () => {
     s.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.telephone?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-\n  const paginatedClients = filteredClients.slice((tablePage - 1) * pageSize, tablePage * pageSize);
-  useEffect(() => setTablePage(1), [searchTerm, pageSize]);
-
+\n
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
       const client = clients.find(s => s.id === id);
@@ -387,7 +385,7 @@ const Clients = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      paginatedClients.map((client) => (
+                      filteredClients.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell className="font-mono text-sm font-medium">
                             {client.id_unique}
