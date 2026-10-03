@@ -97,7 +97,7 @@ const AccountRequest = () => {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await (supabase as any).from("districts").select("*").eq("est_actif", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_districts").select("*").eq("est_actif_effectif", true).order("nom");
       setDistricts(data || []);
     })();
   }, []);
@@ -117,7 +117,7 @@ const AccountRequest = () => {
     void (async () => {
       if (!formData.region) { setDepartements([]); return; }
       const { data } = await (supabase as any).from("v_geo_departements").select("*")
-        .eq("region_id", formData.region).eq("est_actif", true).order("nom");
+        .eq("region_id", formData.region).eq("est_actif_effectif", true).order("nom");
       setDepartements(data || []);
       setFormData((prev) => ({ ...prev, departement: "" }));
     })();
