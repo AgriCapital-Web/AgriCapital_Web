@@ -49,6 +49,22 @@ const getCouleur = (code: string) => {
 
 export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
   const { data: promotionActive } = usePromotionActive(formData.offre_id);
+  const [loadingCommercialDefault, setLoadingCommercialDefault] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    if (formData.commercial_id !== undefined) return;
+    setLoadingCommercialDefault(true);
+    (async () => {
+      try {
+        const { data, error } = await (supabase as any).rpc("get_default_commercial_for_client");
+        if (mounted && !error && data) updateFormData({ commercial_id: data });
+      } finally {
+        if (mounted) setLoadingCommercialDefault(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [formData.commercial_id, updateFormData]);
   
   // Les offres sont pilotées par leur configuration métier. Aucun montant n'est saisi manuellement ici.
   
