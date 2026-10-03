@@ -58,3 +58,5 @@ FOR EACH ROW EXECUTE FUNCTION public.enforce_geo_effective_activation();
 
 -- Existing cascade_geo_status() remains the single deactivation cascade.
 -- Only active parents may have active children; disabled parents propagate down automatically.
+
+REVOKE EXECUTE ON FUNCTION public.enforce_geo_effective_activation() FROM PUBLIC, anon, authenticated;
