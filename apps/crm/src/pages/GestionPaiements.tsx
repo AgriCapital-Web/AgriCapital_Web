@@ -667,7 +667,7 @@ const GestionPaiements = () => {
               {canViewClientMoney && <TabsTrigger value="monnaie" className="gap-2">
                 <Coins className="h-4 w-4" />
                 Monnaie
-              </TabsTrigger>
+              </TabsTrigger>}
               <TabsTrigger value="operations" className="gap-2">
                 <ArrowRightLeft className="h-4 w-4" />
                 Opérations
