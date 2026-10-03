@@ -338,7 +338,6 @@ export default function Leads() {
                 })}
               </TableBody>
             </Table>
-            <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={filteredLeads.length} onPageChange={setTablePage} />
           </CardContent>
         </Card>
 
