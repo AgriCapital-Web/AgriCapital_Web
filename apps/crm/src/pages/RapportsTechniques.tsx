@@ -380,7 +380,7 @@ const RapportsTechniques = () => {
               </Card>
             </TabsContent>
 
-            {false && <TabsContent value="photos" className="space-y-4">
+            <TabsContent value="photos" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Documentation Photographique</CardTitle>
@@ -435,7 +435,7 @@ const RapportsTechniques = () => {
                   </Table>
                 </CardContent>
               </Card>
-            </TabsContent>}
+            </TabsContent>
           </Tabs>
         </div>
       </MainLayout>
