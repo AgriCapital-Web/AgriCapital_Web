@@ -23,6 +23,7 @@ import { Target, TrendingUp, Users, MapPin, PhoneCall, ArrowRight, Copy, Plus } 
 import { useAuth } from "@/hooks/useAuth";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
+import TableSearchInput from "@/components/common/TableSearchInput";
 import CommercialCombobox from "@/components/common/CommercialCombobox";
 import { COMMERCIAL_ASSIGNABLE_ROLES } from "@/lib/roles";
 import { formatUserShortName } from "@/lib/utils";
@@ -79,6 +80,7 @@ export default function Leads() {
   const [reassignOpen, setReassignOpen] = useState(false);
   const [reassignTo, setReassignTo] = useState("");
   const [reassignMotif, setReassignMotif] = useState("");
+  const [tableSearch, setTableSearch] = useState("");
 
   useEffect(() => {
     if (searchParams.get("new") === "1") setCreateOpen(true);
@@ -253,6 +255,8 @@ export default function Leads() {
 
   const publicUrl = `${window.location.origin}/leads/public`;
 
+  const filteredLeads = leads.filter((l: any) => JSON.stringify(l).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+
   const stats = {
     total: leads.length,
     nouveaux: leads.filter((l: any) => l.statut === "nouveau").length,
@@ -298,7 +302,7 @@ export default function Leads() {
         </div>
 
         <Card>
-          <CardHeader><CardTitle>Pipeline commercial</CardTitle></CardHeader>
+          <CardHeader><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Pipeline commercial</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un lead…" /></div></CardHeader>
           <CardContent>
             <Table className="responsive-data-table">
               <TableHeader><TableRow>
@@ -307,8 +311,8 @@ export default function Leads() {
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {leads.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Aucun prospect enregistré.</TableCell></TableRow>}
-                {leads.map((l: any) => {
+                {filteredLeads.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Aucun prospect enregistré.</TableCell></TableRow>}
+                {filteredLeads.map((l: any) => {
                   const st = STATUTS.find(s => s.v === l.statut);
                   return (
                     <TableRow key={l.id}>
