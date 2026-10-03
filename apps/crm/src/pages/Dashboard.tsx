@@ -421,10 +421,12 @@ const Dashboard = () => {
   const roleLabel = userRoles.map((r) => ROLE_SHORT_LABELS[r] || r).join(" / ");
 
   const kpis = [
+    { label: "Chiffre d'affaires", value: money(stats.forecastRevenue), sub: "Contrats actifs / prévisionnel", icon: Wallet, href: "/rapports-financiers", show: canFinancialOverview },
+    { label: "Total encaissé", value: money(stats.collected), sub: "Encaissements validés", icon: CreditCard, href: "/paiements", show: canFinancialOverview },
+    { label: "Reste à encaisser", value: money(stats.dueAmount), sub: "Créances contractuelles", icon: DollarSign, href: "/rapports-financiers", show: canFinancialOverview },
     { label: "Acquisitions", value: stats.clients.toString(), sub: "Clients / dossiers", icon: Users, href: "/acquisitions", show: canClients },
     { label: "Plantations", value: stats.plantations.toString(), sub: `${num(stats.plantedHa)} ha plantés`, icon: Sprout, href: "/plantations", show: canPlantations },
     { label: "Production", value: stats.production.toString(), sub: `${num(stats.productionHa)} ha en production`, icon: TrendingUp, href: "/plantations?statut=en_production", show: canPlantations },
-    { label: "Paiements", value: money(stats.collected), sub: "Encaissements validés", icon: CreditCard, href: "/paiements", show: canPayments || canFinance },
   ];
 
   return (
@@ -493,19 +495,7 @@ const Dashboard = () => {
                 })}
               </section>
 
-              {canDashboardExecutiveFinance && (
-            <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                ["Chiffre d'affaires prévisionnel", stats.forecastRevenue],
-                ["Montant encaissé", stats.collected],
-                ["Montant restant à encaisser", stats.dueAmount],
-              ].map(([label,value]) => (
-                <Card key={label}><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-bold">{money(value)}</p></CardContent></Card>
-              ))}
-            </section>
-          )}
-
-          {(canPlantations || canClients) && (
+              {(canPlantations || canClients) && (
                 <Card>
                   <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><LandPlot className="h-5 w-5 text-primary" />Patrimoine agricole</CardTitle></CardHeader>
                   <CardContent>
