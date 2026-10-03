@@ -32,9 +32,12 @@ describe("RBAC — permissions par rôle", () => {
     expect(hasPermission(r, PERMISSIONS.VIEW_PARAMETRES)).toBe(false);
   });
 
-  it("service_client: validation + tickets", () => {
+  it("service_client: accès clients/tickets sans accès financier", () => {
     const r = [ROLES.SERVICE_CLIENT];
-    expect(hasPermission(r, PERMISSIONS.VALIDATE_PAYMENTS)).toBe(true);
+    expect(hasPermission(r, PERMISSIONS.VALIDATE_PAYMENTS)).toBe(false);
+    expect(hasPermission(r, PERMISSIONS.VIEW_PAIEMENTS)).toBe(false);
+    expect(hasPermission(r, PERMISSIONS.VIEW_CLIENT_MONEY)).toBe(false);
     expect(hasPermission(r, PERMISSIONS.VIEW_TICKETS)).toBe(true);
+    expect(hasPermission(r, PERMISSIONS.VIEW_CLIENTS)).toBe(true);
   });
 });
