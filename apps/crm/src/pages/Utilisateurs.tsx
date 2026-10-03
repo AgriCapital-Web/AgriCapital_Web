@@ -411,11 +411,11 @@ const Utilisateurs = () => {
           {adminAction === "roles" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {appRoles.map((r) => (
-                <label key={r} className="flex items-center gap-2 text-sm rounded border p-2 cursor-pointer">
+                <label key={r.code} className="flex items-center gap-2 text-sm rounded border p-2 cursor-pointer">
                   <Checkbox
-                    checked={selectedRoles.includes(r)}
+                    checked={selectedRoles.includes(r.code)}
                     onCheckedChange={(c) =>
-                      setSelectedRoles((prev) => (c ? [...prev, r] : prev.filter((x) => x !== r)))
+                      setSelectedRoles((prev) => (c ? [...prev, r.code] : prev.filter((x) => x !== r.code)))
                     }
                   />
                   {r.nom}
