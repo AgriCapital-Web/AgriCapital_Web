@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { nom_complet },
+      user_metadata: { nom_complet, username, existing_profile_id: existingProfile?.user_id ? undefined : existingProfile?.id },
     });
 
     if (authError) {
@@ -196,7 +196,6 @@ Deno.serve(async (req) => {
 
     // Upsert profile (handle_new_user trigger may have already created a base row)
     const profilePayload = {
-        id: authUser.id,
         user_id: authUser.id,
         email,
         nom_complet,
@@ -218,9 +217,11 @@ Deno.serve(async (req) => {
         actif: true,
     };
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .upsert(profilePayload, { onConflict: "id" });
+    const profileQuery = existingProfile
+      ? supabase.from("profiles").update(profilePayload).eq("id", existingProfile.id)
+      : supabase.from("profiles").update(profilePayload).eq("id", authUser.id);
+
+    const { error: profileError } = await profileQuery;
 
     if (profileError) {
       console.error("Profile error:", profileError);
