@@ -11,16 +11,6 @@ export interface DepartementEntreprise {
 }
 
 /** Départements de l'entreprise (source unique, repli statique avant migration) */
-export const DEFAULT_DEPARTEMENTS: DepartementEntreprise[] = [
-  { id: "direction_generale", code: "direction_generale", nom: "Direction Générale", requiert_couverture: false, actif: true },
-  { id: "commercial", code: "commercial", nom: "Commercial", requiert_couverture: true, actif: true },
-  { id: "technique", code: "technique", nom: "Technique", requiert_couverture: true, actif: true },
-  { id: "finance_comptabilite", code: "finance_comptabilite", nom: "Finance & Comptabilité", requiert_couverture: false, actif: true },
-  { id: "operations", code: "operations", nom: "Opérations", requiert_couverture: false, actif: true },
-  { id: "service_client", code: "service_client", nom: "Service Client", requiert_couverture: false, actif: true },
-  { id: "ressources_humaines", code: "ressources_humaines", nom: "Ressources Humaines", requiert_couverture: false, actif: true },
-];
-
 export function useDepartementsEntreprise() {
   const [departements, setDepartements] = useState<DepartementEntreprise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +41,7 @@ export function useDepartementsEntreprise() {
   return { departements, loading, requiresCoverage };
 }
 
-/** Rôles officiels : base de données si disponible, sinon catalogue statique */
+/** Rôles officiels — source unique en base de données. */
 export function useAppRoles() {
   const [roles, setRoles] = useState<RoleDefinition[]>([]);
   const [loading, setLoading] = useState(true);
