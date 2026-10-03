@@ -53,8 +53,8 @@ export default function Leads() {
   const qc = useQueryClient();
   const { user, userRoles } = useAuth();
   const canSupervise = (userRoles || []).some((r: string) =>
-    ["super_admin", "directeur_tc", "superviseur_tc", "responsable_zone", "responsable_commercial",
-     "chef_equipe", "chef_equipe_commercial"].includes(r));
+    ["super_admin", "pdg", "dg", "responsable_operations", "responsable_commercial",
+     "chef_equipe_commercial", "service_client", "chef_equipe_service_client"].includes(r));
   const isServiceClient = (userRoles || []).some((r: string) => ["service_client", "chef_equipe_service_client"].includes(r));
   const hasCommercialAccess = (userRoles || []).some((r: string) => COMMERCIAL_ASSIGNABLE_ROLES.includes(r));
   const [selected, setSelected] = useState<any>(null);
@@ -66,7 +66,14 @@ export default function Leads() {
     delai_demarrage: "", date_contact_souhaitee: "", creneau_prefere: "", mode_contact_prefere: "appel",
     statut: "nouveau", source: "commercial_terrain", assigned_to: "", commentaire: "",
   };
-  const [leadForm, setLeadForm] = useState<Record<string, string>>({ ...emptyLead, assigned_to: isServiceClient && hasCommercialAccess ? (user?.id || "") : "" });
+  const [leadForm, setLeadForm] = useState<Record<string, string>>({ ...emptyLead, assigned_to: "" });
+
+  useEffect(() => {
+    const ownCommercial = (userRoles || []).some((r: string) => ["commercial", "chef_equipe_commercial"].includes(r));
+    if (ownCommercial && user?.id && !leadForm.assigned_to) {
+      setLeadForm((x) => ({ ...x, assigned_to: user.id }));
+    }
+  }, [user?.id, userRoles, leadForm.assigned_to]);
   const [relanceOpen, setRelanceOpen] = useState(false);
   const [relance, setRelance] = useState<any>({ canal: "appel", resultat: "interesse", commentaire: "", prochaine_relance: "" });
   const [reassignOpen, setReassignOpen] = useState(false);
@@ -233,6 +240,7 @@ export default function Leads() {
     // Pré-remplir acquisition via query params
     const params = new URLSearchParams({
       lead_id: lead.id,
+      commercial_id: lead.assigned_to || "",
       nom: lead.nom || "",
       prenoms: lead.prenoms || "",
       telephone: lead.telephone || "",
