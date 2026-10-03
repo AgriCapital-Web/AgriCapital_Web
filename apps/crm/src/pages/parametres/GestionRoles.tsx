@@ -430,7 +430,8 @@ const GestionRoles = () => {
         <CardContent>
           <div className="rounded-lg border overflow-x-auto">
             <div className="mb-3"><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un rôle ou un utilisateur…" /></div>
-            <TableHeader>
+            <Table>
+              <TableHeader>
                 <TableRow>
                   <TableHead>Utilisateur</TableHead>
                   <TableHead>Département</TableHead>
