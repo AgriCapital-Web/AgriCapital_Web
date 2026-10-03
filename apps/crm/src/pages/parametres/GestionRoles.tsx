@@ -95,7 +95,7 @@ const GestionRoles = () => {
     return userRoles.filter((ur) => ur.user_id === uid);
   };
 
-  /** Utilisateurs dont le rôle n'appartient pas aux 11 rôles officiels */
+  /** Utilisateurs dont le rôle n'appartient pas au catalogue officiel en base */
   const divergences = useMemo(() => {
     const officiels = roles.map((r) => r.code);
     return userRoles
