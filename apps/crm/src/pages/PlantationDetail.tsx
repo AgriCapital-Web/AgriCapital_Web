@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, CreditCard, LandPlot, UserRound, Wrench } from "lucide-react";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const formatMoney = (value: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(Number(value || 0));
@@ -30,6 +32,9 @@ const PlantationDetail = () => {
   const [attributions, setAttributions] = useState<any[]>([]);
   const [paiements, setPaiements] = useState<any[]>([]);
   const [interventions, setInterventions] = useState<any[]>([]);
+  const [paymentPage, setPaymentPage] = useState(1);
+  const [interventionPage, setInterventionPage] = useState(1);
+  const pageSize = useResponsivePageSize();
 
   const load = async () => {
     if (!id) return;
@@ -99,7 +104,7 @@ const PlantationDetail = () => {
   if (loading) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}><MainLayout><div className="py-20 text-center">Chargement…</div></MainLayout></ProtectedRoute>;
   if (!plantation) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}><MainLayout><Card><CardContent className="py-10 text-center">Plantation introuvable.</CardContent></Card></MainLayout></ProtectedRoute>;
 
-  return (
+  const paginatedPayments = paiements.slice((paymentPage - 1) * pageSize, paymentPage * pageSize);\n  const paginatedInterventions = interventions.slice((interventionPage - 1) * pageSize, interventionPage * pageSize);\n  useEffect(() => { setPaymentPage(1); setInterventionPage(1); }, [pageSize, id]);\n\n  return (
     <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}>
       <MainLayout>
         <div className="min-w-0 space-y-5">
@@ -178,7 +183,7 @@ const PlantationDetail = () => {
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table className="min-w-[650px]"><TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Type</TableHead><TableHead>Montant</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
-                    <TableBody>{paiements.map((p: any) => <TableRow key={p.id}><TableCell>{p.date_paiement ? new Date(p.date_paiement).toLocaleDateString("fr-FR") : new Date(p.created_at).toLocaleDateString("fr-FR")}</TableCell><TableCell>{p.type_paiement || "—"}</TableCell><TableCell>{formatMoney(p.montant_paye ?? p.montant)}</TableCell><TableCell><Badge>{formatStatus(p.statut)}</Badge></TableCell></TableRow>)}</TableBody>
+                    <TableBody>{paginatedPayments.map((p: any) => <TableRow key={p.id}><TableCell>{p.date_paiement ? new Date(p.date_paiement).toLocaleDateString("fr-FR") : new Date(p.created_at).toLocaleDateString("fr-FR")}</TableCell><TableCell>{p.type_paiement || "—"}</TableCell><TableCell>{formatMoney(p.montant_paye ?? p.montant)}</TableCell><TableCell><Badge>{formatStatus(p.statut)}</Badge></TableCell></TableRow>)}</TableBody>
                   </Table>
                 </div>
               </CardContent>
@@ -189,7 +194,7 @@ const PlantationDetail = () => {
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" />Suivi technique</CardTitle></CardHeader>
               <CardContent className="space-y-2">
-                {interventions.slice(0, 10).map((i: any) => (
+                {paginatedInterventions.map((i: any) => (
                   <div key={i.id} className="rounded-lg border p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-medium">{i.type_intervention?.replace(/_/g, " ") || "Opération"}</span><Badge variant="outline">{formatStatus(i.statut)}</Badge></div>
                     <p className="mt-1 text-xs text-muted-foreground">{i.date_intervention ? new Date(i.date_intervention).toLocaleDateString("fr-FR") : "—"} · {i.agent?.nom_complet || "Équipe technique"}</p>
