@@ -18,7 +18,7 @@ export function useUserZones() {
   const { user, userRoles } = useAuth();
   const [assignments, setAssignments] = useState<ZoneAssignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const isAdmin = userRoles.some(r => ["super_admin", "directeur_tc"].includes(r));
+  const isAdmin = userRoles.some(r => ["super_admin", "pdg", "dg", "responsable_operations"].includes(r));
 
   useEffect(() => {
     if (!user?.id || isAdmin) {
@@ -63,7 +63,7 @@ export function useUserZones() {
    */
   const fetchFilteredDistricts = async () => {
     if (isAdmin) {
-      const { data } = await (supabase as any).from("districts").select("*").eq("est_actif", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_districts").select("*").eq("est_actif_effectif", true).order("nom");
       return data || [];
     }
     const ids = getDistrictIds();
@@ -90,9 +90,9 @@ export function useUserZones() {
       const { data: sps } = await (supabase as any).from("v_geo_sous_prefectures").select("departement_id").in("id", spIds).eq("est_active_effectif", true);
       const dIds = [...new Set((sps || []).map((s: any) => s.departement_id).filter(Boolean))];
       if (dIds.length > 0) {
-        const { data: depts } = await (supabase as any).from("departements").select("region_id").in("id", dIds);
+        const { data: depts } = await (supabase as any).from("v_geo_departements").select("region_id").in("id", dIds).eq("est_actif_effectif", true);
         const rIds = [...new Set((depts || []).map((d: any) => d.region_id).filter(Boolean))];
-        const { data: regs } = await (supabase as any).from("regions").select("district_id").in("id", rIds);
+        const { data: regs } = await (supabase as any).from("v_geo_regions").select("district_id").in("id", rIds).eq("est_active_effectif", true);
         const distIds = [...new Set((regs || []).map((r: any) => r.district_id).filter(Boolean))];
         if (distIds.length > 0) {
           const { data } = await (supabase as any).from("districts").select("*").in("id", distIds).eq("est_actif", true).order("nom");
@@ -121,7 +121,7 @@ export function useUserZones() {
     }
     const deptIds = getDepartementIds();
     if (deptIds.length > 0) {
-      const { data } = await (supabase as any).from("departements").select("*").eq("region_id", regionId).in("id", deptIds).eq("est_actif", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_departements").select("*").eq("region_id", regionId).in("id", deptIds).eq("est_actif_effectif", true).order("nom");
       return data || [];
     }
     // Commercial: derive from sous-prefectures
@@ -132,7 +132,7 @@ export function useUserZones() {
       const { data } = await (supabase as any).from("departements").select("*").eq("region_id", regionId).in("id", dIds).eq("est_actif", true).order("nom");
       return data || [];
     }
-    const { data } = await (supabase as any).from("departements").select("*").eq("region_id", regionId).eq("est_actif", true).order("nom");
+    const { data } = await (supabase as any).from("v_geo_departements").select("*").eq("region_id", regionId).eq("est_actif_effectif", true).order("nom");
     return data || [];
   };
 
@@ -143,10 +143,10 @@ export function useUserZones() {
     }
     const spIds = getSousPrefectureIds();
     if (spIds.length > 0) {
-      const { data } = await (supabase as any).from("sous_prefectures").select("*").eq("departement_id", departementId).in("id", spIds).eq("est_active", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_sous_prefectures").select("*").eq("departement_id", departementId).in("id", spIds).eq("est_active_effectif", true).order("nom");
       return data || [];
     }
-    const { data } = await (supabase as any).from("sous_prefectures").select("*").eq("departement_id", departementId).eq("est_active", true).order("nom");
+    const { data } = await (supabase as any).from("v_geo_sous_prefectures").select("*").eq("departement_id", departementId).eq("est_active_effectif", true).order("nom");
     return data || [];
   };
 
