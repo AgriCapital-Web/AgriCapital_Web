@@ -73,7 +73,7 @@ interface Paiement {
   date_paiement: string | null;
   created_at: string;
   metadata: any;
-  clients?: { nom_complet: string; telephone: string };
+  clients?: { nom_complet: string; telephone: string; statut_global?: string };
   plantations?: { id_unique: string; nom_plantation: string };
 }
 
@@ -81,6 +81,7 @@ const GestionPaiements = () => {
   const { toast } = useToast();
   const { hasRole } = useAuth();
   const canFinancialOverview = hasRole("super_admin") || hasRole("pdg") || hasRole("dg") || hasRole("comptable") || hasRole("responsable_operations");
+  const canViewClientMoney = canFinancialOverview;
   const canViewClientMoney = hasRole("super_admin") || hasRole("pdg") || hasRole("dg") || hasRole("comptable") || hasRole("responsable_operations");
   const queryClient = useQueryClient();
   const { openPayment, onSuccess, onFailed, onClose } = useKkiapay();
