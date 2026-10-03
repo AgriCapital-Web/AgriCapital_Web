@@ -29,6 +29,8 @@ import { normalizeRole, roleLabel, ROLES as APP_ROLES, RoleDefinition } from "@/
 import { logAdminAction } from "@/lib/audit";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import TableSearchInput from "@/components/common/TableSearchInput";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const emptyRole = {
   code: "",
@@ -65,6 +67,10 @@ const GestionRoles = () => {
   const [roleToDelete, setRoleToDelete] = useState<RoleDefinition | null>(null);
   const [userRoleToRemove, setUserRoleToRemove] = useState<any>(null);
   const [tableSearch, setTableSearch] = useState("");
+  const [roleTableSearch, setRoleTableSearch] = useState("");
+  const [profilePage, setProfilePage] = useState(1);
+  const [rolePage, setRolePage] = useState(1);
+  const pageSize = useResponsivePageSize();
 
   const canManageRoles = isSuperAdmin || can("roles.manage_permissions");
 
@@ -113,6 +119,11 @@ const GestionRoles = () => {
 
   const filteredProfiles = useMemo(() => profiles.filter((p) => JSON.stringify(p).toLowerCase().includes(tableSearch.trim().toLowerCase())), [profiles, tableSearch]);
   const filteredUserRoles = useMemo(() => userRoles.filter((r) => JSON.stringify(r).toLowerCase().includes(tableSearch.trim().toLowerCase())), [userRoles, tableSearch]);
+  const filteredRoles = useMemo(() => roles.filter((r) => JSON.stringify(r).toLowerCase().includes(roleTableSearch.trim().toLowerCase())), [roles, roleTableSearch]);
+  const paginatedProfiles = filteredProfiles.slice((profilePage-1)*pageSize, profilePage*pageSize);
+  const paginatedRoles = filteredRoles.slice((rolePage-1)*pageSize, rolePage*pageSize);
+  useEffect(()=>{setProfilePage(1);},[tableSearch,pageSize]);
+  useEffect(()=>{setRolePage(1);},[roleTableSearch,pageSize]);
 
   const sansRole = useMemo(
     () => profiles.filter((p) => getUserRoles(p.id).length === 0),
@@ -407,7 +418,7 @@ const GestionRoles = () => {
                         <SelectValue placeholder="Sélectionner un rôle" />
                       </SelectTrigger>
                       <SelectContent>
-                        {roles.map((role) => (
+                        {paginatedRoles.map((role) => (
                           <SelectItem key={role.code} value={role.code}>
                             {role.nom}
                           </SelectItem>
@@ -503,6 +514,7 @@ const GestionRoles = () => {
                 )}
               </TableBody>
             </Table>
+              <ResponsiveTablePagination page={profilePage} pageSize={pageSize} total={filteredProfiles.length} onPageChange={setProfilePage} />
           </div>
         </CardContent>
       </Card>
@@ -531,6 +543,7 @@ const GestionRoles = () => {
         <CardContent>
           <div className="rounded-lg border overflow-x-auto">
             <Table>
+              <div className="mb-3"><TableSearchInput value={roleTableSearch} onChange={setRoleTableSearch} placeholder="Rechercher un rôle…" /></div>
               <TableHeader>
                 <TableRow>
                   <TableHead>Rôle</TableHead>
@@ -584,6 +597,7 @@ const GestionRoles = () => {
                 ))}
               </TableBody>
             </Table>
+              <ResponsiveTablePagination page={rolePage} pageSize={pageSize} total={filteredRoles.length} onPageChange={setRolePage} />
           </div>
         </CardContent>
       </Card>
