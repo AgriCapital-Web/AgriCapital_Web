@@ -39,7 +39,7 @@ const userFormSchema = z.object({
   telephone_local: z.string().optional().or(z.literal("")),
   telephone_indicatif: z.string().optional().or(z.literal("")),
   whatsapp: z.string().optional().or(z.literal("")),
-  whatsapp_local: z.string().min(1, "Le numéro WhatsApp est obligatoire"),
+  whatsapp_local: z.string().optional().or(z.literal("")),
   whatsapp_indicatif: z.string().optional().or(z.literal("")),\n  type_piece_identite: z.string().optional().or(z.literal("")),\n  numero_piece_identite: z.string().optional().or(z.literal("")),
 });
 
@@ -137,10 +137,6 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
       return true;
     };
     if (!validatePhone(data.telephone_local, data.telephone_indicatif || "+225", "Le téléphone")) return;
-    if (!String(data.whatsapp_local || "").trim()) {
-      toast({ variant: "destructive", title: "WhatsApp obligatoire", description: "Le numéro WhatsApp est obligatoire pour enregistrer cet utilisateur." });
-      return;
-    }
     if (!validatePhone(data.whatsapp_local, data.whatsapp_indicatif || "+225", "Le WhatsApp")) return;
     if (selectedRoles.length === 0) {
       toast({ variant: "destructive", title: "Rôle requis", description: "Sélectionnez au moins un rôle officiel." });
