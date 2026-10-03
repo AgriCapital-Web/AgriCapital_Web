@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Wallet, TrendingUp, CircleDollarSign, CalendarClock, RefreshCw } from "lucide-react";
 import { format, endOfMonth } from "date-fns";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const TEAM_ROLES=["chef_equipe_commercial","chef_equipe_technique","responsable_commercial","responsable_operations"];
 const fortnight=(d=new Date())=>d.getDate()<=15
@@ -167,7 +168,7 @@ export default function Portefeuilles(){
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">Portefeuilles</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Portefeuilles</CardTitle><TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher un portefeuille…" /></CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table className="responsive-data-table" className="min-w-[700px]"><TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Rôle</TableHead><TableHead>Solde</TableHead><TableHead>Total gagné</TableHead><TableHead>Total versé</TableHead></TableRow></TableHeader>
@@ -185,9 +186,9 @@ export default function Portefeuilles(){
         </Card>
 
         {canManage&&<Card>
-          <CardHeader><CardTitle className="text-base">Versements</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Versements</CardTitle><TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher un versement…" /></CardHeader>
           <CardContent className="p-0"><div className="overflow-x-auto"><Table className="min-w-[720px]"><TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Période</TableHead><TableHead>Brut</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
-            <TableBody>{versements.filter((v:any)=>visibleProfiles.some((p:any)=>p.id===v.profile_id)).map((v:any)=>{
+            <TableBody>{versements.filter((v:any)=>visibleProfiles.some((p:any)=>p.id===v.profile_id) && JSON.stringify(v).toLowerCase().includes(search.trim().toLowerCase())).map((v:any)=>{
               const p=profiles.find((x:any)=>x.id===v.profile_id);
               return <TableRow key={v.id}><TableCell>{p?.nom_complet||"—"}</TableCell><TableCell>{format(new Date(v.periode_debut),"dd/MM/yyyy")} — {format(new Date(v.periode_fin),"dd/MM/yyyy")}</TableCell><TableCell className="font-semibold">{money(v.montant_brut)}</TableCell><TableCell><Badge>{v.statut}</Badge></TableCell><TableCell className="text-right"><div className="flex flex-wrap justify-end gap-2">{v.statut==="brouillon"&&<Button size="sm" onClick={()=>validatePayout(v)} disabled={saving}>Valider</Button>}{v.statut==="valide"&&<Button size="sm" onClick={()=>markPaid(v)} disabled={saving}>Marquer payé</Button>}</div></TableCell></TableRow>
             })}</TableBody></Table></div>
@@ -204,9 +205,10 @@ export default function Portefeuilles(){
                 <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Commission</p><p className="font-semibold">{money(detailRows.reduce((s:number,c:any)=>s+Number(c.montant_commission||0),0))}</p></CardContent></Card>
                 <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Clients</p><p className="font-semibold">{new Set(detailRows.map((c:any)=>c.client_id).filter(Boolean)).size}</p></CardContent></Card>
               </div>
+              <div className="mb-3"><TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher une commission…" /></div>
               <div className="overflow-x-auto">
                 <Table className="min-w-[1000px]"><TableHeader><TableRow><TableHead>Client</TableHead><TableHead>Offre / formule</TableHead><TableHead>Type</TableHead><TableHead>Paiement</TableHead><TableHead>Base</TableHead><TableHead>Taux</TableHead><TableHead>Commission</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
-                <TableBody>{detailRows.length===0?<TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucune commission sur cette période.</TableCell></TableRow>:detailRows.map((c:any)=><TableRow key={c.id}>
+                <TableBody>{detailRows.filter((c:any)=>JSON.stringify(c).toLowerCase().includes(search.trim().toLowerCase())).length===0?<TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucune commission sur cette période.</TableCell></TableRow>:detailRows.filter((c:any)=>JSON.stringify(c).toLowerCase().includes(search.trim().toLowerCase())).map((c:any)=><TableRow key={c.id}>
                   <TableCell>{c.client?.nom_complet||"—"}<span className="block text-xs text-muted-foreground">{c.client?.id_unique||"—"}</span></TableCell>
                   <TableCell>{c.client?.famille_offre||"—"}{c.client?.formule_nom?` · ${c.client.formule_nom}`:""}</TableCell>
                   <TableCell><Badge variant="outline">{c.type_commission==="acquisition"?"Acquisition":"Recouvrement mensuel"}</Badge></TableCell>
