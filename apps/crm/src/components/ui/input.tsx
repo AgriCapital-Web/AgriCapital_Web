@@ -17,7 +17,15 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
       } as React.ChangeEvent<HTMLInputElement>;
       onChange?.(nextEvent);
     };
-    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {\n      if (type !== "password") {\n        const value = event.target.value.toUpperCase();\n        const nextEvent = { ...event, target: { ...event.target, value }, currentTarget: { ...event.currentTarget, value } } as React.FocusEvent<HTMLInputElement>;\n        onChange?.(nextEvent as unknown as React.ChangeEvent<HTMLInputElement>);\n      }\n      onBlur?.(event);\n    };\n    return (
+    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+      if (type !== "password") {
+        const value = event.target.value.toUpperCase();
+        const nextEvent = { ...event, target: { ...event.target, value }, currentTarget: { ...event.currentTarget, value } } as React.FocusEvent<HTMLInputElement>;
+        onChange?.(nextEvent as unknown as React.ChangeEvent<HTMLInputElement>);
+      }
+      onBlur?.(event);
+    };
+    return (
       <input
         type={type}
         className={cn(
