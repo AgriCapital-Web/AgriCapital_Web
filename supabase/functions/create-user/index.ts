@@ -15,7 +15,7 @@ const corsHeaders = (req: Request) => {
 };
 
 const VALID_ROLES = [
-  "super_admin","responsable_operations","directeur_tc","responsable_commercial","comptable","commercial",
+  "super_admin","responsable_operations","responsable_commercial","comptable","commercial",
   "service_client","assistant_administratif","chef_equipe_commercial","chef_equipe_technique",
   "chef_equipe_service_client","associe_actionnaire","dg",
 ];
