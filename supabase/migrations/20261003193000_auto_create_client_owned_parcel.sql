@@ -19,8 +19,7 @@ BEGIN
     VALUES(
       coalesce(nullif(trim(NEW.localite),''),nullif(trim(NEW.nom_complet),''),'Parcelle client'),
       NEW.total_hectares,0,NEW.district_id,NEW.region_id,NEW.departement_id,
-      NEW.sous_prefecture_id,NEW.localite,NEW.parcelle_latitude,NEW.parcelle_longitude,
-      'a_valider','propriete_client',
+      NEW.sous_prefecture_id,NEW.localite,NULL,NULL,'a_valider','propriete_client',
       'Parcelle créée automatiquement avec le dossier Client. Validation technique requise avant activation de la plantation.',
       false,NEW.total_hectares,'Palmier à huile',140,NULL,NEW.created_by,NEW.updated_by
     )
