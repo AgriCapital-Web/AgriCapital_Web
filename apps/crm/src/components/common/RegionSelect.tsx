@@ -54,7 +54,7 @@ export default function RegionSelect({
   disabled,
   id,
 }: RegionSelectProps) {
-  const { regions } = useRegions();
+  const { regions, diasporaActive } = useRegions();
 
   return (
     <SearchableSelect
