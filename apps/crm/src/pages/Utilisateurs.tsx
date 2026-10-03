@@ -22,6 +22,8 @@ import { Users, Plus, Search, Edit, Shield, MoreHorizontal, UserCheck, UserX, Ke
 import UtilisateurFormNew from "@/components/forms/UtilisateurFormNew";
 import { ROLES as ROLE_KEYS, ROLE_LABELS } from "@/lib/roles";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const ALL_ROLES = Object.values(ROLE_KEYS);
 
@@ -29,6 +31,8 @@ const Utilisateurs = () => {
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [tablePage, setTablePage] = useState(1);
+  const pageSize = useResponsivePageSize();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [viewUser, setViewUser] = useState<any>(null);
   const [viewPhotoUrl, setViewPhotoUrl] = useState<string>("");
@@ -100,7 +104,7 @@ const Utilisateurs = () => {
     setFilteredUsers(filtered);
   }, [search, utilisateurs]);
 
-  const getRoles = (user: any) => {
+  const paginatedUsers = filteredUsers.slice((tablePage - 1) * pageSize, tablePage * pageSize);\n\n  const getRoles = (user: any) => {
     return user.user_roles?.map((r: any) => r.role) || [];
   };
 
@@ -287,7 +291,7 @@ const Utilisateurs = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{formatUserShortName(user.nom_complet)}</TableCell>
                   <TableCell>{user.email}</TableCell>
