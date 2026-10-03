@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Wallet, ArrowDownLeft, ArrowUpRight, Users, Banknote, RefreshCw, Plus, PlayCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const money=(n:any)=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"XOF",maximumFractionDigits:0}).format(Number(n||0));
 const today=()=>new Date().toISOString().slice(0,10);
@@ -23,6 +24,7 @@ export default function Finance(){
   const [transactions,setTransactions]=useState<any[]>([]);
   const [expenses,setExpenses]=useState<any[]>([]);
   const [associates,setAssociates]=useState<any[]>([]);
+  const [tableSearch,setTableSearch]=useState("");
   const [profiles,setProfiles]=useState<any[]>([]);
   const [salaryProfiles,setSalaryProfiles]=useState<any[]>([]);
   const [payrollRuns,setPayrollRuns]=useState<any[]>([]);
@@ -144,7 +146,42 @@ export default function Finance(){
     </div>
     <Tabs defaultValue="journal">
       <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-        <TabsTrigger value="journal">Journal</TabsTrigger><TabsTrigger value="depenses">Dépenses</TabsTrigger><TabsTrigger value="salaires">Salaires</TabsTrigger><TabsTrigger value="associes">Associés</TabsTrigger><TabsTrigger value="rapports">Rapports</TabsTrigger>
+      <TabsContent value="journal">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Journal financier</CardTitle>
+              <TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher une écriture…" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b"><th className="p-2 text-left">DATE</th><th className="p-2 text-left">TYPE</th><th className="p-2 text-left">LIBELLÉ</th><th className="p-2 text-right">MONTANT</th><th className="p-2 text-left">SOURCE</th></tr></thead>
+                <tbody>
+                  {transactions.filter((t:any)=>JSON.stringify(t).toLowerCase().includes(tableSearch.trim().toLowerCase())).map((t:any)=>(
+                    <tr key={t.id} className="border-b">
+                      <td className="p-2">{new Date(t.transaction_date).toLocaleDateString("fr-FR")}</td>
+                      <td className="p-2">
+                        <Badge variant="outline" className="gap-1">
+                          {t.direction==="entree" ? <ArrowDownLeft className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+                          {t.direction.toUpperCase()}
+                        </Badge>
+                      </td>
+                      <td className="p-2">{t.label}</td>
+                      <td className="p-2 text-right font-semibold">{money(t.amount)}</td>
+                      <td className="p-2 text-muted-foreground">{t.source_type||"MANUEL"}</td>
+                    </tr>
+                  ))}
+                  {!transactions.filter((t:any)=>JSON.stringify(t).toLowerCase().includes(tableSearch.trim().toLowerCase())).length&&!loading&&(
+                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Aucune écriture.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
       </TabsList>
       <TabsContent value="journal"><Card><CardHeader><CardTitle>Journal financier</CardTitle></CardHeader><CardContent><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b"><th className="p-2 text-left">DATE</th><th className="p-2 text-left">TYPE</th><th className="p-2 text-left">LIBELLÉ</th><th className="p-2 text-right">MONTANT</th><th className="p-2 text-left">SOURCE</th></tr></thead><tbody>{transactions.map(t=><tr key={t.id} className="border-b"><td className="p-2">{new Date(t.transaction_date).toLocaleDateString("fr-FR")}</td><td className="p-2"><Badge variant="outline" className="gap-1">{t.direction==="entree"?<ArrowDownLeft className="h-3 w-3"/>:<ArrowUpRight className="h-3 w-3"}/>{t.direction.toUpperCase()}</Badge></td><td className="p-2">{t.label}</td><td className="p-2 text-right font-semibold">{money(t.amount)}</td><td className="p-2 text-muted-foreground">{t.source_type||"MANUEL"}</td></tr>)}{!transactions.length&&!loading&&<tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Aucune écriture.</td></tr>}</tbody></table></div></CardContent></Card></TabsContent>
       <TabsContent value="depenses"><div className="grid lg:grid-cols-[1fr_1.5fr] gap-4">
