@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 import { formatUserShortName } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -26,7 +28,10 @@ import { useAppRoles } from "@/hooks/useReferentiels";
 const Utilisateurs = () => {
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = useResponsivePageSize();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [viewUser, setViewUser] = useState<any>(null);
   const [viewPhotoUrl, setViewPhotoUrl] = useState<string>("");
@@ -46,34 +51,52 @@ const Utilisateurs = () => {
 
   const fetchUtilisateurs = async () => {
     try {
-      const { data: profiles, error: profilesError } = await (supabase as any)
+      const term = search.trim();
+      let query = (supabase as any)
         .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range((page - 1) * pageSize, page * pageSize - 1);
 
+      if (term) {
+        const safe = term.replace(/[,%()]/g, " ");
+        query = query.or(`nom_complet.ilike.%${safe}%,email.ilike.%${safe}%,username.ilike.%${safe}%`);
+      }
+
+      const { data: profiles, error: profilesError, count } = await query;
       if (profilesError) throw profilesError;
 
-      const { data: roles, error: rolesError } = await (supabase as any)
-        .from("user_roles")
-        .select("*");
+      const userIds = (profiles || []).map((profile: any) => profile.user_id).filter(Boolean);
+      let roles: any[] = [];
+      if (userIds.length) {
+        const { data: roleData, error: rolesError } = await (supabase as any)
+          .from("user_roles")
+          .select("*")
+          .in("user_id", userIds);
+        if (rolesError) throw rolesError;
+        roles = roleData || [];
+      }
 
-      if (rolesError) throw rolesError;
-
-      const profilesWithRoles = profiles?.map((profile: any) => ({
+      const profilesWithRoles = (profiles || []).map((profile: any) => ({
         ...profile,
-        user_roles: roles?.filter((role: any) => role.user_id === profile.user_id) || []
-      })) || [];
+        user_roles: roles.filter((role: any) => role.user_id === profile.user_id),
+      }));
 
       setUtilisateurs(profilesWithRoles);
       setFilteredUsers(profilesWithRoles);
+      setTotalUsers(count || 0);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: getSafeErrorMessage(error) });
     }
   };
 
   useEffect(() => {
-    fetchUtilisateurs();
-  }, []);
+    void fetchUtilisateurs();
+  }, [page, pageSize, search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, pageSize]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,15 +112,6 @@ const Utilisateurs = () => {
 
   useRealtime({ table: "profiles", onChange: fetchUtilisateurs });
   useRealtime({ table: "user_roles", onChange: fetchUtilisateurs });
-
-  useEffect(() => {
-    const filtered = utilisateurs.filter(
-      (u) =>
-        u.nom_complet?.toLowerCase().includes(search.toLowerCase()) ||
-        u.email?.toLowerCase().includes(search.toLowerCase())
-    );
-    setFilteredUsers(filtered);
-  }, [search, utilisateurs]);
 
   const getRoles = (user: any) => {
     return user.user_roles?.map((r: any) => r.role) || [];
@@ -230,7 +244,7 @@ const Utilisateurs = () => {
           <Shield className="h-8 w-8 text-primary" />
           <div>
             <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
-            <p className="text-muted-foreground">{utilisateurs.length} utilisateur(s)</p>
+            <p className="text-muted-foreground">{totalUsers} utilisateur(s)</p>
           </div>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -373,6 +387,7 @@ const Utilisateurs = () => {
               ))}
             </TableBody>
           </Table>
+          <ResponsiveTablePagination page={page} pageSize={pageSize} total={totalUsers} onPageChange={setPage} />
         </CardContent>
       </Card>
 
