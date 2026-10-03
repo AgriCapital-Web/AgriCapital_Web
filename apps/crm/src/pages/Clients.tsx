@@ -146,6 +146,8 @@ const Clients = () => {
     s.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.telephone?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+\n  const paginatedClients = filteredClients.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+  useEffect(() => setTablePage(1), [searchTerm, pageSize]);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
@@ -390,7 +392,7 @@ const Clients = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredClients.map((client) => (
+                      paginatedClients.map((client) => (
                         <TableRow key={client.id}>
                           <TableCell className="font-mono text-sm font-medium">
                             {client.id_unique}
@@ -493,6 +495,7 @@ const Clients = () => {
                     )}
                   </TableBody>
                 </Table>
+                <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={filteredClients.length} onPageChange={setTablePage} />
               </div>
             </TabsContent>
           </Tabs>
