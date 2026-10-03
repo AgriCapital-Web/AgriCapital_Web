@@ -110,6 +110,11 @@ BEGIN
   UPDATE public.clients SET parcelle_id=coalesce(parcelle_id,v_parcelle.id),
     nombre_plantations=(select count(*) from public.plantations where client_id=v_client.id and statut not in ('archive','supprime')),
     phase_actuelle='plantation',updated_at=now() WHERE id=v_client.id;
+  IF v_client.type_client='beneficiaire_particulier' THEN
+    INSERT INTO public.beneficiaire_attributions(client_id,parcelle_id,plantation_id,surface_attribuee_ha,role_attribution,statut,notes)
+    SELECT v_client.id,v_parcelle.id,v_existing,v_surface,v_role,'active','Rattachement automatique de la plantation individuelle à la parcelle.'
+    WHERE NOT EXISTS(select 1 from public.beneficiaire_attributions ba where ba.client_id=v_client.id and ba.parcelle_id=v_parcelle.id and ba.plantation_id=v_existing and ba.statut='active');
+  END IF;
   RETURN NEW;
 END;
 $function$;
