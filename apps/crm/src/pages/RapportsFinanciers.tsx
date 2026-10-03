@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, RefreshCw, Wallet, TrendingUp, CircleDollarSign, Coins } from "lucide-react";
 import { exportFinancialWorkbook } from "@/utils/financialExcelExport";
 import TableSearchInput from "@/components/common/TableSearchInput";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const money=(n:any)=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"XOF",maximumFractionDigits:0}).format(Number(n||0));
 
@@ -29,6 +31,8 @@ export default function RapportsFinanciers(){
   const [to,setTo]=useState("");
   const [loading,setLoading]=useState(true);
   const [tableSearch,setTableSearch]=useState("");
+  const [tablePage,setTablePage]=useState(1);
+  const pageSize=useResponsivePageSize();
 
   const load=async()=>{
     setLoading(true);
@@ -96,6 +100,8 @@ export default function RapportsFinanciers(){
 
   const offers=Array.from(new Set(rows.map(r=>r.offre_nom).filter(Boolean))).sort();
   const tableRows=filtered.filter((r:any)=>JSON.stringify(r).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const paginatedTableRows=tableRows.slice((tablePage-1)*pageSize,tablePage*pageSize);
+  useEffect(()=>setTablePage(1),[tableSearch,district,region,offer,pageSize]);
   return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_RAPPORTS_FINANCIERS}>
     <MainLayout>
       <div className="space-y-5">
@@ -144,7 +150,7 @@ export default function RapportsFinanciers(){
                     <tr><td colSpan={6} className="p-8 text-center">Chargement…</td></tr>
                   ) : tableRows.length === 0 ? (
                     <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Aucune donnée dans le périmètre sélectionné.</td></tr>
-                  ) : tableRows.map((r:any) => (
+                  ) : paginatedTableRows.map((r:any) => (
                     <tr key={r.client_id} className="border-b">
                       <td className="p-3">{r.nom_complet}<span className="block text-xs text-muted-foreground">{r.id_unique}</span></td>
                       <td className="p-3"><Badge variant="outline">{r.offre_nom||"—"}</Badge></td>
@@ -157,6 +163,7 @@ export default function RapportsFinanciers(){
                 </tbody>
               </table>
             </div>
+            <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={tableRows.length} onPageChange={setTablePage} />
           </CardContent>
         </Card>
       </div>
