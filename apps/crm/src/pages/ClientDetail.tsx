@@ -18,6 +18,7 @@ import TicketForm from "@/components/forms/TicketForm";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { resolveStorageUrl } from "@/utils/storage";
 import ClientMessagingPanel from "@/components/clients/ClientMessagingPanel";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const formatMontant = (m: number) => new Intl.NumberFormat("fr-FR").format(Math.round(m || 0));
 
@@ -41,6 +42,12 @@ const ClientDetail = () => {
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [isRachatOpen,setIsRachatOpen]=useState(false);
   const [rachatJours,setRachatJours]=useState("1");
+  const [tableSearch,setTableSearch]=useState("");
+
+  const filteredPlantations=plantations.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const filteredPaiements=paiements.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const filteredInterventions=interventions.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const filteredAttributions=attributions.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
 
   const handleRachatMonnaie=async()=>{
     if(!canViewClientMoney||!id)return;
@@ -358,7 +365,7 @@ const ClientDetail = () => {
             <TabsContent value="plantations">
               <Card>
                 <CardHeader>
-                  <CardTitle>Plantations</CardTitle>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Plantations</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher une plantation…" /></div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -372,14 +379,14 @@ const ClientDetail = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {plantations.length === 0 ? (
+                      {filteredPlantations.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-8">
                             Aucune plantation
                           </TableCell>
                         </TableRow>
                       ) : (
-                        plantations.map((plantation) => (
+                        filteredPlantations.map((plantation) => (
                           <TableRow key={plantation.id}>
                             <TableCell className="font-mono">{plantation.id_unique}</TableCell>
                             <TableCell>{plantation.nom_plantation}</TableCell>
@@ -402,7 +409,7 @@ const ClientDetail = () => {
             {canViewClientPayments && <TabsContent value="paiements">
               <Card>
                 <CardHeader>
-                  <CardTitle>Historique des Paiements</CardTitle>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Historique des Paiements</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un paiement…" /></div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -415,14 +422,14 @@ const ClientDetail = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paiements.length === 0 ? (
+                      {filteredPaiements.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center py-8">
                             Aucun paiement
                           </TableCell>
                         </TableRow>
                       ) : (
-                        paiements.map((paiement) => (
+                        filteredPaiements.map((paiement) => (
                           <TableRow key={paiement.id}>
                             <TableCell>
                               {new Date(paiement.created_at).toLocaleDateString("fr-FR")}
@@ -448,7 +455,7 @@ const ClientDetail = () => {
             <TabsContent value="interventions">
               <Card>
                 <CardHeader>
-                  <CardTitle>Interventions Techniques</CardTitle>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Interventions Techniques</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher une intervention…" /></div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -461,14 +468,14 @@ const ClientDetail = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {interventions.length === 0 ? (
+                      {filteredInterventions.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center py-8">
                             Aucune intervention
                           </TableCell>
                         </TableRow>
                       ) : (
-                        interventions.map((intervention) => (
+                        filteredInterventions.map((intervention) => (
                           <TableRow key={intervention.id}>
                             <TableCell>
                               {new Date(intervention.date_intervention).toLocaleDateString("fr-FR")}
@@ -490,7 +497,7 @@ const ClientDetail = () => {
             <TabsContent value="dossier">
               <div className="grid gap-4">
                 <Card>
-                  <CardHeader><CardTitle>Attributions agricoles</CardTitle></CardHeader>
+                  <CardHeader><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle>Attributions agricoles</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher une attribution…" /></div></CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
@@ -503,9 +510,9 @@ const ClientDetail = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {attributions.length === 0 ? (
+                        {filteredAttributions.length === 0 ? (
                           <TableRow><TableCell colSpan={5} className="text-center py-8">Aucune attribution enregistrée</TableCell></TableRow>
-                        ) : attributions.map((a: any) => (
+                        ) : filteredAttributions.map((a: any) => (
                           <TableRow key={a.id}>
                             <TableCell>{a.parcelles?.id_unique || a.parcelles?.nom || "—"}{a.parcelles?.village ? <span className="block text-xs text-muted-foreground">{a.parcelles.village}</span> : null}</TableCell>
                             <TableCell><Badge variant="outline">{a.role_attribution === "proprietaire_beneficiaire" ? "Propriétaire + bénéficiaire" : "Bénéficiaire particulier"}</Badge></TableCell>
