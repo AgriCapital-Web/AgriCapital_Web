@@ -14,7 +14,7 @@ export function formatUserShortName(fullName?: string | null): string {
   const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "Utilisateur";
   if (parts.length === 1) return parts[0].toLocaleUpperCase("fr-FR");
-  return `${parts.slice(1).join(" ")} ${parts[0]}`.toLocaleUpperCase("fr-FR");
+  return `${parts[parts.length - 1]} ${parts[0]}`.toLocaleUpperCase("fr-FR");
 }
 
 /** Affichage détaillé du profil: tous les prénoms, puis le nom de famille. */
