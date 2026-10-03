@@ -7,6 +7,7 @@ import { PlantationsMap } from "@/components/dashboard/PlantationsMap";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import TableSearchInput from "@/components/common/TableSearchInput";
 import { hasPermission, PERMISSIONS, ROLE_SHORT_LABELS } from "@/lib/roles";
 import { formatUserShortName } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,6 +101,10 @@ const Dashboard = () => {
   const [topClients, setTopClients] = useState<any[]>([]);
   const [regional, setRegional] = useState<any[]>([]);
   const [teamPerformance, setTeamPerformance] = useState<any[]>([]);
+  const [tableSearch,setTableSearch]=useState("");
+
+  const filteredRecentClients=recentClients.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const filteredRecentPayments=recentPayments.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -642,12 +647,12 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {canClients && (
                   <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Users className="h-5 w-5 text-primary" />Clients récents</CardTitle></CardHeader>
+                    <CardHeader><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle className="flex items-center gap-2 text-base"><Users className="h-5 w-5 text-primary" />Clients récents</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un client…" /></div></CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
                         <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Nom</TableHead><TableHead>Plantations</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
                         <TableBody>
-                          {recentClients.length ? recentClients.map((c) => (
+                          {filteredRecentClients.length ? filteredRecentClients.map((c) => (
                             <TableRow key={c.id_unique}>
                               <TableCell className="font-mono text-xs">{c.id_unique}</TableCell>
                               <TableCell className="font-medium">{c.nom_complet}</TableCell>
@@ -663,12 +668,12 @@ const Dashboard = () => {
 
                 {canPayments && (
                   <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><CreditCard className="h-5 w-5 text-primary" />Paiements récents</CardTitle></CardHeader>
+                    <CardHeader><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><CardTitle className="flex items-center gap-2 text-base"><CreditCard className="h-5 w-5 text-primary" />Paiements récents</CardTitle><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un paiement…" /></div></CardHeader>
                     <CardContent className="p-0">
                       <div className="overflow-x-auto">
                         <Table><TableHeader><TableRow><TableHead>Client</TableHead><TableHead>Montant</TableHead><TableHead>Mode</TableHead><TableHead>Statut</TableHead></TableRow></TableHeader>
                         <TableBody>
-                          {recentPayments.length ? recentPayments.map((p) => (
+                          {filteredRecentPayments.length ? filteredRecentPayments.map((p) => (
                             <TableRow key={p.id}>
                               <TableCell className="font-medium">{p.client_nom}</TableCell>
                               <TableCell>{money(Number(p.montant_paye ?? p.montant ?? 0))}</TableCell>
