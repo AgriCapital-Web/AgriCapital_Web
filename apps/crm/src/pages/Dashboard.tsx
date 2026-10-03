@@ -290,8 +290,8 @@ const Dashboard = () => {
         const profileByUser = new Map(directory.map((p: any) => [p.user_id, p]));
         const profileById = new Map(directory.map((p: any) => [p.id, p]));
         const teamMap = new Map<string, any>();
-        if (canCommercialTeamPerformance) clients.forEach((cl: any) => { const p=profileByUser.get(cl.created_by); const teamId=p?.equipe_id; if(!teamId)return; const key="commercial:"+teamId; const row=teamMap.get(key)||{key,teamId,type:"commercial",nom:"Équipe commerciale",clients:0,hectares:0,interventions:0}; row.clients+=1; row.hectares+=Number(cl.total_hectares||0); teamMap.set(key,row); });
-        if (canTechnicalTeamPerformance) interventions.forEach((i: any) => { const p=profileById.get(i.agent_technique_id); const teamId=p?.equipe_id; if(!teamId)return; const key="technique:"+teamId; const row=teamMap.get(key)||{key,teamId,type:"technique",nom:"Équipe technique",clients:0,hectares:0,interventions:0}; row.interventions+=1; teamMap.set(key,row); });
+        if (canCommercialTeamPerformance) clients.forEach((cl: any) => { const p=profileByUser.get(cl.created_by) as any; const teamId=p?.equipe_id; if(!teamId)return; const key="commercial:"+teamId; const row=teamMap.get(key)||{key,teamId,type:"commercial",nom:"Équipe commerciale",clients:0,hectares:0,interventions:0}; row.clients+=1; row.hectares+=Number(cl.total_hectares||0); teamMap.set(key,row); });
+        if (canTechnicalTeamPerformance) interventions.forEach((i: any) => { const p=profileById.get(i.agent_technique_id) as any; const teamId=p?.equipe_id; if(!teamId)return; const key="technique:"+teamId; const row=teamMap.get(key)||{key,teamId,type:"technique",nom:"Équipe technique",clients:0,hectares:0,interventions:0}; row.interventions+=1; teamMap.set(key,row); });
         setTeamPerformance([...teamMap.values()].sort((a,b)=>(b.clients+b.interventions)-(a.clients+a.interventions)).slice(0,10));
       }
 
