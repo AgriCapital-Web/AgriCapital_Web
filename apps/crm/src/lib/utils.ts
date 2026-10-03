@@ -11,10 +11,9 @@ export function cn(...inputs: ClassValue[]) {
  * le dernier prénom. Le reste n'est jamais affiché dans les vues compactes.
  */
 export function formatUserShortName(fullName?: string | null): string {
-  const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "Utilisateur";
-  if (parts.length === 1) return parts[0].toLocaleUpperCase("fr-FR");
-  return `${parts[parts.length - 1]} ${parts[0]}`.toLocaleUpperCase("fr-FR");
+  const value = String(fullName || "").trim().replace(/\s+/g, " ");
+  if (!value) return "Utilisateur";
+  return value.toLocaleUpperCase("fr-FR");
 }
 
 /** Affichage détaillé du profil: tous les prénoms, puis le nom de famille. */
