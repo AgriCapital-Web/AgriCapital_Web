@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Search, Users, Plus, Edit, MoreHorizontal, CheckCircle, XCircle, UserPlus, UserMinus, Briefcase, Wrench } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const ROLE_SHORT: Record<string, string> = {
   commercial: "Commercial",
@@ -38,6 +40,8 @@ const Equipes = () => {
   const [availableMembers, setAvailableMembers] = useState<any[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [activeTab, setActiveTab] = useState("commercial");
+  const [tablePage, setTablePage] = useState(1);
+  const pageSize = useResponsivePageSize();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -76,6 +80,7 @@ const Equipes = () => {
   };
 
   useEffect(() => { fetchData(); }, []);
+  useEffect(() => setTablePage(1), [searchTerm, activeTab, pageSize]);
   useRealtime({ table: "equipes", onChange: fetchData });
 
   const fetchMembers = async (equipe: any) => {
@@ -191,6 +196,8 @@ const Equipes = () => {
     return matchesSearch && matchesTab;
   });
 
+  const paginatedEquipes = filteredEquipes.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+
   const commercialCount = equipes.filter(e => (e.type_equipe || "commercial") === "commercial").length;
   const techniqueCount = equipes.filter(e => e.type_equipe === "technique").length;
 
@@ -212,7 +219,7 @@ const Equipes = () => {
           ) : filteredEquipes.length === 0 ? (
             <TableRow><TableCell colSpan={5} className="text-center py-8">Aucune équipe {activeTab === "technique" ? "technique" : "commerciale"}</TableCell></TableRow>
           ) : (
-            filteredEquipes.map((equipe) => (
+            paginatedEquipes.map((equipe) => (
               <TableRow key={equipe.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
@@ -256,6 +263,7 @@ const Equipes = () => {
           )}
         </TableBody>
       </Table>
+      <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={filteredEquipes.length} onPageChange={setTablePage} />
     </div>
   );
 
