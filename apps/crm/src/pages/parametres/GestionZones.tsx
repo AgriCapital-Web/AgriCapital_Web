@@ -13,6 +13,7 @@ import { useRealtime } from "@/hooks/useRealtime";
 import { ROLE_LABELS } from "@/lib/roles";
 import { MapPin, Plus, Trash2, Users } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 interface ZoneAssignment {
   id: string;
@@ -51,6 +52,7 @@ const GestionZones = () => {
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [editingAssignment, setEditingAssignment] = useState<ZoneAssignment | null>(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -71,10 +73,10 @@ const GestionZones = () => {
 
       // Fetch all zone names
       const [{ data: districts }, { data: regions }, { data: depts }, { data: sps }] = await Promise.all([
-        (supabase as any).from("districts").select("id, nom"),
-        (supabase as any).from("regions").select("id, nom"),
-        (supabase as any).from("departements").select("id, nom"),
-        (supabase as any).from("sous_prefectures").select("id, nom"),
+        (supabase as any).from("v_geo_districts").select("id, nom").eq("est_actif_effectif", true),
+        (supabase as any).from("v_geo_regions").select("id, nom").eq("est_active_effectif", true),
+        (supabase as any).from("v_geo_departements").select("id, nom").eq("est_actif_effectif", true),
+        (supabase as any).from("v_geo_sous_prefectures").select("id, nom").eq("est_active_effectif", true),
       ]);
 
       const zoneMap: Record<string, string> = {};
@@ -126,16 +128,16 @@ const GestionZones = () => {
 
     let data: any[] = [];
     if (zoneType === "region") {
-      const res = await (supabase as any).from("regions").select("id, nom").eq("est_active", true).order("nom");
+      const res = await (supabase as any).from("v_geo_regions").select("id, nom").eq("est_active_effectif", true).order("nom");
       data = res.data || [];
     } else if (zoneType === "district") {
-      const res = await (supabase as any).from("districts").select("id, nom").eq("est_actif", true).order("nom");
+      const res = await (supabase as any).from("v_geo_districts").select("id, nom").eq("est_actif_effectif", true).order("nom");
       data = res.data || [];
     } else if (zoneType === "departement") {
-      const res = await (supabase as any).from("departements").select("id, nom").eq("est_actif", true).order("nom");
+      const res = await (supabase as any).from("v_geo_departements").select("id, nom").eq("est_actif_effectif", true).order("nom");
       data = res.data || [];
     } else if (zoneType === "sous_prefecture") {
-      const res = await (supabase as any).from("sous_prefectures").select("id, nom").eq("est_active", true).order("nom");
+      const res = await (supabase as any).from("v_geo_sous_prefectures").select("id, nom").eq("est_active_effectif", true).order("nom");
       data = res.data || [];
     }
     setZones(data);
@@ -184,9 +186,10 @@ const GestionZones = () => {
   };
 
   const filteredUsers = selectedRole ? users.filter(u => u.role === selectedRole) : users;
-  const filteredAssignments = selectedRole
-    ? assignments.filter(a => a.role === selectedRole)
-    : assignments;
+  const filteredAssignments = assignments.filter(a =>
+    (!selectedRole || a.role === selectedRole) &&
+    JSON.stringify(a).toLowerCase().includes(search.trim().toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -202,6 +205,7 @@ const GestionZones = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher une assignation…" />
             <Select value={selectedRole} onValueChange={handleRoleFilter}>
               <SelectTrigger className="w-full sm:w-[250px]">
                 <SelectValue placeholder="Filtrer par rôle" />
