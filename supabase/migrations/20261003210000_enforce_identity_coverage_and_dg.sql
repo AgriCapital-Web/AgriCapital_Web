@@ -90,6 +90,7 @@ BEGIN
     NEW.taux_commission=NULL;
     -- La couverture géographique est gouvernée par user_roles + zone_assignments.
     -- Elle ne doit jamais être effacée à cause d'une simple étiquette RH.
+  END IF;
   RETURN NEW;
 END;
 $func$;
