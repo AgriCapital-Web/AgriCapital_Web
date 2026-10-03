@@ -84,8 +84,8 @@ const NouvelleAcquisition = () => {
 
   const validateStep=async()=>{
     if(!step)return false;
-    if(step.code==="offre"&&(!formData.offre_id||Number(formData.superficie_prevue)<=0)){
-      toast({variant:"destructive",title:"Offre incomplète",description:"Sélectionnez une offre et renseignez la superficie."}); return false;
+    if(step.code==="offre"&&(!formData.commercial_id||!formData.offre_id||Number(formData.superficie_prevue)<=0)){
+      toast({variant:"destructive",title:"Étape incomplète",description:"Sélectionnez le commercial responsable, une offre et renseignez la superficie."}); return false;
     }
     if(step.code==="client"){
       const fields=["civilite","nom_famille","prenoms","date_naissance","lieu_naissance","nationalite","type_piece","numero_piece","telephone","domicile"];
@@ -173,7 +173,7 @@ const NouvelleAcquisition = () => {
       }
       const nomComplet=(String(formData.nom_famille||"")+" "+String(formData.prenoms||"")).trim();
       const {data:client,error:clientError}=await offlineInsert("clients",{
-        offre_id:offer.id,parcelle_id:parcelleId,type_client:external?"sans_terre":"avec_terre",type_client_foncier:external?"EXT":"OWN",
+        offre_id:offer.id,commercial_id:formData.commercial_id||null,parcelle_id:parcelleId,type_client:external?"sans_terre":"avec_terre",type_client_foncier:external?"EXT":"OWN",
         nom:formData.nom_famille||"",nom_famille:formData.nom_famille||"",prenoms:formData.prenoms||"",nom_complet:nomComplet,
         civilite:formData.civilite||null,date_naissance:formData.date_naissance||null,lieu_naissance:formData.lieu_naissance||null,nationalite:formData.nationalite||null,
         statut_marital:formData.statut_marital||null,type_piece:formData.type_piece||null,numero_piece:formData.numero_piece||null,date_delivrance_piece:formData.date_delivrance_piece||null,
@@ -186,6 +186,12 @@ const NouvelleAcquisition = () => {
         created_by:user.id,updated_by:user.id,compte_actif:false,phase_actuelle:"pre_activation",total_hectares:ha
       });
       if(clientError||!client)throw clientError||new Error("Client non créé");
+
+      // Si le dossier provient d’un lead, conserver la traçabilité de l’affectation commerciale.
+      if(formData.lead_id){
+        const {error:leadError}=await (supabase as any).from("leads").update({client_id:client.id,statut:"converti",converti_at:new Date().toISOString()}).eq("id",formData.lead_id);
+        if(leadError) throw leadError;
+      }
 
       for(const [field,column] of [["photo_profil","photo_profil_url"],["photo_piece_recto","fichier_piece_recto_url"],["photo_piece_verso","fichier_piece_verso_url"]] as const){
         const file=formData[field+"_file"];if(!file)continue;const uploaded=await uploadFile("documents",file,user.id+"/clients/"+client.id);if(!uploaded)throw new Error("Upload impossible : "+field);
