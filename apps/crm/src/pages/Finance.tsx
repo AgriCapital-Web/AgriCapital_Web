@@ -146,6 +146,12 @@ export default function Finance(){
     </div>
     <Tabs defaultValue="journal">
       <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+        <TabsTrigger value="journal">Journal</TabsTrigger>
+        <TabsTrigger value="depenses">Dépenses</TabsTrigger>
+        <TabsTrigger value="salaires">Salaires</TabsTrigger>
+        <TabsTrigger value="associes">Associés</TabsTrigger>
+        <TabsTrigger value="rapports">Rapports</TabsTrigger>
+      </TabsList>
       <TabsContent value="journal">
         <Card>
           <CardHeader>
