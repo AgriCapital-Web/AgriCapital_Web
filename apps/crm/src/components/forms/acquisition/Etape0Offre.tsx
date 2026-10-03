@@ -53,7 +53,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
 
   useEffect(() => {
     let mounted = true;
-    if (formData.commercial_id !== undefined) return;
+    if (!formData.lead_id && formData.commercial_id !== undefined) return;
     setLoadingCommercialDefault(true);
     (async () => {
       try {
@@ -75,7 +75,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       }
     })();
     return () => { mounted = false; };
-  }, [formData.commercial_id, formData.lead_id, updateFormData]);
+  }, [formData.lead_id, updateFormData]);
   
   // Les offres sont pilotées par leur configuration métier. Aucun montant n'est saisi manuellement ici.
   
