@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle, XCircle, Eye, Trash2 } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { SignedImg } from "@/hooks/useSignedUrl";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const AccountRequests = () => {
   const [requests, setRequests] = useState<any[]>([]);
@@ -20,6 +21,7 @@ const AccountRequests = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [actionType, setActionType] = useState<"approve" | "reject" | "delete" | null>(null);
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState("");
   const { hasRole, user } = useAuth();
   const { toast } = useToast();
 
@@ -94,6 +96,10 @@ const AccountRequests = () => {
     }
   };
 
+  const filteredRequests = requests.filter((request) =>
+    JSON.stringify(request).toLowerCase().includes(search.trim().toLowerCase())
+  );
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'en_attente':
@@ -124,6 +130,7 @@ const AccountRequests = () => {
       <Card>
         <CardHeader>
           <CardTitle>Liste des Demandes</CardTitle>
+          <TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher une demande…" />
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto"><Table className="min-w-[900px]">
@@ -140,7 +147,7 @@ const AccountRequests = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((request) => (
+              {filteredRequests.map((request) => (
                 <TableRow key={request.id}>
                   <TableCell>
                     {new Date(request.created_at).toLocaleDateString('fr-FR')}
