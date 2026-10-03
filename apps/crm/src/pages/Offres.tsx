@@ -109,6 +109,8 @@ const Offres = () => {
     }
   });
 
+  const filteredPromotions = (promotions || []).filter((promo: any) => JSON.stringify(promo).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+
   // Update offre
   const updateOffreMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Offre> }) => {
