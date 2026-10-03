@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import createUserSource from "../../supabase/functions/create-user/index.ts?raw";
+import createUserSource from "../../../supabase/functions/create-user/index.ts?raw";
 
 /**
  * Sanity-check: la fonction edge create-user ne doit JAMAIS insérer une colonne `role`
