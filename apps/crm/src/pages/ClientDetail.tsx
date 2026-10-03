@@ -609,7 +609,7 @@ const ClientDetail = () => {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>}
+            </TabsContent>
           </Tabs>
 
           {/* Traçabilité et historique */}
