@@ -2,15 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { normalizeRoles, ROLES } from "@/lib/roles";
-import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
+
 
 /**
- * Charge la matrice rôle → permissions depuis la base (`role_permissions`).
- * Tant que la migration SQL n'est pas exécutée, la matrice par défaut sert de repli
- * afin que l'interface reste fonctionnelle et cohérente.
+ * Charge la matrice rôle → permissions exclusivement depuis la base (`role_permissions`).
+ * Une erreur ou une matrice vide ne donne aucun droit par défaut.
  */
 export function useRolePermissionMatrix() {
-  const [matrix, setMatrix] = useState<Record<string, string[]>>(DEFAULT_ROLE_PERMISSIONS);
+  const [matrix, setMatrix] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [fromDatabase, setFromDatabase] = useState(false);
 
@@ -21,7 +20,7 @@ export function useRolePermissionMatrix() {
         .from("role_permissions")
         .select("role_code, permission_code");
       if (error || !data || data.length === 0) {
-        setMatrix(DEFAULT_ROLE_PERMISSIONS);
+        setMatrix({});
         setFromDatabase(false);
       } else {
         const next: Record<string, string[]> = {};
@@ -32,7 +31,7 @@ export function useRolePermissionMatrix() {
         setFromDatabase(true);
       }
     } catch {
-      setMatrix(DEFAULT_ROLE_PERMISSIONS);
+      setMatrix({});
       setFromDatabase(false);
     } finally {
       setLoading(false);
