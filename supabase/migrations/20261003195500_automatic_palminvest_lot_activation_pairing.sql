@@ -5,7 +5,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
 AS $function$
 DECLARE
   v_formula text; v_parcelle public.parcelles%ROWTYPE; v_client public.clients%ROWTYPE;
-  v_units integer; v_lot record; v_activation uuid; v_done integer:=0;
+  v_units integer; v_existing integer; v_lot record; v_activation uuid; v_done integer:=0;
 BEGIN
   SELECT * INTO v_client FROM public.clients WHERE id=NEW.client_id;
   IF NOT FOUND THEN RETURN NEW; END IF;
@@ -16,21 +16,27 @@ BEGIN
     RAISE EXCEPTION 'La plantation PalmInvest doit être rattachée à une parcelle AgriCapital sous convention active';
   END IF;
   IF mod(coalesce(NEW.superficie_ha,0)::numeric,2)<>0 THEN
-    RAISE EXCEPTION 'Une activation partagée doit être composée de 1 ha Client + 1 ha propriétaire. La superficie totale doit être un multiple de 2 ha.';
+    RAISE EXCEPTION 'Une activation partagée doit être composée de 1 ha Client + 1 ha propriétaire. La superficie totale doit donc être un multiple de 2 ha.';
   END IF;
   v_units:=floor(coalesce(NEW.superficie_ha,0)/2);
   IF v_units<=0 THEN RAISE EXCEPTION 'Superficie PalmInvest invalide pour une activation partagée'; END IF;
+  SELECT count(*),min(id) INTO v_existing,v_activation
+  FROM public.plantation_activations
+  WHERE client_id=NEW.client_id AND parcelle_id=NEW.parcelle_id AND statut='active';
+  IF v_existing>=v_units THEN
+    IF NEW.activation_id IS NULL THEN NEW.activation_id:=v_activation; END IF;
+    RETURN NEW;
+  END IF;
   FOR v_lot IN
     SELECT lh.* FROM public.lots_hectares lh
     WHERE lh.parcelle_id=NEW.parcelle_id AND lh.convention_id=v_parcelle.convention_id
-      AND lh.surface_ha=1
-      AND (lh.client_id=NEW.client_id OR lh.statut='disponible')
+      AND lh.surface_ha=1 AND (lh.client_id=NEW.client_id OR lh.statut='disponible')
       AND NOT EXISTS (
         SELECT 1 FROM public.plantation_activations pa
         WHERE pa.lot_id=lh.id AND pa.client_id=NEW.client_id AND pa.statut='active'
       )
     ORDER BY CASE WHEN lh.client_id=NEW.client_id THEN 0 ELSE 1 END,lh.numero_h
-    LIMIT v_units
+    LIMIT (v_units-v_existing)
   LOOP
     UPDATE public.lots_hectares SET client_id=NEW.client_id,statut='attribue',
       date_attribution=coalesce(date_attribution,current_date),
@@ -51,13 +57,12 @@ BEGIN
     v_done:=v_done+1;
     IF v_activation IS NOT NULL AND NEW.activation_id IS NULL THEN NEW.activation_id:=v_activation; END IF;
   END LOOP;
-  IF v_done<v_units THEN
-    RAISE EXCEPTION 'Lots AgriCapital insuffisants sur la parcelle % : % requis, % disponible(s).',v_parcelle.id_unique,v_units,v_done;
+  IF v_existing+v_done<v_units THEN
+    RAISE EXCEPTION 'Lots AgriCapital insuffisants sur la parcelle % : % requis, % disponible(s).',v_parcelle.id_unique,v_units,v_existing+v_done;
   END IF;
   RETURN NEW;
 END;
 $function$;
-
 DROP TRIGGER IF EXISTS trg_sync_palminvest_lot_activation ON public.plantations;
 CREATE TRIGGER trg_sync_palminvest_lot_activation
 BEFORE INSERT OR UPDATE OF client_id,parcelle_id,superficie_ha,date_activation,statut ON public.plantations
