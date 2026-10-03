@@ -24,6 +24,8 @@ import ClientForm from "@/components/forms/ClientForm";
 import KanbanPipeline from "@/components/acquisitions/KanbanPipeline";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const Clients = () => {
   const { can } = usePermissions();
@@ -31,12 +33,15 @@ const Clients = () => {
   const [attributions, setAttributions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [tablePage, setTablePage] = useState(1);
+  const pageSize = useResponsivePageSize();
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [teamPerformance,setTeamPerformance]=useState<any[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<any>(null);
   const { toast } = useToast();
+  useEffect(() => setTablePage(1), [searchTerm]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -130,13 +135,13 @@ const Clients = () => {
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void fetchData(); }, searchTerm ? 250 : 0);
-    return () => window.clearTimeout(timer);
+    const paginatedClients = filteredClients.slice((tablePage - 1) * pageSize, tablePage * pageSize);\n\n  return () => window.clearTimeout(timer);
   }, [searchTerm]);
 
   useRealtime({ table: "clients", onChange: fetchData });
   useRealtime({ table: "plantations", onChange: fetchData });
 
-  const filteredClients = clients.filter((s) =>
+  const paginatedClients = filteredClients.slice((tablePage - 1) * pageSize, tablePage * pageSize);\n\n  const filteredClients = clients.filter((s) =>
     s.id_unique?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.nom_complet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.telephone?.toLowerCase().includes(searchTerm.toLowerCase())
