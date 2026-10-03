@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePermissions } from "@/hooks/usePermissions";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 type ClientRow = {
   id: string;
@@ -53,6 +54,7 @@ export default function Messagerie() {
   const [open, setOpen] = useState(false);
   const [loadingResults, setLoadingResults] = useState(false);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [tableSearch, setTableSearch] = useState("");
 
   const loadRecent = async () => {
     setLoadingRecent(true);
@@ -116,7 +118,7 @@ export default function Messagerie() {
     setOpen(false);
   };
 
-  const latest = useMemo(() => recent.slice(0, 5), [recent]);
+  const latest = useMemo(() => recent.filter((row) => JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase())), [recent, tableSearch]);
 
   if (!can("clients.view")) {
     return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_CLIENTS}><MainLayout><Card><CardContent className="p-8 text-center">Accès non autorisé.</CardContent></Card></MainLayout></ProtectedRoute>;
@@ -179,6 +181,7 @@ export default function Messagerie() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table className="min-w-[760px]">
+                  <div className="mb-3"><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un message…" /></div>
                   <TableHeader><TableRow><TableHead>Personne</TableHead><TableHead>Sens</TableHead><TableHead>Message</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {loadingRecent ? (
