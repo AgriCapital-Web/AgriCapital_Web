@@ -27,6 +27,8 @@ import TableSearchInput from "@/components/common/TableSearchInput";
 import CommercialCombobox from "@/components/common/CommercialCombobox";
 import { COMMERCIAL_ASSIGNABLE_ROLES } from "@/lib/roles";
 import { formatUserShortName } from "@/lib/utils";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 
 const STATUTS = [
@@ -81,6 +83,8 @@ export default function Leads() {
   const [reassignTo, setReassignTo] = useState("");
   const [reassignMotif, setReassignMotif] = useState("");
   const [tableSearch, setTableSearch] = useState("");
+  const [tablePage, setTablePage] = useState(1);
+  const pageSize = useResponsivePageSize();
 
   useEffect(() => {
     if (searchParams.get("new") === "1") setCreateOpen(true);
@@ -255,7 +259,7 @@ export default function Leads() {
 
   const publicUrl = `${window.location.origin}/leads/public`;
 
-  const filteredLeads = leads.filter((l: any) => JSON.stringify(l).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const filteredLeads = leads.filter((l: any) => JSON.stringify(l).toLowerCase().includes(tableSearch.trim().toLowerCase()));\n  useEffect(() => setTablePage(1), [tableSearch]);\n  const paginatedLeads = filteredLeads.slice((tablePage - 1) * pageSize, tablePage * pageSize);
 
   const stats = {
     total: leads.length,
@@ -312,7 +316,7 @@ export default function Leads() {
               </TableRow></TableHeader>
               <TableBody>
                 {filteredLeads.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Aucun prospect enregistré.</TableCell></TableRow>}
-                {filteredLeads.map((l: any) => {
+                {paginatedLeads.map((l: any) => {
                   const st = STATUTS.find(s => s.v === l.statut);
                   return (
                     <TableRow key={l.id}>
