@@ -11,7 +11,7 @@ AS $func$
     WHERE user_id=_user_id
       AND role IN ('super_admin','pdg','dg','responsable_operations')
   );
-$$;
+$func$;
 
 CREATE OR REPLACE FUNCTION public.zone_assignment_expected_type(_user_id uuid)
 RETURNS text
@@ -23,7 +23,7 @@ AS $func$
     WHEN EXISTS (SELECT 1 FROM public.user_roles WHERE user_id=_user_id AND role IN ('commercial','technicien')) THEN 'sous_prefecture'
     ELSE NULL
   END;
-$$;
+$func$;
 
 CREATE OR REPLACE FUNCTION public.recompute_profile_coverage(_user_id uuid)
 RETURNS void
@@ -80,7 +80,7 @@ BEGIN
     WHERE p.user_id=_user_id;
   END IF;
 END;
-$$;
+$func$;
 
 CREATE OR REPLACE FUNCTION public.reconcile_user_role_coverage(_user_id uuid)
 RETURNS void
@@ -101,7 +101,7 @@ BEGIN
 
   PERFORM public.recompute_profile_coverage(_user_id);
 END;
-$$;
+$func$;
 
 CREATE OR REPLACE FUNCTION public.reconcile_user_role_coverage_trigger()
 RETURNS trigger
@@ -132,7 +132,7 @@ BEGIN
   IF NEW.created_by IS NULL THEN NEW.created_by=auth.uid(); END IF;
   RETURN NEW;
 END;
-$$;
+$func$;
 
 -- Governance roles are database roles, not a second UI-only concept.
 CREATE OR REPLACE FUNCTION public.normalize_profile_org_scope()
@@ -147,7 +147,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$;
+$func$;
 
 CREATE OR REPLACE FUNCTION public.sync_governance_role_from_profile()
 RETURNS trigger
@@ -176,7 +176,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$;
+$func$;
 
 REVOKE EXECUTE ON FUNCTION public.is_admin(uuid) FROM PUBLIC, anon;
 REVOKE EXECUTE ON FUNCTION public.zone_assignment_expected_type(uuid) FROM PUBLIC, anon;
@@ -191,4 +191,4 @@ BEGIN
   FOR u IN SELECT DISTINCT user_id FROM public.user_roles LOOP
     PERFORM public.reconcile_user_role_coverage(u);
   END LOOP;
-END $$;
+END $func$;
