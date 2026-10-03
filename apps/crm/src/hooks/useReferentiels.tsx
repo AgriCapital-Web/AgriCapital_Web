@@ -108,7 +108,7 @@ export function useGeoHierarchy(initial?: {
 
   useEffect(() => {
     (async () => {
-      const { data } = await (supabase as any).from("districts").select("id, nom").eq("est_actif", true).order("nom");
+      const { data } = await (supabase as any).from("v_geo_districts").select("id, nom").eq("est_actif_effectif", true).order("nom");
       setDistricts(data || []);
     })();
   }, []);
