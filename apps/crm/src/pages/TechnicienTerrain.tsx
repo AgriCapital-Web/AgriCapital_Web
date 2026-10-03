@@ -120,6 +120,16 @@ const TechnicienTerrain=()=>{
   },[intervention.client_id,technicalOwnLand]);
 
   useEffect(()=>{
+    if(!intervention.parcelle_id)return;
+    (async()=>{
+      const {data}=await (supabase as any).from("parcelles").select("localisation_gps_lat,localisation_gps_lng").eq("id",intervention.parcelle_id).maybeSingle();
+      if(data?.localisation_gps_lat!=null && data?.localisation_gps_lng!=null){
+        setIntervention((x:any)=>({...x,localisation_gps_lat:String(data.localisation_gps_lat),localisation_gps_lng:String(data.localisation_gps_lng)}));
+      }
+    })();
+  },[intervention.parcelle_id]);
+
+  useEffect(()=>{
     if(!intervention.convention_id){setLots([]);return;}
     (async()=>{
       const {data}=await (supabase as any).from("lots_hectares").select("id,reference,numero_h,surface_ha,statut,certifie_geometre,parcelle_id").eq("convention_id",intervention.convention_id).eq("statut","disponible").order("numero_h");
@@ -190,6 +200,10 @@ const TechnicienTerrain=()=>{
       if(intervention.localisation_gps_lat && intervention.localisation_gps_lng){
         const {error:geoError}=await (supabase as any).from("parcelles").update({localisation_gps_lat:Number(intervention.localisation_gps_lat),localisation_gps_lng:Number(intervention.localisation_gps_lng),updated_by:profile.id}).eq("id",targetParcelleId);
         if(geoError)throw geoError;
+      }
+      if(technicalPalmInvest){
+        const {error:clientParcelError}=await (supabase as any).from("clients").update({parcelle_id:targetParcelleId,updated_at:new Date().toISOString()}).eq("id",targetClientId);
+        if(clientParcelError)throw clientParcelError;
       }
       const payload={...intervention,id:crypto.randomUUID(),agent_technique_id:profile.id,
         client_id:targetClientId,parcelle_id:targetParcelleId,plantation_id:intervention.plantation_id||null,
