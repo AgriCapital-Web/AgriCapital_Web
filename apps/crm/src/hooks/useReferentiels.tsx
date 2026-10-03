@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { OFFICIAL_ROLES, RoleDefinition } from "@/lib/roles";
+import { RoleDefinition } from "@/lib/roles";
 
 export interface DepartementEntreprise {
   id: string;
@@ -10,7 +10,7 @@ export interface DepartementEntreprise {
   actif: boolean;
 }
 
-/** Départements de l'entreprise (source unique, repli statique avant migration) */
+/** Départements de l'entreprise — source unique en base de données. */
 export function useDepartementsEntreprise() {
   const [departements, setDepartements] = useState<DepartementEntreprise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,7 @@ export function useAppRoles() {
             description: r.description || "",
             niveau: r.niveau ?? 5,
             niveauLabel: r.niveau_label || "",
-            couleur: OFFICIAL_ROLES.find((o) => o.code === r.code)?.couleur || "bg-muted text-muted-foreground",
+            couleur: r.couleur || "",
         })),
       );
       setFromDatabase(true);
