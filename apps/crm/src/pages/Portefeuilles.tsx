@@ -15,6 +15,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Wallet, TrendingUp, CircleDollarSign, CalendarClock, RefreshCw } from "lucide-react";
 import { format, endOfMonth } from "date-fns";
 import TableSearchInput from "@/components/common/TableSearchInput";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const TEAM_ROLES=["chef_equipe_commercial","chef_equipe_technique","responsable_commercial","responsable_operations"];
 const fortnight=(d=new Date())=>d.getDate()<=15
@@ -36,6 +38,9 @@ export default function Portefeuilles(){
   const [search,setSearch]=useState("");
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
+  const [portfolioPage,setPortfolioPage]=useState(1);
+  const [versementPage,setVersementPage]=useState(1);
+  const pageSize=useResponsivePageSize();
   const [selected,setSelected]=useState<any|null>(null);
   const [periodStart,setPeriodStart]=useState(iso(q.start));
   const [periodEnd,setPeriodEnd]=useState(iso(q.end));
@@ -78,6 +83,11 @@ export default function Portefeuilles(){
     const q=search.trim().toLowerCase();
     return !q||p.user?.nom_complet?.toLowerCase().includes(q);
   }),[portefeuilles,visibleProfiles,search]);
+
+  const paginatedPortefeuilles=filtered.slice((portfolioPage-1)*pageSize,portfolioPage*pageSize);
+  const filteredVersements=useMemo(()=>versements.filter((v:any)=>visibleProfiles.some((p:any)=>p.id===v.profile_id) && JSON.stringify(v).toLowerCase().includes(search.trim().toLowerCase())),[versements,visibleProfiles,search]);
+  const paginatedVersements=filteredVersements.slice((versementPage-1)*pageSize,versementPage*pageSize);
+  useEffect(()=>{setPortfolioPage(1);setVersementPage(1);},[search,pageSize]);
 
   const stats=useMemo(()=>({
     solde:filtered.reduce((s:any,p:any)=>s+Number(p.solde_commissions||0),0),
@@ -173,7 +183,7 @@ export default function Portefeuilles(){
             <div className="overflow-x-auto">
               <Table className="min-w-[700px]"><TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Rôle</TableHead><TableHead>Solde</TableHead><TableHead>Total gagné</TableHead><TableHead>Total versé</TableHead></TableRow></TableHeader>
               <TableBody>
-                {loading?<TableRow><TableCell colSpan={5} className="py-8 text-center">Chargement…</TableCell></TableRow>:filtered.length===0?<TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Aucun portefeuille.</TableCell></TableRow>:filtered.map((p:any)=><TableRow key={p.id} className="cursor-pointer hover:bg-muted/40" onClick={()=>setSelected(p)}>
+                {loading?<TableRow><TableCell colSpan={5} className="py-8 text-center">Chargement…</TableCell></TableRow>:filtered.length===0?<TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Aucun portefeuille.</TableCell></TableRow>:paginatedPortefeuilles.map((p:any)=><TableRow key={p.id} className="cursor-pointer hover:bg-muted/40" onClick={()=>setSelected(p)}>
                   <TableCell className="font-medium">{formatUserShortName(p.user?.nom_complet||"—")}</TableCell>
                   <TableCell><Badge variant="outline">{p.user?.roles?.includes("commercial")?"Commercial":"Technique / Encadrement"}</Badge></TableCell>
                   <TableCell className="font-bold text-primary">{money(p.solde_commissions)}</TableCell>
@@ -181,6 +191,7 @@ export default function Portefeuilles(){
                   <TableCell>{money(p.total_verse)}</TableCell>
                 </TableRow>)}
               </TableBody></Table>
+              <ResponsiveTablePagination page={portfolioPage} pageSize={pageSize} total={filtered.length} onPageChange={setPortfolioPage} />
             </div>
           </CardContent>
         </Card>
@@ -188,10 +199,10 @@ export default function Portefeuilles(){
         {canManage&&<Card>
           <CardHeader><CardTitle className="text-base">Versements</CardTitle><TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher un versement…" /></CardHeader>
           <CardContent className="p-0"><div className="overflow-x-auto"><Table className="min-w-[720px]"><TableHeader><TableRow><TableHead>Collaborateur</TableHead><TableHead>Période</TableHead><TableHead>Brut</TableHead><TableHead>Statut</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
-            <TableBody>{versements.filter((v:any)=>visibleProfiles.some((p:any)=>p.id===v.profile_id) && JSON.stringify(v).toLowerCase().includes(search.trim().toLowerCase())).map((v:any)=>{
+            <TableBody>{paginatedVersements.map((v:any)=>{
               const p=profiles.find((x:any)=>x.id===v.profile_id);
               return <TableRow key={v.id}><TableCell>{p?.nom_complet||"—"}</TableCell><TableCell>{format(new Date(v.periode_debut),"dd/MM/yyyy")} — {format(new Date(v.periode_fin),"dd/MM/yyyy")}</TableCell><TableCell className="font-semibold">{money(v.montant_brut)}</TableCell><TableCell><Badge>{v.statut}</Badge></TableCell><TableCell className="text-right"><div className="flex flex-wrap justify-end gap-2">{v.statut==="brouillon"&&<Button size="sm" onClick={()=>validatePayout(v)} disabled={saving}>Valider</Button>}{v.statut==="valide"&&<Button size="sm" onClick={()=>markPaid(v)} disabled={saving}>Marquer payé</Button>}</div></TableCell></TableRow>
-            })}</TableBody></Table></div>
+            })}</TableBody></Table><ResponsiveTablePagination page={versementPage} pageSize={pageSize} total={filteredVersements.length} onPageChange={setVersementPage} />e></div>
           </CardContent>
         </Card>}
 
