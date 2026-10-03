@@ -21,14 +21,15 @@ export function useRegions() {
         setRegions((dataRegions || []).map((r: any) => r.nom));
         setDiasporaActive((dataDiaspora || []).length > 0);
       } catch {
-        /* repli statique */
+        setRegions([]);
+        setDiasporaActive(false);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  return { regions, loading };
+  return { regions, loading, diasporaActive };
 }
 
 interface RegionSelectProps {
