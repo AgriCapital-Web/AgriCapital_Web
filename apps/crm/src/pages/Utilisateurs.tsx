@@ -113,12 +113,44 @@ const Utilisateurs = () => {
 
   const runAdminAction = async () => {
     if (!adminTarget || !adminAction) return;
-    if ((adminAction === "roles" || adminAction === "password" || adminAction === "username") && !adminTarget.user_id) {
-      toast({ variant: "destructive", title: "Compte de connexion requis", description: "Ce profil n'est pas encore lié à un compte Auth. La création du compte doit d'abord rattacher l'identité au profil existant." });
+    if ((adminAction === "password" || adminAction === "username") && !adminTarget.user_id) {
+      toast({ variant: "destructive", title: "Compte de connexion requis", description: "Ce profil doit d'abord être rattaché à son compte Auth." });
       return;
     }
     setBusy(true);
     try {
+      if (adminAction === "roles" && !adminTarget.user_id) {
+        const tempPassword = crypto.randomUUID().replace(/-/g, "").slice(0, 16) + "Aa!";
+        const { data: created, error: createError } = await supabase.functions.invoke("create-user", {
+          body: {
+            username: adminTarget.username || String(adminTarget.email || "").split("@")[0],
+            email: adminTarget.email,
+            password: tempPassword,
+            nom_complet: adminTarget.nom_complet,
+            telephone: adminTarget.telephone || null,
+            telephone_indicatif: adminTarget.telephone_indicatif || null,
+            telephone_local: adminTarget.telephone_local || null,
+            whatsapp: adminTarget.whatsapp || null,
+            whatsapp_indicatif: adminTarget.whatsapp_indicatif || null,
+            whatsapp_local: adminTarget.whatsapp_local || null,
+            departement: adminTarget.departement || null,
+            relation_rh: adminTarget.relation_rh || "Employé",
+            taux_commission: adminTarget.taux_commission || null,
+            district_id: adminTarget.district_id || null,
+            region_id: adminTarget.region_id || null,
+            equipe_id: adminTarget.equipe_id || null,
+            photo_url: adminTarget.photo_url || null,
+            roles: selectedRoles,
+          },
+        });
+        if (createError || !created?.success) throw new Error(created?.error || createError?.message || "Création du compte impossible");
+        toast({ title: "Compte créé et rôle attribué", description: `Mot de passe temporaire : ${tempPassword}`, duration: 20000 });
+        setAdminAction(null);
+        setAdminTarget(null);
+        fetchUtilisateurs();
+        return;
+      }
+
       const body: any = { user_id: adminTarget.user_id };
       if (adminAction === "roles") { body.action = "set_roles"; body.roles = selectedRoles; }
       if (adminAction === "password") { body.action = "set_password"; body.password = newPassword; }
