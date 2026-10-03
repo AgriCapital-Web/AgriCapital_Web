@@ -61,7 +61,7 @@ const Utilisateurs = () => {
 
       const profilesWithRoles = profiles?.map((profile: any) => ({
         ...profile,
-        user_roles: roles?.filter((role: any) => role.user_id === profile.id) || []
+        user_roles: roles?.filter((role: any) => role.user_id === profile.user_id) || []
       })) || [];
 
       setUtilisateurs(profilesWithRoles);
@@ -113,13 +113,13 @@ const Utilisateurs = () => {
 
   const runAdminAction = async () => {
     if (!adminTarget || !adminAction) return;
-    if ((adminAction === "roles" || adminAction === "password") && !adminTarget.user_id) {
-      toast({ variant: "destructive", title: "Compte de connexion manquant", description: "Ce personnel existe dans le référentiel du personnel mais ne possède pas encore de compte de connexion. Créez d’abord son compte utilisateur." });
+    if ((adminAction === "roles" || adminAction === "password" || adminAction === "username") && !adminTarget.user_id) {
+      toast({ variant: "destructive", title: "Compte de connexion requis", description: "Ce profil n'est pas encore lié à un compte Auth. La création du compte doit d'abord rattacher l'identité au profil existant." });
       return;
     }
     setBusy(true);
     try {
-      const body: any = { user_id: adminTarget.user_id || adminTarget.id };
+      const body: any = { user_id: adminTarget.user_id };
       if (adminAction === "roles") { body.action = "set_roles"; body.roles = selectedRoles; }
       if (adminAction === "password") { body.action = "set_password"; body.password = newPassword; }
       if (adminAction === "username") { body.action = "set_username"; body.username = newUsername; }
