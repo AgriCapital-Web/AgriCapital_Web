@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, RefreshCw, Wallet, TrendingUp, CircleDollarSign, Coins } from "lucide-react";
 import { exportFinancialWorkbook } from "@/utils/financialExcelExport";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const money=(n:any)=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"XOF",maximumFractionDigits:0}).format(Number(n||0));
 
@@ -27,6 +28,7 @@ export default function RapportsFinanciers(){
   const [from,setFrom]=useState("");
   const [to,setTo]=useState("");
   const [loading,setLoading]=useState(true);
+  const [tableSearch,setTableSearch]=useState("");
 
   const load=async()=>{
     setLoading(true);
@@ -37,7 +39,7 @@ export default function RapportsFinanciers(){
         (supabase as any).from("paiements").select("id,client_id,montant,montant_paye,statut,date_paiement,type_paiement").order("date_paiement",{ascending:false}),
         (supabase as any).from("commissions").select("id,client_id,montant_commission,statut,date_calcul"),
         (supabase as any).from("v_monnaie_clients").select("client_id,monnaie_client"),
-        (supabase as any).from("districts").select("id,nom").eq("est_actif",true).order("nom"),
+        (supabase as any).from("v_geo_districts").select("id,nom").eq("est_actif_effectif",true).order("nom"),
         (supabase as any).from("v_geo_regions").select("id,nom").eq("est_active_effectif",true).order("nom"),
       ]);
       if(s.error)throw s.error;if(c.error)throw c.error;if(p.error)throw p.error;if(cm.error)throw cm.error;
@@ -93,6 +95,7 @@ export default function RapportsFinanciers(){
   };
 
   const offers=Array.from(new Set(rows.map(r=>r.offre_nom).filter(Boolean))).sort();
+  const tableRows=filtered.filter((r:any)=>JSON.stringify(r).toLowerCase().includes(tableSearch.trim().toLowerCase()));
   return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_RAPPORTS_FINANCIERS}>
     <MainLayout>
       <div className="space-y-5">
@@ -125,8 +128,37 @@ export default function RapportsFinanciers(){
           <Input type="date" value={to} onChange={e=>setTo(e.target.value)} aria-label="Date de fin"/>
         </div></CardContent></Card>
 
-        <Card><CardHeader><CardTitle>Contrats et encaissements</CardTitle></CardHeader><CardContent className="p-0"><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b"><th className="text-left p-3">Client</th><th className="text-left p-3">Offre</th><th className="text-right p-3">CA prévisionnel</th><th className="text-right p-3">Encaissé</th><th className="text-right p-3">Restant</th><th className="text-right p-3">Avancement</th></tr></thead><tbody>
-          {loading?<tr><td colSpan={6} className="p-8 text-center">Chargement…</td>:filtered.length===0?<tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Aucune donnée dans le périmètre sélectionné.</td></tr>:filtered.slice(0,10).map(r=><tr key={r.client_id} className="border-b"><td className="p-3">{r.nom_complet}<span className="block text-xs text-muted-foreground">{r.id_unique}</span></td><td className="p-3"><Badge variant="outline">{r.offre_nom||"—"}</Badge></td><td className="p-3 text-right">{money(r.montant_total_contrat)}</td><td className="p-3 text-right">{money(r.total_paye)}</td><td className="p-3 text-right">{money(r.reste_a_payer)}</td><td className="p-3 text-right">{Number(r.pourcentage_avancement||0).toFixed(0)}%</td></tr>)}</tbody></table></div></CardContent></Card>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>Contrats et encaissements</CardTitle>
+              <TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un client…" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b"><th className="text-left p-3">Client</th><th className="text-left p-3">Offre</th><th className="text-right p-3">CA prévisionnel</th><th className="text-right p-3">Encaissé</th><th className="text-right p-3">Restant</th><th className="text-right p-3">Avancement</th></tr></thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={6} className="p-8 text-center">Chargement…</td></tr>
+                  ) : tableRows.length === 0 ? (
+                    <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Aucune donnée dans le périmètre sélectionné.</td></tr>
+                  ) : tableRows.map((r:any) => (
+                    <tr key={r.client_id} className="border-b">
+                      <td className="p-3">{r.nom_complet}<span className="block text-xs text-muted-foreground">{r.id_unique}</span></td>
+                      <td className="p-3"><Badge variant="outline">{r.offre_nom||"—"}</Badge></td>
+                      <td className="p-3 text-right">{money(r.montant_total_contrat)}</td>
+                      <td className="p-3 text-right">{money(r.total_paye)}</td>
+                      <td className="p-3 text-right">{money(r.reste_a_payer)}</td>
+                      <td className="p-3 text-right">{Number(r.pourcentage_avancement||0).toFixed(0)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   </ProtectedRoute>;
