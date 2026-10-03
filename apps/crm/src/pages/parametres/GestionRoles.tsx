@@ -25,7 +25,7 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAppRoles, useDepartementsEntreprise } from "@/hooks/useReferentiels";
 import { useRolePermissionMatrix, usePermissions } from "@/hooks/usePermissions";
 import { PERMISSIONS_BY_MODULE, PERMISSION_CODES } from "@/lib/permissions";
-import { normalizeRole, roleLabel, ROLES as APP_ROLES, RoleDefinition } from "@/lib/roles";
+import { normalizeRole, roleLabel, ROLES as APP_ROLES, ROLE_LABELS, RoleDefinition } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import TableSearchInput from "@/components/common/TableSearchInput";
