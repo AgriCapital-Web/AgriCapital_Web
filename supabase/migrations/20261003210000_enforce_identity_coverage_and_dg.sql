@@ -25,63 +25,6 @@ AS $func$
   END;
 $func$;
 
-CREATE OR REPLACE FUNCTION public.recompute_profile_coverage(_user_id uuid)
-RETURNS void
-LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
-AS $func$
-DECLARE
-  expected text;
-  a record;
-BEGIN
-  IF _user_id IS NULL THEN RETURN; END IF;
-
-  expected := public.zone_assignment_expected_type(_user_id);
-
-  -- Profiles store the effective primary coverage for display/filtering.
-  -- zone_assignments remains the complete source of truth when several zones exist.
-  UPDATE public.profiles
-  SET district_id=NULL, region_id=NULL
-  WHERE user_id=_user_id;
-
-  IF expected IS NULL THEN RETURN; END IF;
-
-  SELECT * INTO a
-  FROM public.zone_assignments
-  WHERE user_id=_user_id AND zone_type=expected
-  ORDER BY created_at DESC NULLS LAST, id DESC
-  LIMIT 1;
-
-  IF a IS NULL THEN RETURN; END IF;
-
-  IF expected='region' THEN
-    UPDATE public.profiles p
-    SET region_id=a.zone_id,
-        district_id=(SELECT r.district_id FROM public.regions r WHERE r.id=a.zone_id)
-    WHERE p.user_id=_user_id;
-
-  ELSIF expected='departement' THEN
-    UPDATE public.profiles p
-    SET region_id=(SELECT d.region_id FROM public.departements d WHERE d.id=a.zone_id),
-        district_id=(SELECT r.district_id
-                     FROM public.regions r
-                     WHERE r.id=(SELECT d.region_id FROM public.departements d WHERE d.id=a.zone_id))
-    WHERE p.user_id=_user_id;
-
-  ELSIF expected='sous_prefecture' THEN
-    UPDATE public.profiles p
-    SET region_id=(SELECT d.region_id
-                   FROM public.departements d
-                   WHERE d.id=(SELECT sp.departement_id FROM public.sous_prefectures sp WHERE sp.id=a.zone_id)),
-        district_id=(SELECT r.district_id
-                     FROM public.regions r
-                     WHERE r.id=(SELECT d.region_id
-                                 FROM public.departements d
-                                 WHERE d.id=(SELECT sp.departement_id FROM public.sous_prefectures sp WHERE sp.id=a.zone_id)))
-    WHERE p.user_id=_user_id;
-  END IF;
-END;
-$func$;
-
 CREATE OR REPLACE FUNCTION public.reconcile_user_role_coverage(_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
