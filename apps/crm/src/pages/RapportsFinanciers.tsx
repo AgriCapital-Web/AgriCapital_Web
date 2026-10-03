@@ -38,7 +38,7 @@ export default function RapportsFinanciers(){
         (supabase as any).from("commissions").select("id,client_id,montant_commission,statut,date_calcul"),
         (supabase as any).from("v_monnaie_clients").select("client_id,monnaie_client"),
         (supabase as any).from("districts").select("id,nom").eq("est_actif",true).order("nom"),
-        (supabase as any).from("regions").select("id,nom").order("nom"),
+        (supabase as any).from("v_geo_regions").select("id,nom").eq("est_active_effectif",true).order("nom"),
       ]);
       if(s.error)throw s.error;if(c.error)throw c.error;if(p.error)throw p.error;if(cm.error)throw cm.error;
       setRows(s.data||[]);setClients(c.data||[]);setPayments(p.data||[]);setCommissions(cm.data||[]);setMoneyRows(m.data||[]);setDistricts(d.data||[]);setRegions(r.data||[]);
