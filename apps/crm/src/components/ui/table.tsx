@@ -17,7 +17,7 @@ const Table = React.forwardRef<HTMLTableElement, TableProps>(
     );
     const body = bodyIndex >= 0 ? childArray[bodyIndex] : null;
     const rows = body && React.isValidElement(body)
-      ? React.Children.toArray(body.props.children)
+      ? React.Children.toArray((body.props as { children?: React.ReactNode }).children)
       : [];
     const totalRows = rows.length;
     const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
@@ -33,7 +33,7 @@ const Table = React.forwardRef<HTMLTableElement, TableProps>(
     const renderedChildren = body && React.isValidElement(body) && paginate
       ? childArray.map((child, index) =>
           index === bodyIndex
-            ? React.cloneElement(child, {
+            ? React.cloneElement(child as React.ReactElement, {
                 children: visibleRows,
               })
             : child,
