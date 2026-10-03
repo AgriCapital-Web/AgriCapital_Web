@@ -621,6 +621,7 @@ const ClientDetail = () => {
             </TabsContent>
           </Tabs>
 
+          {/* Fermeture explicite des onglets : aucune expression JSX parasite. */}
           {/* Traçabilité et historique */}
           {id && <ActivityLog entityType="client" entityId={id} showAddNote={true} />}
         </div>
