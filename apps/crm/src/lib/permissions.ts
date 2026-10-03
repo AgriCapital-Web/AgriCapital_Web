@@ -1,7 +1,4 @@
-/**
- * SOURCE DE VÉRITÉ UNIQUE — Catalogue des permissions par module.
- * Ces codes correspondent 1:1 à la table `app_permissions` (voir plan.md).
- */
+/** Métadonnées UI des permissions connues. Les droits réellement attribués viennent exclusivement de public.role_permissions. */
 
 import { ROLES, OFFICIAL_ROLE_CODES } from "@/lib/roles";
 
