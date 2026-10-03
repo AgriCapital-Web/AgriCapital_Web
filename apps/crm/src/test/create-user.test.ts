@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import createUserSource from "../../../../supabase/functions/create-user/index.ts?raw";
+import fs from "node:fs";
+import path from "node:path";
+
+const createUserSource = fs.readFileSync(path.resolve(process.cwd(), "../../supabase/functions/create-user/index.ts"), "utf8");
 
 /**
  * Sanity-check: la fonction edge create-user ne doit JAMAIS insérer une colonne `role`
