@@ -5,7 +5,7 @@
 CREATE OR REPLACE FUNCTION public.is_admin(_user_id uuid)
 RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path='public'
-AS $$
+AS $func$$
   SELECT EXISTS (
     SELECT 1 FROM public.user_roles
     WHERE user_id=_user_id
@@ -16,7 +16,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.zone_assignment_expected_type(_user_id uuid)
 RETURNS text
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path='public'
-AS $$
+AS $func$$
   SELECT CASE
     WHEN EXISTS (SELECT 1 FROM public.user_roles WHERE user_id=_user_id AND role='responsable_commercial') THEN 'region'
     WHEN EXISTS (SELECT 1 FROM public.user_roles WHERE user_id=_user_id AND role IN ('chef_equipe_commercial','chef_equipe_technique')) THEN 'departement'
@@ -28,7 +28,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.recompute_profile_coverage(_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
-AS $$
+AS $func$$
 DECLARE
   expected text;
   a record;
@@ -85,7 +85,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.reconcile_user_role_coverage(_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
-AS $$
+AS $func$$
 DECLARE expected text;
 BEGIN
   IF _user_id IS NULL THEN RETURN; END IF;
@@ -106,12 +106,12 @@ $$;
 CREATE OR REPLACE FUNCTION public.reconcile_user_role_coverage_trigger()
 RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
-AS $
+AS $func$
 BEGIN
   PERFORM public.reconcile_user_role_coverage(COALESCE(NEW.user_id, OLD.user_id));
   RETURN COALESCE(NEW, OLD);
 END;
-$;
+$func$;
 
 DROP TRIGGER IF EXISTS trg_reconcile_role_coverage ON public.user_roles;
 CREATE TRIGGER trg_reconcile_role_coverage
@@ -122,7 +122,7 @@ EXECUTE FUNCTION public.reconcile_user_role_coverage_trigger();
 CREATE OR REPLACE FUNCTION public.validate_zone_assignment()
 RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
-AS $$
+AS $func$$
 DECLARE expected text;
 BEGIN
   expected := public.zone_assignment_expected_type(NEW.user_id);
@@ -138,7 +138,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.normalize_profile_org_scope()
 RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
-AS $$
+AS $func$$
 BEGIN
   IF NEW.relation_rh IN ('PDG','DG','Associé / Actionnaire') THEN
     NEW.departement=NULL; NEW.equipe_id=NULL; NEW.district_id=NULL; NEW.region_id=NULL; NEW.taux_commission=NULL;
@@ -152,7 +152,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.sync_governance_role_from_profile()
 RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
-AS $$
+AS $func$$
 BEGIN
   IF NEW.user_id IS NULL THEN RETURN NEW; END IF;
 
