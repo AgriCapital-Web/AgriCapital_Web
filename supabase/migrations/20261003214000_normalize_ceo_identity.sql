@@ -1,0 +1,1 @@
+update public.profiles set nom_complet='KOFFI INOCENT',updated_at=now() where upper(trim(nom_complet))='INOCENT KOFFI';
