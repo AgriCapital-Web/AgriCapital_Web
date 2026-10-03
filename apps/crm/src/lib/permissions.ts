@@ -35,6 +35,7 @@ export const PERMISSION_CATALOG: PermissionDef[] = [
   ...build("portefeuilles", "Portefeuilles", [["view", "Consulter"], ["manage_payouts", "Gérer les versements"]]),
   ...build("tickets", "Support", [["view", "Consulter"], ["create", "Créer"], ["update", "Traiter"]]),
   ...build("parametres", "Paramètres", [["view", "Accéder aux paramètres"], ["manage_geo", "Gérer le référentiel géographique"], ["manage_teams", "Gérer les équipes"], ["manage_system", "Gérer la configuration système"], ["view_audit", "Consulter les journaux d'audit"]]),
+  ...build("finance", "Finance & Comptabilité", [["view", "Consulter"], ["manage", "Gérer"], ["expenses", "Gérer les dépenses"], ["payroll", "Gérer les salaires et la paie"], ["associates", "Gérer les mouvements des associés"], ["reports", "Consulter les rapports financiers"]]),
 ];
 
 export const PERMISSION_CODES = PERMISSION_CATALOG.map((p) => p.code);
@@ -46,9 +47,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.SUPER_ADMIN]: all(),
   [ROLES.PDG]: all(),
   [ROLES.DG]: all(),
-  [ROLES.RESPONSABLE_OPERATIONS]: only("clients.view_money", "utilisateurs.", "offres.", "promotions.", "leads.", "clients.", "plantations.", "documents.", "rapports.", "tickets.", "commissions.view", "paiements.view", "paiements.record", "paiements.validate", "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit", "portefeuilles.view").filter((c) => !["utilisateurs.delete", "utilisateurs.manage_roles"].includes(c)),
+  [ROLES.RESPONSABLE_OPERATIONS]: only("finance.view", "finance.reports", "clients.view_money", "utilisateurs.", "offres.", "promotions.", "leads.", "clients.", "plantations.", "documents.", "rapports.", "tickets.", "commissions.view", "paiements.view", "paiements.record", "paiements.validate", "parametres.view", "parametres.manage_geo", "parametres.manage_teams", "parametres.view_audit", "portefeuilles.view").filter((c) => !["utilisateurs.delete", "utilisateurs.manage_roles"].includes(c)),
   [ROLES.RESPONSABLE_COMMERCIAL]: only("leads.", "clients.view", "portefeuilles.view", "clients.create", "clients.update", "plantations.view", "offres.view", "promotions.view", "paiements.view", "commissions.view", "rapports.view_financier", "rapports.export", "documents.view", "tickets.view", "utilisateurs.view", "parametres.manage_teams"),
-  [ROLES.COMPTABLE]: only("clients.view_money", "paiements.", "commissions.", "commissions.manage_payouts", "portefeuilles.", "portefeuilles.manage_payouts", "rapports.view_financier", "rapports.export", "clients.view", "offres.view", "promotions.view", "documents.view", "documents.validate"),
+  [ROLES.COMPTABLE]: only("finance.", "clients.view_money", "paiements.", "commissions.", "commissions.manage_payouts", "portefeuilles.", "portefeuilles.manage_payouts", "rapports.view_financier", "rapports.export", "clients.view", "offres.view", "promotions.view", "documents.view", "documents.validate"),
   [ROLES.CHEF_EQUIPE_COMMERCIAL]: only("leads.view", "leads.create", "leads.update", "leads.assign", "clients.view", "clients.create", "clients.update", "beneficiaires.view", "portefeuilles.view", "commissions.view", "plantations.view", "offres.view", "promotions.view", "documents.view", "documents.upload"),
   [ROLES.TECHNICIEN]: only("leads.create", "clients.view", "plantations.view", "plantations.update", "documents.view", "documents.upload", "rapports.view_technique", "tickets.view", "tickets.create", "tickets.update", "portefeuilles.view", "commissions.view"),
   [ROLES.CHEF_EQUIPE_TECHNIQUE]: only("plantations.", "documents.view", "documents.upload", "rapports.view_technique", "tickets.view", "portefeuilles.view", "commissions.view", "tickets.create", "tickets.update", "clients.view", "leads.create"),
@@ -56,7 +57,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.COMMERCIAL]: only("leads.view", "leads.create", "leads.update", "clients.view", "clients.create", "clients.update", "plantations.view", "offres.view", "promotions.view", "commissions.view", "portefeuilles.view", "documents.view", "documents.upload"),
   [ROLES.SERVICE_CLIENT]: only("clients.view_money", "tickets.view", "tickets.create", "tickets.update", "clients.view", "clients.create", "leads.view", "leads.create", "paiements.view", "paiements.record", "paiements.validate", "documents.view"),
   [ROLES.ASSISTANT_ADMIN]: only("clients.view", "documents.view", "documents.upload", "leads.view", "plantations.view", "tickets.view", "rapports.export"),
-  [ROLES.ASSOCIE_ACTIONNAIRE]: only("offres.view", "promotions.view", "leads.view", "clients.view", "plantations.view", "paiements.view", "documents.view", "rapports.view_technique", "rapports.view_financier", "rapports.export", "commissions.view", "tickets.view"),
+  [ROLES.ASSOCIE_ACTIONNAIRE]: only("finance.view", "finance.reports", "offres.view", "promotions.view", "leads.view", "clients.view", "plantations.view", "paiements.view", "documents.view", "rapports.view_technique", "rapports.view_financier", "rapports.export", "commissions.view", "tickets.view"),
 };
 
 OFFICIAL_ROLE_CODES.forEach((code) => { DEFAULT_ROLE_PERMISSIONS[code] ||= []; });
