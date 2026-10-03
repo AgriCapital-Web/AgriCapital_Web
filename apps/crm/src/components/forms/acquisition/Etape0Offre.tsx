@@ -57,6 +57,17 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     setLoadingCommercialDefault(true);
     (async () => {
       try {
+        if (formData.lead_id) {
+          const { data: lead, error: leadError } = await (supabase as any)
+            .from("leads")
+            .select("assigned_to")
+            .eq("id", formData.lead_id)
+            .maybeSingle();
+          if (mounted && !leadError && lead?.assigned_to) {
+            updateFormData({ commercial_id: lead.assigned_to });
+            return;
+          }
+        }
         const { data, error } = await (supabase as any).rpc("get_default_commercial_for_client");
         if (mounted && !error && data) updateFormData({ commercial_id: data });
       } finally {
@@ -64,7 +75,7 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
       }
     })();
     return () => { mounted = false; };
-  }, [formData.commercial_id, updateFormData]);
+  }, [formData.commercial_id, formData.lead_id, updateFormData]);
   
   // Les offres sont pilotées par leur configuration métier. Aucun montant n'est saisi manuellement ici.
   
@@ -158,21 +169,18 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     <div className="space-y-6">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base sm:text-lg">Responsable commercial</CardTitle>
+          <CardTitle className="text-base sm:text-lg">Commercial</CardTitle>
           <CardDescription>
-            Le Client est rattaché à un commercial responsable. Le champ permet de rechercher un commercial ou de le sélectionner dans la liste.
+            Commercial ayant réalisé la vente. Recherchez un commercial ou sélectionnez-le dans la liste.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <CommercialCombobox
             value={formData.commercial_id || null}
             onChange={(value) => updateFormData({ commercial_id: value })}
-            placeholder={loadingCommercialDefault ? "Détermination du commercial par défaut…" : "Rechercher ou sélectionner un commercial…"}
-            disabled={loadingCommercialDefault}
+            placeholder={loadingCommercialDefault ? "Détermination du commercial…" : "Rechercher ou sélectionner un commercial…"}
+            disabled={loadingCommercialDefault || !!formData.lead_id}
           />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Commercial / Chef d'équipe commercial : votre compte est proposé automatiquement. Pour les autres profils autorisés, le CRM propose automatiquement le commercial le plus vendeur selon les ventes attribuées.
-          </p>
         </CardContent>
       </Card>
       {/* Promotion active */}
