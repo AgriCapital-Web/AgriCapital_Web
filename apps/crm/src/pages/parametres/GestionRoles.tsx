@@ -405,7 +405,7 @@ const GestionRoles = () => {
                         <SelectValue placeholder="Sélectionner un rôle" />
                       </SelectTrigger>
                       <SelectContent>
-                        {filteredRoles.map((role) => (
+                        {roles.map((role) => (
                           <SelectItem key={role.code} value={role.code}>
                             {role.nom}
                           </SelectItem>
@@ -429,9 +429,8 @@ const GestionRoles = () => {
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border overflow-x-auto">
-            <Table>
-              <div className="mb-3"><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un rôle ou un utilisateur…" /></div>
-              <TableHeader>
+            <div className="mb-3"><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un rôle ou un utilisateur…" /></div>
+            <TableHeader>
                 <TableRow>
                   <TableHead>Utilisateur</TableHead>
                   <TableHead>Département</TableHead>
@@ -501,7 +500,6 @@ const GestionRoles = () => {
                 )}
               </TableBody>
             </Table>
-              <ResponsiveTablePagination page={profilePage} pageSize={pageSize} total={filteredProfiles.length} onPageChange={setProfilePage} />
           </div>
         </CardContent>
       </Card>
