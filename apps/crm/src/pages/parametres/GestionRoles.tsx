@@ -162,7 +162,6 @@ const GestionRoles = () => {
         });
         if (createError || !created?.success) throw new Error(created?.error || createError?.message || "Création du compte impossible");
         uid = created.user_id;
-        toast({ title: "Compte créé", description: `Le compte Auth a été créé et le rôle ${ROLE_LABELS[selectedRole] || selectedRole} a été attribué. Mot de passe temporaire : ${tempPassword}`, duration: 20000 });
       } else {
         const { error } = await (supabase as any).from("user_roles").insert({ user_id: uid, role: selectedRole });
         if (error) throw error;
