@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Check, X, ExternalLink, FileCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 type Doc = {
   id: string;
@@ -36,6 +37,7 @@ const Documents = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("en_attente");
   const [motifs, setMotifs] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -82,7 +84,10 @@ const Documents = () => {
   };
 
   const normalizedDocs = docs.map((d) => ({ ...d, statut: d.statut === "soumis" ? "en_attente" : d.statut }));
-  const filtered = normalizedDocs.filter((d) => filter === "all" || d.statut === filter);
+  const filtered = normalizedDocs.filter((d) =>
+    (filter === "all" || d.statut === filter) &&
+    JSON.stringify(d).toLowerCase().includes(search.trim().toLowerCase())
+  );
   const pendingCount = normalizedDocs.filter((d) => d.statut === "en_attente").length;
   const validCount = normalizedDocs.filter((d) => d.statut === "valide").length;
   const rejectedCount = normalizedDocs.filter((d) => d.statut === "rejete").length;
@@ -113,7 +118,10 @@ const Documents = () => {
             <TabsContent value={filter} className="mt-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">{filtered.length} document(s)</CardTitle>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <CardTitle className="text-base">{filtered.length} document(s)</CardTitle>
+                    <TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher un document…" />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {loading ? (
