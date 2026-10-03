@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm install -g npm@12.2.0 && npm install",
+  "installCommand": "npm install --global npm@12.2.0 && npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
