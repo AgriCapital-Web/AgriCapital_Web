@@ -94,9 +94,9 @@ export const Etape1Client = ({ formData, updateFormData }: Etape1Props) => {
   useEffect(() => {
     const fetchDistricts = async () => {
       const { data } = await (supabase as any)
-        .from("districts")
+        .from("v_geo_districts")
         .select("*")
-        .eq("est_actif", true)
+        .eq("est_actif_effectif", true)
         .order("nom");
       if (data) setDistricts(data);
     };
