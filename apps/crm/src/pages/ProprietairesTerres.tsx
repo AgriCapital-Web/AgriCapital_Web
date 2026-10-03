@@ -69,11 +69,12 @@ const ProprietairesTerres = () => {
     domicile: "",
     district_id: "", region_id: "", departement_id: "", sous_prefecture_id: "", village: "",
     surface_totale_declaree_ha: "", coordonnees_gps: "", date_signature_convention: "",
+    type_convention: "plante_partage", part_agricapital_pct: "50", nombre_lots_agricapital: "0",
     statut_foncier: "coutumier", reference_cadastrale: "",
     limites_nord: "", limites_sud: "", limites_est: "", limites_ouest: "",
     servitudes: "", croquis_joint: false,
     plantation_partagee_activee: true, plantation_surface_cible_ha: "",
-    plantation_type_culture: "Palmier à huile", plantation_densite_plants: "140", plantation_date_activation: "",
+    plantation_type_culture: "Palmier à huile", plantation_densite_plants: "143", plantation_date_activation: "",
     co_titulaire_nom: "", co_titulaire_lien: "", co_titulaire_piece: "", co_titulaire_telephone: "", co_titulaire_telephone_indicatif: "+225", co_titulaire_telephone_local: "",
     temoin_proprietaire_nom: "", temoin_proprietaire_qualite: "", representant_agricapital_nom: "", representant_agricapital_qualite: "",
     leader_communautaire_nom: "", leader_communautaire_qualite: "", voisin_1_nom: "", voisin_1_cote: "", voisin_2_nom: "", voisin_2_cote: "",
@@ -159,9 +160,16 @@ const ProprietairesTerres = () => {
         : `${formData.nom} ${formData.prenoms}`.trim();
 
       const surfaceTotale = formData.surface_totale_declaree_ha ? parseFloat(formData.surface_totale_declaree_ha) : null;
-      const partProprietaireHa = surfaceTotale ? surfaceTotale / 2 : null;
-      const partAgriHa = surfaceTotale ? surfaceTotale / 2 : null;
-      const cautionTotale = partAgriHa ? partAgriHa * 50000 : null;
+      const typeConvention = formData.type_convention || "plante_partage";
+      const agriPct = typeConvention === "achat" ? 100 : Math.max(0, Math.min(100, Number(formData.part_agricapital_pct || 50)));
+      const ownerPct = 100 - agriPct;
+      const partAgriHa = surfaceTotale ? (surfaceTotale * agriPct) / 100 : null;
+      const partProprietaireHa = surfaceTotale ? (surfaceTotale * ownerPct) / 100 : null;
+      const nombreLots = Math.max(0, parseInt(formData.nombre_lots_agricapital || "0", 10) || 0);
+      if (surfaceTotale && nombreLots > Math.floor(partAgriHa || 0)) {
+        throw new Error(`Le nombre de lots AgriCapital ne peut pas dépasser ${Math.floor(partAgriHa || 0)} lot(s) de 1 ha.`);
+      }
+      const cautionTotale = typeConvention === "plante_partage" && partAgriHa ? partAgriHa * 50000 : 0;
 
       const propPayload: any = {
         nom_complet: nomComplet,
@@ -194,8 +202,9 @@ const ProprietairesTerres = () => {
         reference_cadastrale: formData.reference_cadastrale || null,
         coordonnees_gps: formData.coordonnees_gps || null,
         surface_totale_declaree_ha: surfaceTotale,
-        part_proprietaire_pct: 50,
-        part_agricapital_pct: 50,
+        part_proprietaire_pct: ownerPct,
+        part_agricapital_pct: agriPct,
+        nombre_lots_agricapital: nombreLots,
         part_proprietaire_ha: partProprietaireHa,
         part_agricapital_ha: partAgriHa,
         caution_par_ha: 50000,
@@ -234,13 +243,16 @@ const ProprietairesTerres = () => {
           proprietaire_id: proprietaire.id,
           nom: `${nomComplet} — ${formData.village || "Parcelle PP"}`,
           surface_totale_ha: surfaceTotale,
-          mode_surface: "foncier",
-          plantation_partagee_activee: Boolean(formData.plantation_partagee_activee),
+          mode_surface: typeConvention === "achat" ? "achat" : "plante_partage",
+          surface_proprietaire_ha: partProprietaireHa || 0,
+          surface_agricapital_ha: partAgriHa || 0,
+          surface_attribuee_ha: 0,
+          plantation_partagee_activee: typeConvention === "plante_partage",
           plantation_surface_cible_ha: formData.plantation_partagee_activee
             ? (formData.plantation_surface_cible_ha ? parseFloat(formData.plantation_surface_cible_ha) : surfaceTotale)
             : null,
           plantation_type_culture: formData.plantation_type_culture || "Palmier à huile",
-          plantation_densite_plants: formData.plantation_densite_plants ? parseInt(formData.plantation_densite_plants) : 140,
+          plantation_densite_plants: 143,
           plantation_date_activation: formData.plantation_date_activation || null,
           district_id: formData.district_id || null,
           region_id: formData.region_id || null,
@@ -263,13 +275,14 @@ const ProprietairesTerres = () => {
         proprietaire_id: proprietaire.id,
         parcelle_id: parcelleId,
         sous_prefecture_id: formData.sous_prefecture_id || null,
-        type_convention: "PP",
+        type_convention: typeConvention,
         duree_ans: 30,
         date_signature: formData.date_signature_convention || null,
         date_debut: formData.date_signature_convention || null,
         surface_totale_ha: surfaceTotale || 0,
-        part_proprietaire_pct: 50,
-        part_agricapital_pct: 50,
+        part_proprietaire_pct: ownerPct,
+        part_agricapital_pct: agriPct,
+        nombre_lots_agricapital: nombreLots,
         part_proprietaire_ha: partProprietaireHa,
         part_agricapital_ha: partAgriHa,
         caution_par_ha: 50000,
@@ -328,6 +341,7 @@ const ProprietairesTerres = () => {
       date_delivrance_piece: "", domicile: "", district_id: "", region_id: "",
       departement_id: "", sous_prefecture_id: "", village: "",
       surface_totale_declaree_ha: "", coordonnees_gps: "", date_signature_convention: "",
+      type_convention: "plante_partage", part_agricapital_pct: "50", nombre_lots_agricapital: "0",
       statut_foncier: "coutumier", reference_cadastrale: "",
       limites_nord: "", limites_sud: "", limites_est: "", limites_ouest: "",
       servitudes: "", croquis_joint: false,
@@ -523,8 +537,26 @@ const ProprietairesTerres = () => {
                       <h4 className="font-semibold">Description de la parcelle (Section II Convention)</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Superficie totale (ha) *</Label>
-                          <Input type="number" min="2" step="0.1" value={formData.surface_totale_declaree_ha} onChange={e => update('surface_totale_declaree_ha', e.target.value)} required />
+                          <Label>Type de convention *</Label>
+                          <Select value={formData.type_convention} onValueChange={v => update('type_convention', v)}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="plante_partage">Planté-partagé</SelectItem>
+                              <SelectItem value="achat">Achat</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Superficie totale de la parcelle (ha) *</Label>
+                          <Input type="number" min="0.1" step="0.1" value={formData.surface_totale_declaree_ha} onChange={e => update('surface_totale_declaree_ha', e.target.value)} required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Part AgriCapital (%)</Label>
+                          <Input type="number" min="0" max="100" step="1" disabled={formData.type_convention === "achat"} value={formData.type_convention === "achat" ? "100" : formData.part_agricapital_pct} onChange={e => update('part_agricapital_pct', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Nombre de lots AgriCapital (1 ha / lot)</Label>
+                          <Input type="number" min="0" step="1" value={formData.nombre_lots_agricapital} onChange={e => update('nombre_lots_agricapital', e.target.value)} />
                         </div>
                         <div className="space-y-2">
                           <Label>Date de signature convention</Label>
@@ -551,13 +583,20 @@ const ProprietairesTerres = () => {
                           <Input value={formData.coordonnees_gps} onChange={e => update('coordonnees_gps', e.target.value)} placeholder="Ex: 6.8891, -6.4502 ou polygone GPS" />
                         </div>
                       </div>
-                      {formData.surface_totale_declaree_ha && parseFloat(formData.surface_totale_declaree_ha) >= 2 && (
-                        <div className="p-3 rounded-md bg-primary/10 text-sm space-y-1">
-                          <p>Part propriétaire : <strong>{(parseFloat(formData.surface_totale_declaree_ha) / 2).toFixed(2)} ha</strong> (50%)</p>
-                          <p>Part AgriCapital : <strong>{(parseFloat(formData.surface_totale_declaree_ha) / 2).toFixed(2)} ha</strong> (50%)</p>
-                          <p>Caution foncière : <strong>{((parseFloat(formData.surface_totale_declaree_ha) / 2) * 50000).toLocaleString('fr-FR')} FCFA</strong></p>
-                        </div>
-                      )}
+                      {formData.surface_totale_declaree_ha && parseFloat(formData.surface_totale_declaree_ha) > 0 && (() => {
+                        const total = parseFloat(formData.surface_totale_declaree_ha);
+                        const agriPct = formData.type_convention === "achat" ? 100 : Number(formData.part_agricapital_pct || 50);
+                        const ownerPct = 100 - agriPct;
+                        const agriHa = total * agriPct / 100;
+                        const ownerHa = total * ownerPct / 100;
+                        const lots = Number(formData.nombre_lots_agricapital || 0);
+                        return <div className="p-3 rounded-md bg-primary/10 text-sm space-y-1">
+                          <p>Part propriétaire : <strong>{ownerHa.toFixed(2)} ha</strong> ({ownerPct}%)</p>
+                          <p>Part AgriCapital : <strong>{agriHa.toFixed(2)} ha</strong> ({agriPct}%)</p>
+                          <p>Lots AgriCapital : <strong>{lots}</strong> × 1 ha</p>
+                          {formData.type_convention === "plante_partage" && <p>Caution foncière : <strong>{(agriHa * 50000).toLocaleString('fr-FR')} FCFA</strong></p>}
+                        </div>;
+                      })()}
                       <h4 className="font-semibold mt-4">Limites de la parcelle</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
