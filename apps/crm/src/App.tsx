@@ -16,6 +16,7 @@ import Plantations from "./pages/Plantations";
 import PlantationDetail from "./pages/PlantationDetail";
 import GestionPaiements from "./pages/GestionPaiements";
 import RapportsFinanciers from "./pages/RapportsFinanciers";
+import Finance from "./pages/Finance";
 import RapportsTechniques from "./pages/RapportsTechniques";
 import Commissions from "./pages/Commissions";
 import Portefeuilles from "./pages/Portefeuilles";
@@ -117,6 +118,7 @@ const DomainRouter = () => {
       <Route path="/account-requests" element={<Navigate to="/parametres?tab=demandes" replace />} />
       
       {/* Rapports */}
+      <Route path="/finance" element={<Finance />} />
       <Route path="/rapports-financiers" element={<RapportsFinanciers />} />
       <Route path="/rapports-techniques" element={<Navigate to="/support" replace />} />
       <Route path="/terrain" element={<TechnicienTerrain />} />
