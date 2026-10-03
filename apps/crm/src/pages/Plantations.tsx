@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 import { Link, useSearchParams } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -24,6 +26,8 @@ const Plantations = () => {
   const [plantations, setPlantations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [tablePage, setTablePage] = useState(1);
+  const pageSize = useResponsivePageSize();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [plantationToDelete, setPlantationToDelete] = useState<any>(null);
   const { toast } = useToast();
@@ -124,6 +128,9 @@ const Plantations = () => {
 
   const productionOnly = statutFilter === "en_production";
 
+  const paginatedPlantations = filteredPlantations.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+  useEffect(() => setTablePage(1), [searchTerm, pageSize]);
+
   return (
     <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}>
       <MainLayout>
@@ -164,7 +171,7 @@ const Plantations = () => {
               <TableBody>
                 {loading ? <TableRow><TableCell colSpan={8} className="text-center py-8">Chargement...</TableCell></TableRow>
                 : filteredPlantations.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center py-8">Aucune plantation trouvée</TableCell></TableRow>
-                : filteredPlantations.map((plantation) => (
+                : paginatedPlantations.map((plantation) => (
                   <TableRow key={plantation.id} className="hover:bg-muted/40">
                     <TableCell className="font-mono text-sm font-medium">
                       <Link to={`/plantations/${plantation.id}`} className="text-primary hover:underline">{plantation.id_unique}</Link>
@@ -201,6 +208,7 @@ const Plantations = () => {
                 ))}
               </TableBody>
             </Table>
+            <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={filteredPlantations.length} onPageChange={setTablePage} />
           </div>
         </div>
 
