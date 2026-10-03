@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn, formatUserShortName } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { COMMERCIAL_ASSIGNABLE_ROLES, normalizeRole, roleLabel } from "@/lib/roles";
+import { normalizeRole, roleLabel } from "@/lib/roles";
 
 interface CommercialComboboxProps {
   value?: string | null;
@@ -53,7 +53,7 @@ const CommercialCombobox = ({
           const uid = p.user_id || p.id;
           return { id: uid, nom: formatUserShortName(p.nom_complet || p.email || "Sans nom"), roles: rolesByUser.get(uid) || [] };
         })
-        .filter((p: any) => p.roles.some((r: string) => COMMERCIAL_ASSIGNABLE_ROLES.includes(r)));
+        .filter((p: any) => p.roles.some((r: string) => ["commercial", "chef_equipe_commercial", "responsable_commercial"].includes(r)));
 
       setOptions(list);
     })();
