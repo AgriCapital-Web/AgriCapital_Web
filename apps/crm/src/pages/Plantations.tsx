@@ -107,7 +107,7 @@ const Plantations = () => {
     }
   };
 
-  const formatStatut = (statut: string) => statut === "active" ? "Actif" : (statut || "—").replaceAll("_", " ");
+  const formatStatut = (statut: string) => statut === "active" ? "Actif" : (statut || "—").replace(/_/g, " ");
 
   const getStatutBadge = (statut: string) => {
     const colors: Record<string, string> = {
