@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { offlineUpdate, offlineInsert } from "@/lib/offlineWrite";
+import { offlineUpdate } from "@/lib/offlineWrite";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { uploadFile } from "@/utils/storage";
@@ -9,12 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import FileUpload from "@/components/ui/file-upload";
 import FileUploadVisual from "@/components/ui/file-upload-visual";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, UserRound } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
 import CommercialCombobox from "@/components/common/CommercialCombobox";
@@ -23,12 +22,6 @@ interface ClientFormProps { client?: any; onSuccess: () => void; onCancel: () =>
 
 const upperName=(value:string)=>value.toLocaleUpperCase("fr-FR");
 
-const CODES = [
-  ["+225","Côte d’Ivoire"],["+33","France"],["+1","USA / Canada"],["+32","Belgique"],
-  ["+41","Suisse"],["+44","Royaume-Uni"],["+221","Sénégal"],["+224","Guinée"],
-  ["+226","Burkina Faso"],["+223","Mali"],["+237","Cameroun"],["+228","Togo"],["+229","Bénin"],
-];
-
 const CLIENT_COLUMNS = new Set([
   "civilite","nom_famille","prenoms","nom_complet","nom","date_naissance","lieu_naissance","statut_marital",
   "type_piece","numero_piece","date_delivrance_piece","telephone","whatsapp","email","domicile","domicile_residence",
@@ -36,13 +29,6 @@ const CLIENT_COLUMNS = new Set([
   "numero_compte","nom_titulaire_compte","photo_profil_url","fichier_piece_url","fichier_piece_recto_url",
   "fichier_piece_verso_url","localite","nationalite","type_client","telephone_indicatif","telephone_local",
   "whatsapp_indicatif","whatsapp_local","updated_by"
-]);
-
-const PARCEL_COLUMNS = new Set([
-  "nom","surface_totale_ha","surface_proprietaire_ha","surface_agricapital_ha","surface_attribuee_ha",
-  "surface_disponible_ha","district_id","region_id","departement_id","sous_prefecture_id","village_id","village",
-  "localisation_gps_lat","localisation_gps_lng","notes","mode_surface","plantation_surface_cible_ha",
-  "plantation_type_culture","plantation_densite_plants","updated_by"
 ]);
 
 const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
@@ -74,13 +60,6 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
 
   const isBeneficiary = form.type_client === "beneficiaire_particulier";
   const hasActivity = Number(form.nombre_plantations || 0) > 0 || Boolean(form.pi_paye_at || form.paiement_initial_paye_at);
-
-  const handleFileSelect = (file: File, setter: (f: File) => void, previewSetter: (url: string) => void) => {
-    setter(file);
-    const reader = new FileReader();
-    reader.onloadend = () => previewSetter(reader.result as string);
-    reader.readAsDataURL(file);
-  };
 
   const onSubmit = async () => {
     if (!user || !client?.id) return;
