@@ -104,7 +104,11 @@ const PlantationDetail = () => {
   if (loading) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}><MainLayout><div className="py-20 text-center">Chargement…</div></MainLayout></ProtectedRoute>;
   if (!plantation) return <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}><MainLayout><Card><CardContent className="py-10 text-center">Plantation introuvable.</CardContent></Card></MainLayout></ProtectedRoute>;
 
-  const paginatedPayments = paiements.slice((paymentPage - 1) * pageSize, paymentPage * pageSize);\n  const paginatedInterventions = interventions.slice((interventionPage - 1) * pageSize, interventionPage * pageSize);\n  useEffect(() => { setPaymentPage(1); setInterventionPage(1); }, [pageSize, id]);\n\n  return (
+  const paginatedPayments = paiements.slice((paymentPage - 1) * pageSize, paymentPage * pageSize);
+  const paginatedInterventions = interventions.slice((interventionPage - 1) * pageSize, interventionPage * pageSize);
+  useEffect(() => { setPaymentPage(1); setInterventionPage(1); }, [pageSize, id]);
+
+  return (
     <ProtectedRoute requiredPermission={PERMISSIONS.VIEW_PLANTATIONS}>
       <MainLayout>
         <div className="min-w-0 space-y-5">
