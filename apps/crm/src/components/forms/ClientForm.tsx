@@ -14,7 +14,7 @@ import FileUploadVisual from "@/components/ui/file-upload-visual";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import PieceTypeSelect from "@/components/common/PieceTypeSelect";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, LandPlot, UserRound } from "lucide-react";
+import { AlertCircle, UserRound } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import GeographieCascade from "@/components/common/GeographieCascade";
 import CommercialCombobox from "@/components/common/CommercialCombobox";
@@ -34,7 +34,7 @@ const CLIENT_COLUMNS = new Set([
   "type_piece","numero_piece","date_delivrance_piece","telephone","whatsapp","email","domicile","domicile_residence",
   "district_id","region_id","departement_id","sous_prefecture_id","village_id","offre_id","commercial_id","type_compte","banque_operateur",
   "numero_compte","nom_titulaire_compte","photo_profil_url","fichier_piece_url","fichier_piece_recto_url",
-  "fichier_piece_verso_url","localite","nationalite","type_client","parcelle_id","telephone_indicatif","telephone_local",
+  "fichier_piece_verso_url","localite","nationalite","type_client","telephone_indicatif","telephone_local",
   "whatsapp_indicatif","whatsapp_local","updated_by"
 ]);
 
@@ -49,10 +49,8 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [form, setForm] = useState<any>(() => ({ ...client }));
-  const [parcel, setParcel] = useState<any>(null);
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingParcel, setLoadingParcel] = useState(Boolean(client?.parcelle_id));
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [pieceRectoFile, setPieceRectoFile] = useState<File | null>(null);
   const [pieceVersoFile, setPieceVersoFile] = useState<File | null>(null);
@@ -69,28 +67,13 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!client?.parcelle_id) { setParcel(null); setLoadingParcel(false); return; }
-    (async () => {
-      setLoadingParcel(true);
-      const { data, error } = await (supabase as any).from("parcelles").select("*").eq("id", client.parcelle_id).maybeSingle();
-      if (!error) setParcel(data || null);
-      setLoadingParcel(false);
-    })();
-  }, [client?.parcelle_id]);
-
   const offer = useMemo(
     () => offers.find(o => o.id === form.offre_id) || { code: form.formule_code, nom: form.formule_nom, necessite_foncier_client: ["terra-palm","terra-palm-plus","palm-terroir-essentielle","palm-terroir-flexible"].includes(String(form.formule_code || "").toLowerCase()) },
     [offers, form.offre_id, form.formule_code, form.formule_nom]
   );
 
-  const ownLand = Boolean(offer?.necessite_foncier_client) || form.type_client_foncier === "OWN" || form.type_client === "avec_terre";
   const isBeneficiary = form.type_client === "beneficiaire_particulier";
   const hasActivity = Number(form.nombre_plantations || 0) > 0 || Boolean(form.pi_paye_at || form.paiement_initial_paye_at);
-
-  const updateParcel = (key: string, value: any) => {
-    setParcel((p: any) => ({ ...(p || {}), [key]: value }));
-  };
 
   const handleFileSelect = (file: File, setter: (f: File) => void, previewSetter: (url: string) => void) => {
     setter(file);
@@ -133,21 +116,6 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
       const { error } = await offlineUpdate("clients", client.id, clientPayload);
       if (error) throw error;
 
-      // Pour une terre propre au Client, on met à jour la parcelle existante.
-      // Pour un foncier externe, la convention/lot reste pilotée par le parcours foncier.
-      if (ownLand && parcel?.id) {
-        const parcelPayload: any = {};
-        for (const key of PARCEL_COLUMNS) if (key in parcel) parcelPayload[key] = parcel[key];
-        parcelPayload.updated_by = user.id;
-        parcelPayload.surface_totale_ha = Number(parcel.surface_totale_ha || form.total_hectares || 0);
-        parcelPayload.surface_proprietaire_ha = Number(parcel.surface_proprietaire_ha || parcel.surface_totale_ha || 0);
-        parcelPayload.surface_agricapital_ha = Number(parcel.surface_agricapital_ha || 0);
-        parcelPayload.surface_attribuee_ha = Number(parcel.surface_attribuee_ha || 0);
-        parcelPayload.surface_disponible_ha = Math.max(0, parcelPayload.surface_totale_ha - parcelPayload.surface_attribuee_ha);
-        const { error: parcelError } = await (supabase as any).from("parcelles").update(parcelPayload).eq("id", parcel.id);
-        if (parcelError) throw parcelError;
-      }
-
       toast({ title: "Dossier mis à jour", description: `${clientPayload.nom_complet || "Le Client"} a été modifié avec succès.` });
       onSuccess();
     } catch (error: any) {
@@ -179,7 +147,7 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline">{isBeneficiary ? "Bénéficiaire particulier" : "Client officiel"}</Badge>
           {offer?.nom && <Badge>{offer.nom}</Badge>}
-          <Badge variant="secondary">{ownLand ? "Terre du Client" : "Foncier AgriCapital / externe"}</Badge>
+
         </div>
       </div>
 
@@ -225,33 +193,6 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
             <div><Label>Formule</Label><Input value={form.formule_nom || form.formule_code || "—"} disabled /></div>
           </div>
           {hasActivity && <div className="flex gap-2 items-start rounded-lg border p-3 text-sm"><AlertCircle className="h-4 w-4 mt-0.5 text-muted-foreground"/><span>L’offre est verrouillée car le dossier possède déjà une activation, un paiement initial ou une plantation. Toute modification contractuelle doit passer par le parcours contractuel.</span></div>}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><LandPlot className="h-4 w-4"/>Foncier et parcelle</CardTitle><CardDescription>{ownLand ? "Cette offre utilise la terre du Client. Aucun propriétaire foncier tiers n’est obligatoire." : "Cette offre utilise un foncier mis à disposition / géré par AgriCapital. La convention et le lot restent gérés dans le parcours foncier."}</CardDescription></CardHeader>
-        <CardContent className="space-y-4">
-          {ownLand ? (
-            loadingParcel ? <p className="text-sm text-muted-foreground">Chargement de la parcelle…</p> :
-            parcel ? <div className="grid md:grid-cols-3 gap-4">
-              <div><Label>Référence parcelle</Label><Input value={parcel.id_unique || ""} disabled /></div>
-              <div><Label>Nom de parcelle</Label><Input value={parcel.nom || ""} onChange={e=>updateParcel("nom",e.target.value)}/></div>
-              <div><Label>Superficie totale (ha)</Label><Input type="number" min="0" step="0.01" value={parcel.surface_totale_ha ?? ""} onChange={e=>updateParcel("surface_totale_ha",e.target.value)}/></div>
-              <div className="md:col-span-3"><Label>Localisation de la parcelle</Label><GeographieCascade districtId={parcel.district_id} regionId={parcel.region_id} departementId={parcel.departement_id} sousPrefectureId={parcel.sous_prefecture_id} villageId={parcel.village_id} required onChange={(g)=>setParcel((x:any)=>({...x,district_id:g.districtId||null,region_id:g.regionId||null,departement_id:g.departementId||null,sous_prefecture_id:g.sousPrefectureId||null,village_id:g.villageId||null,village:g.villageName||x.village||""}))}/></div>
-              <div><Label>Latitude</Label><Input type="number" step="any" value={parcel.localisation_gps_lat ?? ""} onChange={e=>updateParcel("localisation_gps_lat",e.target.value)}/></div>
-              <div><Label>Longitude</Label><Input type="number" step="any" value={parcel.localisation_gps_lng ?? ""} onChange={e=>updateParcel("localisation_gps_lng",e.target.value)}/></div>
-              <div><Label>Culture</Label><Input value={parcel.plantation_type_culture || ""} onChange={e=>updateParcel("plantation_type_culture",e.target.value)}/></div>
-              <div><Label>Densité (plants/ha)</Label><Input type="number" value={parcel.plantation_densite_plants ?? ""} onChange={e=>updateParcel("plantation_densite_plants",e.target.value)}/></div>
-              <div><Label>Statut foncier</Label><Input value={parcel.mode_surface || "Propriété / terre du Client"} disabled /></div>
-            </div> :
-            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">Aucune parcelle rattachée à ce dossier. La création/rattachement d’une nouvelle parcelle doit être effectué depuis le parcours foncier afin de conserver les relations géographiques et foncières.</div>
-          ) : (
-            <div className="rounded-lg border p-4 space-y-2 text-sm">
-              <div><span className="text-muted-foreground">Parcelle : </span>{parcel?.id_unique || form.parcelle_id || "—"}</div>
-              <div><span className="text-muted-foreground">Propriétaire foncier : </span>{parcel?.proprietaire_id ? "Propriétaire foncier enregistré" : "Non renseigné / non obligatoire"}</div>
-              <div className="text-muted-foreground">Les conventions, lots et attributions ne sont pas modifiés dans ce formulaire pour éviter de rompre la traçabilité foncière.</div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
