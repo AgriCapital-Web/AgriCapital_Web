@@ -13,10 +13,10 @@ export function useRegions() {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await supabase
-          .from("regions")
+        const { data } = await (supabase as any)
+          .from("v_geo_regions")
           .select("nom")
-          .eq("est_active", true)
+          .eq("est_active_effectif", true)
           .order("nom", { ascending: true });
         setRegions((data || []).map((r: any) => r.nom));
       } catch {
@@ -55,6 +55,13 @@ export default function RegionSelect({
   const { regions } = useRegions();
 
   return (
-    <SearchableSelect value={value || ""} disabled={disabled} onValueChange={(v) => onChange(v, v === DIASPORA_VALUE)} options={[...(withDiaspora ? [{ value: DIASPORA_VALUE, label: "Diaspora" }] : []), ...regions.map(r => ({ value: r, label: r }))]} placeholder={placeholder} searchPlaceholder="Rechercher une région..." />
+    <SearchableSelect
+      value={value || ""}
+      disabled={disabled}
+      onValueChange={(v) => onChange(v, v === DIASPORA_VALUE)}
+      options={regions.map(r => ({ value: r, label: r }))}
+      placeholder={placeholder}
+      searchPlaceholder="Rechercher une région..."
+    />
   );
 }
