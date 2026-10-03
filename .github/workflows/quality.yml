@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Activate npm 12
+        run: npm install --global npm@12.2.0 && npm --version
       - name: Install CRM dependencies
         working-directory: apps/crm
         run: npm install
