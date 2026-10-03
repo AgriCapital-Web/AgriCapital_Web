@@ -16,11 +16,13 @@ import TicketForm from "@/components/forms/TicketForm";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAuth } from "@/hooks/useAuth";
 import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
+import TableSearchInput from "@/components/common/TableSearchInput";
 
 const Tickets = () => {
   const [tickets, setTickets] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [search, setSearch] = useState("");
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { userRoles } = useAuth();
@@ -55,6 +57,10 @@ const Tickets = () => {
   }, [searchParams]);
 
   useRealtime({ table: "tickets_techniques", onChange: fetchTickets });
+
+  const filteredTickets = tickets.filter((ticket) =>
+    JSON.stringify(ticket).toLowerCase().includes(search.trim().toLowerCase())
+  );
 
   const getPrioriteColor = (priorite: string) => {
     switch (priorite) {
@@ -116,7 +122,10 @@ const Tickets = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Demandes clients</CardTitle>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle>Demandes clients</CardTitle>
+                <TableSearchInput value={search} onChange={setSearch} placeholder="Rechercher un ticket…" />
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -133,7 +142,7 @@ const Tickets = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tickets.map((ticket) => (
+                  {filteredTickets.map((ticket) => (
                     <TableRow key={ticket.id}>
                       <TableCell>{new Date(ticket.created_at).toLocaleDateString("fr-FR")}</TableCell>
                       <TableCell className="font-medium">{ticket.titre}</TableCell>
