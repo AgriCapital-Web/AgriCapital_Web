@@ -74,7 +74,7 @@ const TechnicienTerrain=()=>{
   const [media,setMedia]=useState<File[]>([]);
   const [intervention,setIntervention]=useState<any>({
     plantation_id:"",client_id:"",parcelle_id:"",convention_id:"",lot_id:"",localisation_gps_lat:"",localisation_gps_lng:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),
-    observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"140"
+    observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"143"
   });
 
   const profileContext=async()=>{
@@ -210,12 +210,12 @@ const TechnicienTerrain=()=>{
         nombre_plants_prevus:intervention.nombre_plants_prevus?Number(intervention.nombre_plants_prevus):null,
         nombre_plants_realises:intervention.nombre_plants_realises?Number(intervention.nombre_plants_realises):null,
         nombre_plants_remplaces:intervention.nombre_plants_remplaces?Number(intervention.nombre_plants_remplaces):null,
-        densite_plants:intervention.densite_plants?Number(intervention.densite_plants):140
+        densite_plants:intervention.densite_plants?Number(intervention.densite_plants):143
       };
       const {error}=await offlineInsert("interventions_techniques",payload);
       if(error)throw error;
       toast({title:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"Mise en terre validée":"Intervention enregistrée",description:intervention.type_intervention==="mise_en_terre"&&intervention.statut==="realisee"?"Intervention technique enregistrée.":undefined});
-      setIntervention({plantation_id:"",client_id:"",parcelle_id:"",convention_id:"",lot_id:"",localisation_gps_lat:"",localisation_gps_lng:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"140"});
+      setIntervention({plantation_id:"",client_id:"",parcelle_id:"",convention_id:"",lot_id:"",localisation_gps_lat:"",localisation_gps_lng:"",type_intervention:"defrichage",date_intervention:new Date().toISOString().slice(0,10),observations:"",recommandations:"",statut:"planifiee",nombre_plants_prevus:"",nombre_plants_realises:"",nombre_plants_remplaces:"",densite_plants:"143"});
       load();
     }catch(e:any){toast({variant:"destructive",title:"Enregistrement impossible",description:e?.message||"Erreur inconnue"});}
     finally{setSaving(false);}
@@ -300,7 +300,7 @@ const TechnicienTerrain=()=>{
             {localisationMode==="automatic"&&<p className="text-xs text-muted-foreground">Utilisez « Ma position » sur la carte pour détecter automatiquement les coordonnées du terrain.</p>}
           </div>
           <div className="grid md:grid-cols-2 gap-4"><div><Label>Constat / observations</Label><Textarea value={intervention.observations} onChange={e=>setIntervention((x:any)=>({...x,observations:e.target.value}))}/></div><div><Label>Recommandations</Label><Textarea value={intervention.recommandations} onChange={e=>setIntervention((x:any)=>({...x,recommandations:e.target.value}))}/></div></div>
-           {(intervention.type_intervention==="mise_en_terre"||intervention.type_intervention==="remplacement") && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-xl border bg-muted/20 p-4"><div><Label>Densité (plants/ha)</Label><Input type="number" min="1" value={intervention.densite_plants} onChange={e=>setIntervention((x:any)=>({...x,densite_plants:e.target.value}))}/><p className="text-[10px] text-muted-foreground mt-1">Valeur par défaut : 140 plants/ha.</p></div><div><Label>Plants prévus</Label><Input type="number" min="0" value={intervention.nombre_plants_prevus} onChange={e=>setIntervention((x:any)=>({...x,nombre_plants_prevus:e.target.value}))}/></div><div><Label>{intervention.type_intervention==="remplacement"?"Plants remplacés":"Plants mis en terre"}</Label><Input type="number" min="0" value={intervention.type_intervention==="remplacement"?intervention.nombre_plants_remplaces:intervention.nombre_plants_realises} onChange={e=>setIntervention((x:any)=>intervention.type_intervention==="remplacement"?({...x,nombre_plants_remplaces:e.target.value}):({...x,nombre_plants_realises:e.target.value}))}/></div><div><Label>Calcul prévu</Label><div className="h-10 rounded-md border bg-background px-3 flex items-center text-sm">{(()=>{const p=plantations.find(x=>x.id===intervention.plantation_id);const ha=Number(p?.superficie_ha||0);return ha?`${Math.round(ha*Number(intervention.densite_plants||140))} plants`:"Sélectionnez une plantation";})()}</div></div></div>}
+           {(intervention.type_intervention==="mise_en_terre"||intervention.type_intervention==="remplacement") && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-xl border bg-muted/20 p-4"><div><Label>Densité (plants/ha)</Label><Input type="number" min="1" value={intervention.densite_plants} onChange={e=>setIntervention((x:any)=>({...x,densite_plants:e.target.value}))}/><p className="text-[10px] text-muted-foreground mt-1">Valeur par défaut : 143 plants/ha.</p></div><div><Label>Plants prévus</Label><Input type="number" min="0" value={intervention.nombre_plants_prevus} onChange={e=>setIntervention((x:any)=>({...x,nombre_plants_prevus:e.target.value}))}/></div><div><Label>{intervention.type_intervention==="remplacement"?"Plants remplacés":"Plants mis en terre"}</Label><Input type="number" min="0" value={intervention.type_intervention==="remplacement"?intervention.nombre_plants_remplaces:intervention.nombre_plants_realises} onChange={e=>setIntervention((x:any)=>intervention.type_intervention==="remplacement"?({...x,nombre_plants_remplaces:e.target.value}):({...x,nombre_plants_realises:e.target.value}))}/></div><div><Label>Calcul prévu</Label><div className="h-10 rounded-md border bg-background px-3 flex items-center text-sm">{(()=>{const p=plantations.find(x=>x.id===intervention.plantation_id);const ha=Number(p?.superficie_ha||0);return ha?`${Math.round(ha*Number(intervention.densite_plants||140))} plants`:"Sélectionnez une plantation";})()}</div></div></div>}
           <div className="flex justify-end"><Button disabled={saving} onClick={saveIntervention}>Enregistrer l’intervention</Button></div>
         </CardContent></Card>
       </TabsContent>
