@@ -22,7 +22,7 @@ export const DEFAULT_DEPARTEMENTS: DepartementEntreprise[] = [
 ];
 
 export function useDepartementsEntreprise() {
-  const [departements, setDepartements] = useState<DepartementEntreprise[]>(DEFAULT_DEPARTEMENTS);
+  const [departements, setDepartements] = useState<DepartementEntreprise[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,9 +33,9 @@ export function useDepartementsEntreprise() {
           .select("*")
           .eq("actif", true)
           .order("ordre", { ascending: true });
-        if (data && data.length > 0) setDepartements(data as DepartementEntreprise[]);
+        setDepartements((data || []) as DepartementEntreprise[]);
       } catch {
-        /* repli statique */
+        setDepartements([]);
       } finally {
         setLoading(false);
       }
@@ -53,7 +53,7 @@ export function useDepartementsEntreprise() {
 
 /** Rôles officiels : base de données si disponible, sinon catalogue statique */
 export function useAppRoles() {
-  const [roles, setRoles] = useState<RoleDefinition[]>(OFFICIAL_ROLES);
+  const [roles, setRoles] = useState<RoleDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [fromDatabase, setFromDatabase] = useState(false);
 
@@ -65,9 +65,8 @@ export function useAppRoles() {
         .select("*")
         .eq("actif", true)
         .order("niveau", { ascending: true });
-      if (data && data.length > 0) {
-        setRoles(
-          (data as any[]).map((r) => ({
+      setRoles(
+        (data || []).map((r: any) => ({
             code: r.code,
             nom: r.nom,
             court: r.court || r.nom,
@@ -75,12 +74,12 @@ export function useAppRoles() {
             niveau: r.niveau ?? 5,
             niveauLabel: r.niveau_label || "",
             couleur: OFFICIAL_ROLES.find((o) => o.code === r.code)?.couleur || "bg-muted text-muted-foreground",
-          })),
-        );
-        setFromDatabase(true);
-      }
+        })),
+      );
+      setFromDatabase(true);
     } catch {
-      /* repli statique */
+      setRoles([]);
+      setFromDatabase(false);
     } finally {
       setLoading(false);
     }
