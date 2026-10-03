@@ -25,7 +25,7 @@ export const RoleDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const isAdmin = userRoles.some(r => ["super_admin", "directeur_tc", "responsable_operations"].includes(r));
+  const isAdmin = userRoles.some(r => ["super_admin", "pdg", "dg", "responsable_operations"].includes(r));
   const isResponsableCommercial = userRoles.includes("responsable_commercial");
   const isChefEquipe = userRoles.some(r => ["chef_equipe_commercial", "chef_equipe_technique", "chef_equipe_service_client"].includes(r));
   const isCommercial = userRoles.includes("commercial");
