@@ -58,15 +58,15 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
     (async () => {
       try {
         if (formData.lead_id) {
-          const { data: lead, error: leadError } = await (supabase as any)
-            .from("leads")
-            .select("assigned_to")
-            .eq("id", formData.lead_id)
-            .maybeSingle();
-          if (mounted && !leadError && lead?.assigned_to) {
-            updateFormData({ commercial_id: lead.assigned_to });
-            return;
+          // Only inherit the lead owner when that owner is an actual commercial.
+          // A lead created by a technicien/service client must be converted by choosing a commercial.
+          const { data, error } = await (supabase as any)
+            .rpc("get_lead_commercial_for_conversion", { _lead_id: formData.lead_id });
+          if (mounted && !error) {
+            updateFormData({ commercial_id: data || "" });
+            if (data) return;
           }
+          if (mounted) return;
         }
         const { data, error } = await (supabase as any).rpc("get_default_commercial_for_client");
         if (mounted && !error && data) updateFormData({ commercial_id: data });
@@ -178,8 +178,8 @@ export const Etape0Offre = ({ formData, updateFormData }: Etape0Props) => {
           <CommercialCombobox
             value={formData.commercial_id || null}
             onChange={(value) => updateFormData({ commercial_id: value })}
-            placeholder={loadingCommercialDefault ? "Détermination du commercial…" : "Rechercher ou sélectionner un commercial…"}
-            disabled={loadingCommercialDefault || !!formData.lead_id}
+            placeholder={loadingCommercialDefault ? "Détermination du commercial…" : (formData.lead_id && !formData.commercial_id ? "Choisir le commercial ayant réalisé la vente…" : "Rechercher ou sélectionner un commercial…")}
+            disabled={loadingCommercialDefault || (!!formData.lead_id && !!formData.commercial_id)}
           />
         </CardContent>
       </Card>
