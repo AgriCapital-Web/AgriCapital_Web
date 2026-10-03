@@ -380,7 +380,7 @@ const Utilisateurs = () => {
       <Dialog open={!!viewUser} onOpenChange={(o) => !o && setViewUser(null)}>
         <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader><DialogTitle>Fiche utilisateur — {formatUserShortName(viewUser?.nom_complet || "Utilisateur")}</DialogTitle></DialogHeader>
-          {viewUser && (
+          {viewUser ? (
             <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-6">
               <div className="flex justify-center">
                 {viewPhotoUrl ? <img src={viewPhotoUrl} alt={formatUserShortName(viewUser.nom_complet)} className="h-32 w-32 rounded-2xl object-cover border" /> : <div className="h-32 w-32 rounded-2xl border bg-muted flex items-center justify-center text-muted-foreground text-xs text-center">Aucune photo</div>}
@@ -395,7 +395,7 @@ const Utilisateurs = () => {
                 <div className="sm:col-span-2"><span className="text-muted-foreground">Rôles</span><div className="flex flex-wrap gap-1 mt-1">{getRoles(viewUser).map((role:string)=><Badge key={role} variant="outline">{ROLE_LABELS[role] || role}</Badge>)}</div></div>
               </div>
             </div>
-          )}
+          ) : null}
         </DialogContent>
       </Dialog>
 
