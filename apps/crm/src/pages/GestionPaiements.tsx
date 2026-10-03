@@ -260,7 +260,9 @@ const GestionPaiements = () => {
     }
   });
 
-  useEffect(() => setTablePage(1), [tableSearch]);\n\n  // Monnaie client : solde calculé par le moteur financier centralisé.
+  useEffect(() => setTablePage(1), [tableSearch, pageSize]);
+
+  // Monnaie client : solde calculé par le moteur financier centralisé.
   const { data: clientsMonnaie = [] } = useQuery({
     queryKey: ['clients-monnaie'],
     queryFn: async () => {
