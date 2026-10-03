@@ -20,6 +20,8 @@ import { fr } from "date-fns/locale";
 import { getSafeErrorMessage } from "@/lib/safeError";
 import { useOffresPrixEffectif } from "@/hooks/useOffresPrixEffectif";
 import TableSearchInput from "@/components/common/TableSearchInput";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 type Offre = Tables<'offres'>;
 type Promotion = Tables<'promotions'>;
@@ -68,6 +70,8 @@ const Offres = () => {
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
   const [detailsFamily, setDetailsFamily] = useState<string | null>(null);
   const [tableSearch, setTableSearch] = useState("");
+  const [tablePage, setTablePage] = useState(1);
+  const pageSize = useResponsivePageSize();
 
   const [promoFormData, setPromoFormData] = useState({
     nom: "",
@@ -110,6 +114,8 @@ const Offres = () => {
   });
 
   const filteredPromotions = (promotions || []).filter((promo: any) => JSON.stringify(promo).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const paginatedPromotions = filteredPromotions.slice((tablePage - 1) * pageSize, tablePage * pageSize);
+  useEffect(() => setTablePage(1), [tableSearch, pageSize]);
 
   // Update offre
   const updateOffreMutation = useMutation({
@@ -676,7 +682,7 @@ const Offres = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPromotions.map((promo) => {
+                    {paginatedPromotions.map((promo) => {
                       const now = new Date();
                       const isCurrentlyActive = promo.active && 
                         new Date(promo.date_debut) <= now && 
