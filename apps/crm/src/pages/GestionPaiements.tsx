@@ -798,6 +798,7 @@ const GestionPaiements = () => {
                     )}
                   </TableBody>
                 </Table>
+                <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={filteredPaiements.length} onPageChange={setTablePage} />
               </div>
             </TabsContent>
 
