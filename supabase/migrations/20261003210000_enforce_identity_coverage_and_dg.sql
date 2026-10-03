@@ -128,6 +128,30 @@ REVOKE EXECUTE ON FUNCTION public.is_admin(uuid) FROM PUBLIC, anon;
 REVOKE EXECUTE ON FUNCTION public.zone_assignment_expected_type(uuid) FROM PUBLIC, anon;
 REVOKE EXECUTE ON FUNCTION public.recompute_profile_coverage(uuid) FROM PUBLIC, anon;
 REVOKE EXECUTE ON FUNCTION public.reconcile_user_role_coverage(uuid) FROM PUBLIC, anon;
+CREATE OR REPLACE FUNCTION public.guard_profiles_sensitive_update()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
+AS $func$
+BEGIN
+  IF current_setting('app.internal_coverage_sync', true)='true' OR public.is_admin(auth.uid()) THEN RETURN NEW; END IF;
+  NEW.user_id:=OLD.user_id; NEW.taux_commission:=OLD.taux_commission; NEW.poste:=OLD.poste;
+  NEW.equipe_id:=OLD.equipe_id; NEW.actif:=OLD.actif; NEW.district_id:=OLD.district_id; NEW.region_id:=OLD.region_id;
+  NEW.departement:=OLD.departement; NEW.relation_rh:=OLD.relation_rh; NEW.username:=OLD.username;
+  RETURN NEW;
+END;
+$func$;
+
+CREATE OR REPLACE FUNCTION public.prevent_profile_privilege_escalation()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='public'
+AS $func$
+BEGIN
+  IF current_setting('app.internal_coverage_sync', true)='true' OR public.is_admin(auth.uid()) THEN RETURN NEW; END IF;
+  NEW.taux_commission:=OLD.taux_commission; NEW.actif:=OLD.actif; NEW.equipe_id:=OLD.equipe_id; NEW.poste:=OLD.poste;
+  NEW.district_id:=OLD.district_id; NEW.region_id:=OLD.region_id; NEW.departement:=OLD.departement;
+  NEW.user_id:=OLD.user_id; NEW.username:=OLD.username; NEW.relation_rh:=OLD.relation_rh;
+  RETURN NEW;
+END;
+$func$;
+
 -- Internal coverage propagation is allowed only inside the SECURITY DEFINER synchronisation path.
 CREATE OR REPLACE FUNCTION public.recompute_profile_coverage(_user_id uuid)
 RETURNS void
