@@ -45,12 +45,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     { icon: Wallet, label: "Portefeuilles", path: "/portefeuilles", permission: PERMISSIONS.VIEW_PORTEFEUILLES },
     { icon: Users, label: "Équipes", path: "/equipes", permission: PERMISSIONS.VIEW_EQUIPES },
     { icon: Sprout, label: "Technique", path: "/terrain", permission: PERMISSIONS.VIEW_RAPPORTS_TECHNIQUES },
+    { icon: Wallet, label: "Finance & Comptabilité", path: "/finance", permission: PERMISSIONS.VIEW_RAPPORTS_FINANCIERS },
     { icon: FileText, label: "Rapports financiers", path: "/rapports-financiers", permission: PERMISSIONS.VIEW_RAPPORTS_FINANCIERS },
     { icon: Ticket, label: "Support", path: "/support", permission: PERMISSIONS.VIEW_TICKETS },
     { icon: CloudUpload, label: "Synchronisation", path: "/synchronisation", permission: PERMISSIONS.VIEW_DASHBOARD },
   ];
 
-  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"dashboard.view",    "/leads":"leads.view", "/acquisitions":"clients.view", "/messagerie":"clients.view", "/proprietaires-terres":"clients.view", "/parcelles":"plantations.view",    "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => {
+  const permissionCodeByPath: Record<string,string> = {    "/dashboard":"dashboard.view",    "/leads":"leads.view", "/acquisitions":"clients.view", "/messagerie":"clients.view", "/proprietaires-terres":"clients.view", "/parcelles":"plantations.view",    "/plantations":"plantations.view", "/paiements":"paiements.view",    "/commissions":"commissions.view", "/portefeuilles":"portefeuilles.view", "/equipes":"parametres.manage_teams",    "/terrain":"rapports.view_technique", "/finance":"finance.view", "/rapports-financiers":"rapports.view_financier", "/support":"tickets.view",    "/synchronisation":"parametres.manage_system"  };  const visibleMenuItems = menuItems.filter(item => {
     if (item.path === "/dashboard") return hasPermission(userRoles, item.permission);
     const code = permissionCodeByPath[item.path];
     return Boolean(code && can(code));
