@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Search, Users, Plus, Edit, MoreHorizontal, CheckCircle, XCircle, UserPlus, UserMinus, Briefcase, Wrench } from "lucide-react";
 import { getSafeErrorMessage } from "@/lib/safeError";
+import { formatUserShortName } from "@/lib/utils";
 
 const ROLE_SHORT: Record<string, string> = {
   commercial: "Commercial",
