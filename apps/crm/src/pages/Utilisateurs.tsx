@@ -20,10 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Users, Plus, Search, Edit, Shield, MoreHorizontal, UserCheck, UserX, KeyRound, AtSign, Trash2, Eye } from "lucide-react";
 import UtilisateurFormNew from "@/components/forms/UtilisateurFormNew";
-import { ROLES as ROLE_KEYS, ROLE_LABELS } from "@/lib/roles";
 import { getSafeErrorMessage } from "@/lib/safeError";
-
-const ALL_ROLES = Object.values(ROLE_KEYS);
+import { useAppRoles } from "@/hooks/useReferentiels";
 
 const Utilisateurs = () => {
   const [utilisateurs, setUtilisateurs] = useState<any[]>([]);
@@ -42,6 +40,7 @@ const Utilisateurs = () => {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const { hasRole } = useAuth();
   const { toast } = useToast();
+  const { roles: appRoles } = useAppRoles();
   const isSuperAdmin = hasRole("super_admin");
   const canManageUserCredentials = isSuperAdmin || hasRole("pdg") || hasRole("dg") || hasRole("responsable_operations");
 
@@ -297,7 +296,7 @@ const Utilisateurs = () => {
                     <div className="flex gap-1 flex-wrap">
                       {getRoles(user).map((role: string, idx: number) => (
                         <Badge key={idx} variant="outline" className="text-xs">
-                          {ROLE_LABELS[role] || role.replace(/_/g, " ")}
+                          {appRoles.find((item) => item.code === role)?.nom || role.replace(/_/g, " ")}
                         </Badge>
                       ))}
                       {getRoles(user).length === 0 && (
@@ -392,7 +391,7 @@ const Utilisateurs = () => {
                 <div><span className="text-muted-foreground">Relation RH</span><p>{viewUser.relation_rh || "—"}</p></div>
                 <div><span className="text-muted-foreground">Département</span><p>{viewUser.departement || "—"}</p></div>
                 <div><span className="text-muted-foreground">Équipe</span><p>{viewUser.equipe_id || "—"}</p></div>
-                <div className="sm:col-span-2"><span className="text-muted-foreground">Rôles</span><div className="flex flex-wrap gap-1 mt-1">{getRoles(viewUser).map((role:string)=><Badge key={role} variant="outline">{ROLE_LABELS[role] || role}</Badge>)}</div></div>
+                <div className="sm:col-span-2"><span className="text-muted-foreground">Rôles</span><div className="flex flex-wrap gap-1 mt-1">{getRoles(viewUser).map((role:string)=><Badge key={role} variant="outline">{appRoles.find((item) => item.code === role)?.nom || role}</Badge>)}</div></div>
               </div>
             </div>
           ) : null}
@@ -411,7 +410,7 @@ const Utilisateurs = () => {
 
           {adminAction === "roles" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {ALL_ROLES.map((r) => (
+              {appRoles.map((r) => (
                 <label key={r} className="flex items-center gap-2 text-sm rounded border p-2 cursor-pointer">
                   <Checkbox
                     checked={selectedRoles.includes(r)}
@@ -419,7 +418,7 @@ const Utilisateurs = () => {
                       setSelectedRoles((prev) => (c ? [...prev, r] : prev.filter((x) => x !== r)))
                     }
                   />
-                  {ROLE_LABELS[r] || r}
+                  {r.nom}
                 </label>
               ))}
             </div>
