@@ -347,7 +347,7 @@ const ProprietairesTerres = () => {
       limites_nord: "", limites_sud: "", limites_est: "", limites_ouest: "",
       servitudes: "", croquis_joint: false,
       plantation_partagee_activee: true, plantation_surface_cible_ha: "",
-      plantation_type_culture: "Palmier à huile", plantation_densite_plants: "140", plantation_date_activation: "",
+      plantation_type_culture: "Palmier à huile", plantation_densite_plants: "143", plantation_date_activation: "",
       co_titulaire_nom: "", co_titulaire_lien: "", co_titulaire_piece: "", co_titulaire_telephone: "", co_titulaire_telephone_indicatif: "+225", co_titulaire_telephone_local: "",
       temoin_proprietaire_nom: "", temoin_proprietaire_qualite: "", representant_agricapital_nom: "", representant_agricapital_qualite: "",
       leader_communautaire_nom: "", leader_communautaire_qualite: "", voisin_1_nom: "", voisin_1_cote: "", voisin_2_nom: "", voisin_2_cote: "",
