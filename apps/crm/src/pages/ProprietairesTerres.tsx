@@ -207,7 +207,7 @@ const ProprietairesTerres = () => {
         nombre_lots_agricapital: nombreLots,
         part_proprietaire_ha: partProprietaireHa,
         part_agricapital_ha: partAgriHa,
-        caution_par_ha: 50000,
+        caution_par_ha: typeConvention === "plante_partage" ? 50000 : 0,
         caution_totale: cautionTotale,
         limites_nord: formData.limites_nord || null,
         limites_sud: formData.limites_sud || null,
@@ -248,9 +248,7 @@ const ProprietairesTerres = () => {
           surface_agricapital_ha: partAgriHa || 0,
           surface_attribuee_ha: 0,
           plantation_partagee_activee: typeConvention === "plante_partage",
-          plantation_surface_cible_ha: formData.plantation_partagee_activee
-            ? (formData.plantation_surface_cible_ha ? parseFloat(formData.plantation_surface_cible_ha) : surfaceTotale)
-            : null,
+          plantation_surface_cible_ha: surfaceTotale || null,
           plantation_type_culture: formData.plantation_type_culture || "Palmier à huile",
           plantation_densite_plants: 143,
           plantation_date_activation: formData.plantation_date_activation || null,
@@ -285,7 +283,7 @@ const ProprietairesTerres = () => {
         nombre_lots_agricapital: nombreLots,
         part_proprietaire_ha: partProprietaireHa,
         part_agricapital_ha: partAgriHa,
-        caution_par_ha: 50000,
+        caution_par_ha: typeConvention === "plante_partage" ? 50000 : 0,
         caution_totale: cautionTotale,
         statut: "active",
         notes: formData.notes || null,
