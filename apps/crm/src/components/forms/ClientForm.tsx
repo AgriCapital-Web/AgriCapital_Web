@@ -162,8 +162,8 @@ const ClientForm = ({ client, onSuccess, onCancel }: ClientFormProps) => {
     <div className="space-y-5">
       <Card>
         <CardHeader>
-          <CardTitle>Responsable commercial</CardTitle>
-          <CardDescription>Commercial responsable du dossier Client. La recherche et la liste sont disponibles.</CardDescription>
+          <CardTitle>Commercial</CardTitle>
+          <CardDescription>Commercial ayant réalisé la vente. La recherche et la liste sont disponibles.</CardDescription>
         </CardHeader>
         <CardContent>
           <CommercialCombobox
