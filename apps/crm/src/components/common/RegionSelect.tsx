@@ -9,16 +9,17 @@ export const DIASPORA_VALUE = "Diaspora";
 export function useRegions() {
   const [regions, setRegions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [diasporaActive, setDiasporaActive] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await (supabase as any)
-          .from("v_geo_regions")
-          .select("nom")
-          .eq("est_active_effectif", true)
-          .order("nom", { ascending: true });
-        setRegions((data || []).map((r: any) => r.nom));
+        const [{ data: dataRegions }, { data: dataDiaspora }] = await Promise.all([
+          (supabase as any).from("v_geo_regions").select("nom").eq("est_active_effectif", true).order("nom", { ascending: true }),
+          (supabase as any).from("v_geo_districts").select("id").eq("nom", DIASPORA_VALUE).eq("est_actif_effectif", true).limit(1),
+        ]);
+        setRegions((dataRegions || []).map((r: any) => r.nom));
+        setDiasporaActive((dataDiaspora || []).length > 0);
       } catch {
         /* repli statique */
       } finally {
@@ -59,7 +60,7 @@ export default function RegionSelect({
       value={value || ""}
       disabled={disabled}
       onValueChange={(v) => onChange(v, v === DIASPORA_VALUE)}
-      options={regions.map(r => ({ value: r, label: r }))}
+      options={[...(withDiaspora && diasporaActive ? [{ value: DIASPORA_VALUE, label: "Diaspora" }] : []), ...regions.map(r => ({ value: r, label: r }))]}
       placeholder={placeholder}
       searchPlaceholder="Rechercher une région..."
     />
