@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import createUserSource from "../../../supabase/functions/create-user/index.ts?raw";
+import createUserSource from "../../../../supabase/functions/create-user/index.ts?raw";
 
 /**
  * Sanity-check: la fonction edge create-user ne doit JAMAIS insérer une colonne `role`
@@ -25,9 +25,9 @@ describe("create-user edge function contract", () => {
 
   it("liste des rôles autorisés inclut les rôles métiers", () => {
     const allowed = [
-      'super_admin','directeur_tc','responsable_zone','superviseur_tc',
-      'chef_equipe','comptable','commercial','technicien','service_client',
-      'operations','agent_terrain','user'
+      'super_admin','pdg','dg','responsable_operations','responsable_commercial','comptable',
+      'chef_equipe_commercial','chef_equipe_technique','chef_equipe_service_client',
+      'commercial','service_client','technicien','assistant_administratif','associe_actionnaire'
     ];
     ['commercial','technicien','comptable','service_client'].forEach(r =>
       expect(allowed).toContain(r)
