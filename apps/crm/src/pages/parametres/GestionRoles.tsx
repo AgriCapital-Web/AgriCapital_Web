@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { ROLE_LABELS } from "@/lib/roles";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,12 +24,10 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAppRoles, useDepartementsEntreprise } from "@/hooks/useReferentiels";
 import { useRolePermissionMatrix, usePermissions } from "@/hooks/usePermissions";
 import { PERMISSIONS_BY_MODULE, PERMISSION_CODES } from "@/lib/permissions";
-import { normalizeRole, roleLabel, ROLES as APP_ROLES, RoleDefinition } from "@/lib/roles";
+import { ROLES as APP_ROLES, RoleDefinition } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import TableSearchInput from "@/components/common/TableSearchInput";
-import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
-import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const emptyRole = {
   code: "",
@@ -68,11 +65,7 @@ const GestionRoles = () => {
   const [userRoleToRemove, setUserRoleToRemove] = useState<any>(null);
   const [tableSearch, setTableSearch] = useState("");
   const [roleTableSearch, setRoleTableSearch] = useState("");
-  const [profilePage, setProfilePage] = useState(1);
-  const [rolePage, setRolePage] = useState(1);
-  const pageSize = useResponsivePageSize();
-
-  const canManageRoles = isSuperAdmin || can("roles.manage_permissions");
+  const canManageRoles = (isSuperAdmin || can("roles.manage_permissions")) && rolesFromDb && matrixFromDb;
 
   const fetchData = async () => {
     setLoading(true);
@@ -112,7 +105,7 @@ const GestionRoles = () => {
         return {
           ...ur,
           nom: profile?.nom_complet || profile?.email || ur.user_id,
-          suggestion: normalizeRole(ur.role),
+          suggestion: ur.role,
         };
       });
   }, [userRoles, roles, profiles]);
@@ -120,11 +113,6 @@ const GestionRoles = () => {
   const filteredProfiles = useMemo(() => profiles.filter((p) => JSON.stringify(p).toLowerCase().includes(tableSearch.trim().toLowerCase())), [profiles, tableSearch]);
   const filteredUserRoles = useMemo(() => userRoles.filter((r) => JSON.stringify(r).toLowerCase().includes(tableSearch.trim().toLowerCase())), [userRoles, tableSearch]);
   const filteredRoles = useMemo(() => roles.filter((r) => JSON.stringify(r).toLowerCase().includes(roleTableSearch.trim().toLowerCase())), [roles, roleTableSearch]);
-  const paginatedProfiles = filteredProfiles.slice((profilePage-1)*pageSize, profilePage*pageSize);
-  const paginatedRoles = filteredRoles.slice((rolePage-1)*pageSize, rolePage*pageSize);
-  useEffect(()=>{setProfilePage(1);},[tableSearch,pageSize]);
-  useEffect(()=>{setRolePage(1);},[roleTableSearch,pageSize]);
-
   const sansRole = useMemo(
     () => profiles.filter((p) => getUserRoles(p.id).length === 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -359,14 +347,13 @@ const GestionRoles = () => {
 
   return (
     <div className="space-y-6">
-      {(!rolesFromDb || !matrixFromDb) && (
+      {(!rolesFromDb || !matrixFromDb) && !loading && (
         <Card className="border-dashed">
           <CardContent className="flex items-start gap-3 py-4 text-sm text-muted-foreground">
             <Database className="h-4 w-4 mt-0.5 shrink-0" />
             <span>
-              Les tables <code>app_roles</code> / <code>role_permissions</code> ne sont pas encore présentes en base :
-              l'interface fonctionne sur le référentiel officiel intégré. Exécutez le SQL de <code>plan.md-2</code> pour
-              activer l'enregistrement en base.
+              Le référentiel des rôles et des permissions n'est pas disponible en base. La gestion est désactivée
+              jusqu'au rétablissement de <code>app_roles</code> et <code>role_permissions</code>.
             </span>
           </CardContent>
         </Card>
@@ -418,7 +405,7 @@ const GestionRoles = () => {
                         <SelectValue placeholder="Sélectionner un rôle" />
                       </SelectTrigger>
                       <SelectContent>
-                        {paginatedRoles.map((role) => (
+                        {filteredRoles.map((role) => (
                           <SelectItem key={role.code} value={role.code}>
                             {role.nom}
                           </SelectItem>
@@ -444,7 +431,7 @@ const GestionRoles = () => {
           <div className="rounded-lg border overflow-x-auto">
             <Table>
               <div className="mb-3"><TableSearchInput value={tableSearch} onChange={setTableSearch} placeholder="Rechercher un rôle ou un utilisateur…" /></div>
-                  <TableHeader>
+              <TableHeader>
                 <TableRow>
                   <TableHead>Utilisateur</TableHead>
                   <TableHead>Département</TableHead>
@@ -466,7 +453,7 @@ const GestionRoles = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  profiles.map((profile) => {
+                  filteredProfiles.map((profile) => {
                     const profileRoles = getUserRoles(profile.id);
                     return (
                       <TableRow key={profile.id}>
@@ -490,7 +477,7 @@ const GestionRoles = () => {
                                   onClick={() => setUserRoleToRemove(ur)}
                                   title="Cliquer pour retirer"
                                 >
-                                  {roleLabel(ur.role)} ×
+                                  {roles.find((r) => r.code === ur.role)?.nom || ur.role} ×
                                 </Badge>
                               ))
                             )}
@@ -542,8 +529,8 @@ const GestionRoles = () => {
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border overflow-x-auto">
+            <div className="mb-3"><TableSearchInput value={roleTableSearch} onChange={setRoleTableSearch} placeholder="Rechercher un rôle…" /></div>
             <Table>
-              <div className="mb-3"><TableSearchInput value={roleTableSearch} onChange={setRoleTableSearch} placeholder="Rechercher un rôle…" /></div>
               <TableHeader>
                 <TableRow>
                   <TableHead>Rôle</TableHead>
@@ -554,7 +541,7 @@ const GestionRoles = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {roles.map((role) => (
+                {filteredRoles.map((role) => (
                   <TableRow key={role.code}>
                     <TableCell>
                       <Badge className={role.couleur}>{role.nom}</Badge>
@@ -597,7 +584,6 @@ const GestionRoles = () => {
                 ))}
               </TableBody>
             </Table>
-              <ResponsiveTablePagination page={rolePage} pageSize={pageSize} total={filteredRoles.length} onPageChange={setRolePage} />
           </div>
         </CardContent>
       </Card>
@@ -614,7 +600,7 @@ const GestionRoles = () => {
         <CardContent className="space-y-3 text-sm">
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">{roles.length} rôles officiels</Badge>
-            <Badge variant="outline">{PERMISSION_CODES.length} permissions</Badge>
+            <Badge variant="outline">{new Set(Object.values(matrix).flat()).size} permissions</Badge>
             <Badge variant="outline">{departements.length} départements</Badge>
             <Badge variant={divergences.length ? "destructive" : "secondary"}>
               {divergences.length} rôle(s) obsolète(s)
@@ -627,7 +613,7 @@ const GestionRoles = () => {
             <ul className="list-disc pl-5 text-muted-foreground">
               {divergences.map((d) => (
                 <li key={d.id}>
-                  {d.nom} : « {d.role} » → à migrer vers « {roleLabel(d.suggestion)} »
+                  {d.nom} : « {d.role} » → rôle absent du catalogue actif
                 </li>
               ))}
             </ul>
