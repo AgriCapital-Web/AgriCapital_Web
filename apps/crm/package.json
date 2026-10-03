@@ -98,8 +98,9 @@
     "vitest": "^4.1.5"
   },
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
+  "packageManager": "npm@11",
   "author": "Inocent KOFFI",
   "description": "AgriCapital — application de gestion agricole — Développeur : Inocent KOFFI"
 }
