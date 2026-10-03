@@ -113,6 +113,10 @@ const Utilisateurs = () => {
 
   const runAdminAction = async () => {
     if (!adminTarget || !adminAction) return;
+    if ((adminAction === "roles" || adminAction === "password") && !adminTarget.user_id) {
+      toast({ variant: "destructive", title: "Compte de connexion manquant", description: "Ce personnel existe dans le référentiel du personnel mais ne possède pas encore de compte de connexion. Créez d’abord son compte utilisateur." });
+      return;
+    }
     setBusy(true);
     try {
       const body: any = { user_id: adminTarget.user_id || adminTarget.id };
@@ -204,7 +208,7 @@ const Utilisateurs = () => {
               Nouvel Utilisateur
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[92dvh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>
                 {selectedUser ? "Modifier l'Utilisateur" : "Créer un Utilisateur"}
@@ -341,7 +345,7 @@ const Utilisateurs = () => {
       </Card>
 
       <Dialog open={!!viewUser} onOpenChange={(o) => !o && setViewUser(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader><DialogTitle>Fiche utilisateur — {formatUserShortName(viewUser?.nom_complet || "Utilisateur")}</DialogTitle></DialogHeader>
           {viewUser && (
             <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-6">
@@ -363,7 +367,7 @@ const Utilisateurs = () => {
       </Dialog>
 
       <Dialog open={!!adminAction} onOpenChange={(o) => !o && setAdminAction(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-1rem)] max-w-lg max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>
               {adminAction === "roles" && `Rôles de ${formatUserShortName(adminTarget?.nom_complet)}`}
