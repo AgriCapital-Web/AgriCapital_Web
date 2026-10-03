@@ -40,7 +40,9 @@ const userFormSchema = z.object({
   telephone_indicatif: z.string().optional().or(z.literal("")),
   whatsapp: z.string().optional().or(z.literal("")),
   whatsapp_local: z.string().optional().or(z.literal("")),
-  whatsapp_indicatif: z.string().optional().or(z.literal("")),\n  type_piece_identite: z.string().optional().or(z.literal("")),\n  numero_piece_identite: z.string().optional().or(z.literal("")),
+  whatsapp_indicatif: z.string().optional().or(z.literal("")),
+  type_piece_identite: z.string().optional().or(z.literal("")),
+  numero_piece_identite: z.string().optional().or(z.literal("")),
 });
 
 interface UtilisateurFormProps {
