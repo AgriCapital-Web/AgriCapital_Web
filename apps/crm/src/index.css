@@ -209,7 +209,7 @@ All colors MUST be HSL.
     min-width: 720px;
   }
 
-  /* Les tableaux responsives ne masquent jamais des lignes de données. */
+  /* Le composant Table gère la pagination responsive : 5 lignes sur mobile, 8 sur tablette, 10 sur ordinateur. */
 
   body {
     font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
