@@ -488,7 +488,7 @@ const Clients = () => {
                     )}
                   </TableBody>
                 </Table>
-                <ResponsiveTablePagination page={tablePage} pageSize={pageSize} total={filteredClients.length} onPageChange={setTablePage} />
+
               </div>
             </TabsContent>
           </Tabs>
