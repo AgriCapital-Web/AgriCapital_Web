@@ -21,6 +21,8 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 import { resolveStorageUrl } from "@/utils/storage";
 import ClientMessagingPanel from "@/components/clients/ClientMessagingPanel";
 import TableSearchInput from "@/components/common/TableSearchInput";
+import { useResponsivePageSize } from "@/hooks/useResponsivePageSize";
+import ResponsiveTablePagination from "@/components/common/ResponsiveTablePagination";
 
 const formatMontant = (m: number) => new Intl.NumberFormat("fr-FR").format(Math.round(m || 0));
 
@@ -45,11 +47,21 @@ const ClientDetail = () => {
   const [isRachatOpen,setIsRachatOpen]=useState(false);
   const [rachatJours,setRachatJours]=useState("1");
   const [tableSearch,setTableSearch]=useState("");
+  const [plantationPage,setPlantationPage]=useState(1);
+  const [paymentPage,setPaymentPage]=useState(1);
+  const [interventionPage,setInterventionPage]=useState(1);
+  const [attributionPage,setAttributionPage]=useState(1);
+  const pageSize=useResponsivePageSize();
 
   const filteredPlantations=plantations.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
   const filteredPaiements=paiements.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
   const filteredInterventions=interventions.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
   const filteredAttributions=attributions.filter((row:any)=>JSON.stringify(row).toLowerCase().includes(tableSearch.trim().toLowerCase()));
+  const paginatedPlantations=filteredPlantations.slice((plantationPage-1)*pageSize,plantationPage*pageSize);
+  const paginatedPaiements=filteredPaiements.slice((paymentPage-1)*pageSize,paymentPage*pageSize);
+  const paginatedInterventions=filteredInterventions.slice((interventionPage-1)*pageSize,interventionPage*pageSize);
+  const paginatedAttributions=filteredAttributions.slice((attributionPage-1)*pageSize,attributionPage*pageSize);
+  useEffect(()=>{setPlantationPage(1);setPaymentPage(1);setInterventionPage(1);setAttributionPage(1);},[tableSearch,pageSize]);
 
   const handleRachatMonnaie=async()=>{
     if(!canViewClientMoney||!id)return;
@@ -388,7 +400,7 @@ const ClientDetail = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredPlantations.map((plantation) => (
+                        paginatedPlantations.map((plantation) => (
                           <TableRow key={plantation.id}>
                             <TableCell className="font-mono">{plantation.id_unique}</TableCell>
                             <TableCell>{plantation.nom_plantation}</TableCell>
@@ -404,6 +416,7 @@ const ClientDetail = () => {
                       )}
                     </TableBody>
                   </Table>
+                  <ResponsiveTablePagination page={plantationPage} pageSize={pageSize} total={filteredPlantations.length} onPageChange={setPlantationPage} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -431,7 +444,7 @@ const ClientDetail = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredPaiements.map((paiement) => (
+                        paginatedPaiements.map((paiement) => (
                           <TableRow key={paiement.id}>
                             <TableCell>
                               {new Date(paiement.created_at).toLocaleDateString("fr-FR")}
@@ -450,6 +463,7 @@ const ClientDetail = () => {
                       )}
                     </TableBody>
                   </Table>
+                  <ResponsiveTablePagination page={paymentPage} pageSize={pageSize} total={filteredPaiements.length} onPageChange={setPaymentPage} />
                 </CardContent>
               </Card>
             </TabsContent>}
@@ -477,7 +491,7 @@ const ClientDetail = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredInterventions.map((intervention) => (
+                        paginatedInterventions.map((intervention) => (
                           <TableRow key={intervention.id}>
                             <TableCell>
                               {new Date(intervention.date_intervention).toLocaleDateString("fr-FR")}
@@ -492,6 +506,7 @@ const ClientDetail = () => {
                       )}
                     </TableBody>
                   </Table>
+                  <ResponsiveTablePagination page={interventionPage} pageSize={pageSize} total={filteredInterventions.length} onPageChange={setInterventionPage} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -514,7 +529,7 @@ const ClientDetail = () => {
                       <TableBody>
                         {filteredAttributions.length === 0 ? (
                           <TableRow><TableCell colSpan={5} className="text-center py-8">Aucune attribution enregistrée</TableCell></TableRow>
-                        ) : filteredAttributions.map((a: any) => (
+                        ) : paginatedAttributions.map((a: any) => (
                           <TableRow key={a.id}>
                             <TableCell>{a.parcelles?.id_unique || a.parcelles?.nom || "—"}{a.parcelles?.village ? <span className="block text-xs text-muted-foreground">{a.parcelles.village}</span> : null}</TableCell>
                             <TableCell><Badge variant="outline">{a.role_attribution === "proprietaire_beneficiaire" ? "Propriétaire + bénéficiaire" : "Bénéficiaire particulier"}</Badge></TableCell>
@@ -525,6 +540,7 @@ const ClientDetail = () => {
                         ))}
                       </TableBody>
                     </Table>
+                  <ResponsiveTablePagination page={attributionPage} pageSize={pageSize} total={filteredAttributions.length} onPageChange={setAttributionPage} />
                   </CardContent>
                 </Card>
 
