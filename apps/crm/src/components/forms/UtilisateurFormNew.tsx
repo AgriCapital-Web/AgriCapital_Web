@@ -16,7 +16,7 @@ import { getSafeErrorMessage } from "@/lib/safeError";
 import { useAppRoles, useDepartementsEntreprise } from "@/hooks/useReferentiels";
 import CountryPhoneInput from "@/components/common/CountryPhoneInput";
 import FileUploadVisual from "@/components/ui/file-upload-visual";
-import { ROLES as APP_ROLES } from "@/lib/roles";
+import { ROLES as APP_ROLES, normalizeRoles } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 
 
@@ -78,7 +78,7 @@ const UtilisateurFormNew = ({ utilisateur, onSuccess, onCancel }: UtilisateurFor
 
   useEffect(() => {
     if (!rolesDisponibles.length) return;
-    const officialCodes = new Set(rolesDisponibles.map((r) => r.code));
+    const officialCodes = new Set<string>(rolesDisponibles.map((r) => String(r.code)));
     setSelectedRoles((current) => current.filter((role) => officialCodes.has(role)));
   }, [rolesDisponibles]);
 
