@@ -95,8 +95,6 @@ const Offres = () => {
     }
   });
 
-  const filteredPromotions = (promotions || []).filter((promo: any) => JSON.stringify(promo).toLowerCase().includes(tableSearch.trim().toLowerCase()));
-
   // Fetch promotions
   const { data: promotions, isLoading: loadingPromos } = useQuery({
     queryKey: ['promotions'],
