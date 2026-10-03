@@ -29,6 +29,9 @@ jobs:
       - name: Lint CRM
         working-directory: apps/crm
         run: npm run lint
+      - name: Tests CRM
+        working-directory: apps/crm
+        run: npx vitest run
       - name: Build CRM
         working-directory: apps/crm
         run: npm run build
